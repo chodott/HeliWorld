@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "LabProject08-0-1.h"
 #include "GameFramework.h"
-
+#include"Server.h"
 #define MAX_LOADSTRING 100
 #ifdef _DEBUG
 #ifdef UNICODE
@@ -40,7 +40,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 	if (!InitInstance(hInstance, nCmdShow)) return(FALSE);
 
 	hAccelTable = ::LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_LABPROJECT0801));
-
+	RecieveServer();
 	while (1)
 	{
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))

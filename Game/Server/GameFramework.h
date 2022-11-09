@@ -6,6 +6,7 @@
 #include "Timer.h"
 #include "Player.h"
 #include "Scene.h"
+#include"Server.h"
 
 class CGameFramework
 {

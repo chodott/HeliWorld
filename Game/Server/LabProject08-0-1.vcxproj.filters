@@ -49,6 +49,12 @@
     <Filter Include="Object\MultiSpriteObject">
       <UniqueIdentifier>{1bcb1e07-8a97-4a33-9783-a8d0341aaef2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Server">
+      <UniqueIdentifier>{fab2a2f4-e9d2-4ec9-924e-9dfd467b7f4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Server\Error">
+      <UniqueIdentifier>{e63061a8-b637-4c6a-b922-ec72ba86076a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -81,9 +87,6 @@
     <ClInclude Include="Vertex.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ServerError.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="DDSTextureLoader12.h">
       <Filter>TextureLoader\DDSTextureLoader</Filter>
     </ClInclude>
@@ -111,6 +114,12 @@
     <ClInclude Include="CMultiSpriteObject.h">
       <Filter>Object\MultiSpriteObject</Filter>
     </ClInclude>
+    <ClInclude Include="Server.h">
+      <Filter>Server</Filter>
+    </ClInclude>
+    <ClInclude Include="error.h">
+      <Filter>Server\Error</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LabProject08-0-1.cpp">
@@ -132,9 +141,6 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Vertex.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="ServerError.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="DDSTextureLoader12.cpp">
@@ -166,6 +172,12 @@
     </ClCompile>
     <ClCompile Include="CMultiSpriteObject.cpp">
       <Filter>Object\MultiSpriteObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Server.cpp">
+      <Filter>Server</Filter>
+    </ClCompile>
+    <ClCompile Include="error.cpp">
+      <Filter>Server\Error</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -150,6 +150,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="DDSTextureLoader12.h" />
     <ClInclude Include="CMultiSpriteObject.h" />
+    <ClInclude Include="error.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="LabProject08-0-1.h" />
     <ClInclude Include="Mesh.h" />
@@ -160,7 +161,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="ServerError.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DDSTextureLoader12.cpp" />
     <ClCompile Include="CMultiSpriteObject.cpp" />
+    <ClCompile Include="error.cpp" />
     <ClCompile Include="GameFramework.cpp" />
     <ClCompile Include="LabProject08-0-1.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -181,7 +183,7 @@
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="ServerError.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

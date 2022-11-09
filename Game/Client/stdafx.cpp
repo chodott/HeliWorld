@@ -7,6 +7,7 @@
 #include "DDSTextureLoader12.h"
 #include "WICTextureLoader12.h"
 
+
 UINT gnRtvDescriptorIncrementSize = 0;
 UINT gnDsvDescriptorIncrementSize = 0;
 UINT gnCbvSrvDescriptorIncrementSize = 0;

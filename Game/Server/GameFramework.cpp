@@ -5,6 +5,7 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 
+
 CGameFramework::CGameFramework()
 {
 	m_pdxgiFactory = NULL;
