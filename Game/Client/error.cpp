@@ -1,5 +1,6 @@
-#include"ServerError.h"
 #include"stdafx.h"
+#include"Error.h"
+
 void err_quit(const char* msg)
 {
 	LPVOID lpMsgBuf;
