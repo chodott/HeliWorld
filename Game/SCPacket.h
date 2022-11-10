@@ -2,6 +2,7 @@
 #pragma once
 
 const char SC_PlayerInfo = 0;
+const char SC_PlayerStatus = 1;
 
 
 #pragma pack(1)
@@ -11,5 +12,12 @@ struct PlayerInfoPacket {
     float pitch, yaw, roll;
     float xDelta, yDelta, zDelta;
 }
-#pragma
 
+struct PlayerStatusPacket {
+    char PacketType;
+    char PlayerNumber;
+    char ActivatedMissiles;
+    int PlayerHP;
+};
+
+#pragma pack()
