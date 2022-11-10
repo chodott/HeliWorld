@@ -30,6 +30,6 @@
 *.exe
 *.out
 *.app
-Game/.vs
-Game/Client/.vs
-Game/Client/x64
+
+.vs
+x64
