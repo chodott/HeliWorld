@@ -3,7 +3,7 @@
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
-
+std::unordered_map<SOCKET, int> PlayerDataMap;
 
 int RecieveServer()
 {
@@ -33,9 +33,15 @@ int RecieveServer()
 
 	// 데이터 통신에 사용할 변수
 	SOCKET client_sock;
+	HANDLE ReceiveThread;
 	struct sockaddr_in clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
+
+	//Create ReceiveAllClient Thread
+	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient,
+		NULL, 0, NULL);
+	CloseHandle(ReceiveThread);
 
 	while (1) {
 		// accept()
@@ -49,7 +55,7 @@ int RecieveServer()
 		// 접속한 클라이언트 정보 출력
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
+		printf_s("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 
 		// 클라이언트와 데이터 통신
@@ -65,7 +71,7 @@ int RecieveServer()
 
 			// 받은 데이터 출력
 			buf[retval] = '\0';
-			printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
+			printf_s("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
 
 			// 데이터 보내기
 			retval = send(client_sock, buf, retval, 0);
@@ -77,7 +83,7 @@ int RecieveServer()
 
 		// 소켓 닫기
 		closesocket(client_sock);
-		printf("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
+		printf_s("[TCP 서버] 클라이언트 종료: IP 주소=%s, 포트 번호=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 	}
 
@@ -87,4 +93,32 @@ int RecieveServer()
 	// 윈속 종료
 	WSACleanup();
 	return 0;
+}
+
+DWORD WINAPI ReceiveAllClient(LPVOID arg)
+{
+	//소켓 정보 저장할 곳 필요
+	int retval;
+	sockaddr_in clientaddr;
+	char addr[INET_ADDRSTRLEN];
+	char buf[BUFSIZE + 1];
+
+
+	// 클라이언트와 데이터 통신
+	while (1) {
+		for (auto PlayerData: PlayerDataMap){	//플레이어 접속 수만큼 순환
+			// 데이터 받기
+			retval = recv(PlayerData.first, buf, BUFSIZE, 0);
+			if (retval == SOCKET_ERROR) {
+				err_display("recv()");
+				break;
+			}
+	
+			// 받은 데이터 출력
+			//buf[retval] = '\0';
+			//printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
+			}
+		}
+
+	return 1;
 }
