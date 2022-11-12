@@ -17,14 +17,14 @@ int AcceptClient()
 {
 	int retval;
 	char* SERVERIP = (char*)"127.0.0.1";
-	// ¸í·ÉÇà ÀÎ¼ö°¡ ÀÖÀ¸¸é IP ÁÖ¼Ò·Î »ç¿ë
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IP ï¿½Ö¼Ò·ï¿½ ï¿½ï¿½ï¿½
 	//if (argc > 1) SERVERIP = argv[1];
 	//int ServerPort[2] = {};
-	// À©¼Ó ÃÊ±âÈ­
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
 		return 1;
-	// ¼ÒÄÏ »ý¼º
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == INVALID_SOCKET) err_quit("socket()");
 	// connect()
@@ -35,6 +35,6 @@ int AcceptClient()
 	serveraddr.sin_port = htons(SERVERPORT);
 	retval = connect(sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 	//if (retval == SOCKET_ERROR)err_quit("socket()");
-	// µ¥ÀÌÅÍ Åë½Å¿¡ »ç¿ëÇÒ º¯¼ö
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	closesocket(sock);
 }
