@@ -84,7 +84,7 @@ CTexture::~CTexture()
 	}
 
 	if (m_ppstrTextureNames) delete[] m_ppstrTextureNames;
-
+	
 	if (m_pnResourceTypes) delete[] m_pnResourceTypes;
 	if (m_pdxgiBufferFormats) delete[] m_pdxgiBufferFormats;
 	if (m_pnBufferElements) delete[] m_pnBufferElements;

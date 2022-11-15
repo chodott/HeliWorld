@@ -4,8 +4,13 @@
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="GameObjectMgr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="GameObjectMgr.cpp" />
   </ItemGroup>
 </Project>

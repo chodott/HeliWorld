@@ -7,6 +7,9 @@
 
 //#pragma lib(lib, "ws2_32")
 
+std::unordered_map<SOCKET, int> PlayerDataMap;
+
+
 int ReceiveServer()
 {
 	int retval;
@@ -99,7 +102,6 @@ int ReceiveServer()
 
 DWORD WINAPI ReceiveAllClient(LPVOID arg)
 {
-	//���� ���� ������ �� �ʿ�
 	int retval;
 	sockaddr_in clientaddr;
 	char addr[INET_ADDRSTRLEN];
@@ -120,6 +122,7 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 			//Ű on/off Ȯ��
 			PlayerInput[cnt] = buf[0];
+
 			cnt++;
 			// ���� ������ ���
 			//buf[retval] = '\0';
@@ -128,4 +131,18 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 		}
 
 	return 1;
+}
+
+int main()
+{
+	//Create Object Mgr
+	GameObjectMgr* ObjectMgr = new GameObjectMgr();
+
+	while (1)
+	{
+		ObjectMgr->AnimateObjects();
+		ObjectMgr->CheckCollision();
+
+		//SendAllClient
+	}
 }
