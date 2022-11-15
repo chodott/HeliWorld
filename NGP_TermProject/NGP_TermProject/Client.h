@@ -1,5 +1,4 @@
-#pragma once
-#include "stdafx.h"
+#include"stdafx.h"
 
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 구형 소켓 API 사용 시 경고 끄기
@@ -7,22 +6,22 @@
 #include <winsock2.h> // 윈속2 메인 헤더
 #include <ws2tcpip.h> // 윈속2 확장 헤더
 
-//#include <tchar.h> // _T(), ...
-//#include <stdio.h> // printf(), ...
-//#include <stdlib.h> // exit(), ...
-//#include <string.h> // strncpy(), ...
-//#include <string>
-//#include <iostream>
+#include <tchar.h> // _T(), ...
+#include <stdio.h> // printf(), ...
+#include <stdlib.h> // exit(), ...
+#include <string.h> // strncpy(), ...
+#include <string>
+#include <iostream>
 
-#include "error.h"
+#include"error.h"
 
-//#pragma comment(lib, "ws2_32") // ws2_32.lib 링크
+#pragma comment(lib, "ws2_32") // ws2_32.lib 링크
 #define SERVERPORT 9000
 #define BUFSIZE 512
 
+#pragma pack(1)
+#pragma once
 
-
-//#pragma pack(1)
 class ConnectServer {
 public:
 	ConnectServer();
@@ -31,12 +30,13 @@ public:
 	SOCKET GetClientsock() { return Clientsock; };
 	void SetClientsock();
 	char* GetSERVERIP() { return SERVERIP; };
-
-
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 private:
 	SOCKET Clientsock = 0;
 	char* SERVERIP = (char*)"127.0.0.1";
+	WSADATA wsa;
+	int retval;
+	struct sockaddr_in serveraddr;
 	unsigned char SendKey;
 	unsigned char option0 = 1 << 0; // 0000 0001 
 	unsigned char option1 = 1 << 1; // 0000 0010
