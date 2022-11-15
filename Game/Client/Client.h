@@ -20,7 +20,7 @@
 #define BUFSIZE 512
 
 #pragma pack(1)
-
+#pragma once
 
 class ConnectServer {
 public:
@@ -30,12 +30,13 @@ public:
 	SOCKET GetClientsock() { return Clientsock; };
 	void SetClientsock();
 	char* GetSERVERIP() { return SERVERIP; };
-
-
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 private:
 	SOCKET Clientsock = 0;
 	char* SERVERIP = (char*)"127.0.0.1";
+	WSADATA wsa;
+	int retval;
+	struct sockaddr_in serveraddr;
 	unsigned char SendKey;
 	unsigned char option0 = 1 << 0; // 0000 0001 
 	unsigned char option1 = 1 << 1; // 0000 0010
