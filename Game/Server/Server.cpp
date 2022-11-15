@@ -3,6 +3,7 @@
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
+//플레이어 정보 관리 컨테이너	*value값은 임의로 int 선언 - 변경 필요>
 std::unordered_map<SOCKET, int> PlayerDataMap;
 
 int RecieveServer()
@@ -102,10 +103,12 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 	sockaddr_in clientaddr;
 	char addr[INET_ADDRSTRLEN];
 	char buf[BUFSIZE + 1];
+	char PlayerInput[4];
 
 
 	// 클라이언트와 데이터 통신
 	while (1) {
+		int cnt = 0;
 		for (auto PlayerData: PlayerDataMap){	//플레이어 접속 수만큼 순환
 			// 데이터 받기
 			retval = recv(PlayerData.first, buf, BUFSIZE, 0);
@@ -113,7 +116,10 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 				err_display("recv()");
 				break;
 			}
-	
+
+			//키 on/off 확인
+			PlayerInput[cnt] = buf[0];
+			cnt++;
 			// 받은 데이터 출력
 			//buf[retval] = '\0';
 			//printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
