@@ -1,24 +1,30 @@
 
 #pragma once
+#include"stdafx.h"
 
 const char SC_PlayerInfo = 0;
 const char SC_PlayerStatus = 1;
+const char SC_PlayerKey = 2;
 
 
 #pragma pack(1)
 struct PlayerInfoPacket {
-    char PacketType;
-    char PlayerNumber;
-    XMFLOAT3  RotationAxis;
-    XMFLOAT3 Rotation;
+    char packetType;
+    char playerNumber;
+    XMFLOAT3 rotationAxis;
+    XMFLOAT3 rotation;
 };
-
 
 struct PlayerStatusPacket {
-	char PacketType;
-	char PlayerNumber;
-	char ActivatedMissiles;
-	int PlayerHP;
+	char packetType;
+	char playerNumber;
+	char activatedMissiles;
+	int playerHP;
 };
 
+struct PlayerKeyPacket {
+	char playerKeyInput;
+	POINT mousePosition;
+
+};
 #pragma pack()

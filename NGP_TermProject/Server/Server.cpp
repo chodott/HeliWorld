@@ -8,9 +8,9 @@
 //#pragma lib(lib, "ws2_32")
 
 std::unordered_map<SOCKET, int> PlayerDataMap;
+//SOCKET client_sock[4];
+Server* g_server;
 
-
-int ReceiveServer()
 Server::Server()
 {
 	WSADATA wsa;
@@ -51,129 +51,78 @@ void Server::SendAllClient()
 	{
 		for (int j = 0; i < clientNum; ++i)
 		{
-			if (clients.at(i) != nullptr)
-				send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
+			//if (clients.at(i) != nullptr)
+				//send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
 				// need conversion operator packet => char* 
 		}
 	}
 }
 
-int ReceiveServer()
+DWORD  AcceptClient(LPVOID arg)
 {
+	int index = 0;
 	int retval;
-
-	//// ���� �ʱ�ȭ
-	//WSADATA wsa;
-	//if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	//	return 1;
-
-	//// ���� ����
-	//SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	//if (listen_sock == INVALID_SOCKET) err_quit("socket()");
-
-	//// bind()
-	//struct sockaddr_in serveraddr;
-	//memset(&serveraddr, 0, sizeof(serveraddr));
-	//serveraddr.sin_family = AF_INET;
-	//serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	//serveraddr.sin_port = htons(SERVERPORT);
-	//retval = bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-	//if (retval == SOCKET_ERROR) err_quit("bind()");
-
-	//// listen()
-	//retval = listen(listen_sock, SOMAXCONN);
-	//if (retval == SOCKET_ERROR) err_quit("listen()");
-
-	// ������ ��ſ� ����� ����
-
-
-
-	SOCKET client_sock;
+	SOCKET Temp_sock = (SOCKET)arg;
 	struct sockaddr_in clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
-
 	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(*g_server.GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
-		if (client_sock == INVALID_SOCKET) {
+		Temp_sock = accept(*g_server->GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
+		if (Temp_sock == INVALID_SOCKET) {
 			err_display("accept()");
 			break;
 		}
-
-		// ������ Ŭ���̾�Ʈ ���� ���
+		for (int i = 0; i < 4; ++i) {
+			if (!g_server->clientSock[i]) {
+				g_server->clientSock[i] = Temp_sock;
+				index = i;
+				break;
+			}
+		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
 		printf("\n[TCP ����] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
 			addr, ntohs(clientaddr.sin_port));
-
-		// Ŭ���̾�Ʈ�� ������ ���
-		while (1) {
-			// ������ �ޱ�
-			retval = recv(client_sock, buf, BUFSIZE, 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-			else if (retval == 0)
-				break;
-
-			// ���� ������ ���
-			buf[retval] = '\0';
-			printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
-
-			// ������ ������
-			retval = send(client_sock, buf, retval, 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("send()");
-				break;
-			}
-		}
-
-		// ���� �ݱ�
-		closesocket(client_sock);
+		//closesocket(client_sock[index]);
 		printf("[TCP ����] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 	}
-
-	// ���� �ݱ�
-	closesocket(*g_server.GetSocket());
-
-	// ���� ����
-	WSACleanup();
+	//closesocket(*g_server->GetSocket());
+	//WSACleanup();
 	return 0;
 }
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg)
+DWORD WINAPI ReceiveAllClient(LPVOID arg)//
 {
-	int retval;
-	sockaddr_in clientaddr;
+	int retval{};
+	sockaddr_in clientaddr{};
 	char addr[INET_ADDRSTRLEN];
 	char buf[BUFSIZE + 1];
 	char PlayerInput[4];
 
 
+
 	// Ŭ���̾�Ʈ�� ������ ���
 	while (1) {
-		int cnt = 0;
-		for (auto PlayerData: PlayerDataMap){	//�÷��̾� ���� ����ŭ ��ȯ
-			// ������ �ޱ�
-			retval = recv(PlayerData.first, buf, BUFSIZE, 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-
-			//Ű on/off Ȯ��
-			PlayerInput[cnt] = buf[0];
-
-			cnt++;
-			// ���� ������ ���
-			//buf[retval] = '\0';
-			//printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
-			}
+		// Event off
+		for (int i = 0; i < 4; ++i)
+		{
+			char buf[BUFSIZE];
+			retval = recv(g_server->clientSock[i], buf, BUFSIZE, 0);
+			g_server->playerKey[i] = buf[0];
 		}
+		//retval = recv(g_server->clientSock[i], buf, BUFSIZE, 0);
+		if (retval == SOCKET_ERROR) {
+			err_display("recv()");
+			break;
+		}
+
+		int playerNumber = (int)buf[0];
+		g_server->playerKey[playerNumber] = buf[1];
+		// Event on
+	}
 
 	return 1;
 }
@@ -181,14 +130,22 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 int main()
 {
 	//Create Object Mgr
+	g_server = new Server;
+	g_server->OpenListenSocket();
 	GameObjectMgr* ObjectMgr = new GameObjectMgr();
-
+	HANDLE AcceptThread, ReceiveThread;
+	AcceptThread = CreateThread(NULL, 0, AcceptClient, (LPVOID)&g_server->clients, 0, NULL);//client->g_server
+	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, (LPVOID)&g_server->clients, 0, NULL);
 	while (1)
 	{
+		// Event is on?
 		ObjectMgr->AnimateObjects();
 		ObjectMgr->CheckCollision();
-
 		//SendAllClient
 	}
 }
+
+
+
+
 

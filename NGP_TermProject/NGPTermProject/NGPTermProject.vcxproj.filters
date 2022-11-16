@@ -87,6 +87,9 @@
     <ClInclude Include="WICTextureLoader12.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CSPacket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NGPTermProject.cpp">

@@ -18,11 +18,10 @@ const char KEY_S = 0x04;
 const char MOUSE_LEFT = 0x10;
 const char MOUSE_RIGHT = 0x20;
 
-int RecieveServer();
-
 DWORD WINAPI ReceiveAllClient(LPVOID arg);
+DWORD AcceptClient(LPVOID arg);
 
-int ReceiveServer();
+int AcceptClient();
 
 class Client;
 
@@ -35,13 +34,16 @@ public:
 
 	void SendAllClient();
 
+
 	SOCKET* GetSocket() { return &listenSock; }
 
+	std::array<Client*, 4> clients;
+	std::array<SOCKET, 4> clientSock;
+	std::array<char, 4> playerKey;
 private:
 	SOCKET listenSock;
 
 	int clientNum = 0;
-	std::array<Client*, 4> clients;
 
 	std::array<PlayerInfoPacket, 4> infoPackets;
 
@@ -55,8 +57,8 @@ public:
 private:
 	SOCKET clientSock;
 
-	//char playerNumber;	// maybe client class don't need it inside
-	
+	//char playerNumber;	// maybe client class can have playerID inside
+
 	float oldxPos, oldyPos, oldzPos;
 	float xPos, yPos, zPos;
 
@@ -67,4 +69,3 @@ private:
 
 };
 
-Server g_server;

@@ -35,6 +35,8 @@ CGameFramework::CGameFramework()
 	m_pPlayer = NULL;
 
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
+
+	Client.SetClientsock();//connectServer;
 }
 
 CGameFramework::~CGameFramework()
