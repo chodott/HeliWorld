@@ -9,6 +9,8 @@ struct headerFile {
 #pragma pack()
 #pragma once
 
+
+
 ConnectServer::ConnectServer()
 {
 
@@ -33,9 +35,6 @@ void ConnectServer::SetClientsock()
 	if (retval == SOCKET_ERROR)err_quit("socket()");
 	//	closesocket(Clientsock);
 }
-
-
-
 void ConnectServer::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	switch (nMessageID)
@@ -61,4 +60,44 @@ void ConnectServer::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPAR
 		return;
 	}
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", retval);
+}
+
+DWORD __stdcall ConnectServer::ReceiveFromServer(LPVOID arg)
+{
+	int recvData;
+	int retval;
+	SOCKET client_sock = (SOCKET)arg;
+	struct sockaddr_in clientaddr;
+	char addr[INET_ADDRSTRLEN];
+	int addrlen;
+	char PacketType;
+	char PlayerNumber;
+	XMFLOAT3  RotationAxis;
+	XMFLOAT3 Rotation;
+	addrlen = sizeof(clientaddr);
+	PlayerInfoPacket PlayerInfo[4];
+	getpeername(client_sock, (struct sockaddr*)&clientaddr, &addrlen);
+	inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+	
+	PlayerInfoPacket Client;
+	while (1) {
+		for (int i = 0; i < 4; i++) {
+			retval = recv(client_sock, (char*)&PlayerInfo[i].PacketType, sizeof(char), MSG_WAITALL);
+			recvData += retval;
+			retval = recv(client_sock, (char*)&PlayerInfo[i].PlayerNumber, sizeof(int), MSG_WAITALL);
+			recvData += retval;
+			retval = recv(client_sock, (char*)&PlayerInfo[i].RotationAxis, sizeof(XMFLOAT3), MSG_WAITALL);
+			recvData += retval;
+			retval = recv(client_sock, (char*)&PlayerInfo[i].Rotation, sizeof(XMFLOAT3), MSG_WAITALL);
+			recvData += retval;
+			SendPlayerDater[i] = PlayerInfo[i];//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+			recvData = 0;
+		}
+		//break;->break x ->infinite run
+	}
+	//	printf("클라이언트 번호 : %d \n", Clientnum);
+//	closesocket(client_sock);
+
+//	while (1) {};
+	
 }

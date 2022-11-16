@@ -1,8 +1,8 @@
 
 #pragma once
 
-const char SC_PlayerInfo = 0;
-const char SC_PlayerStatus = 1;
+const char CL_PlayerInfo = 0;
+const char CL_PlayerStatus = 1;
 
 
 #pragma pack(1)
@@ -13,12 +13,11 @@ struct PlayerInfoPacket {
     XMFLOAT3 Rotation;
 };
 
-
 struct PlayerStatusPacket {
-	char PacketType;
-	char PlayerNumber;
-	char ActivatedMissiles;
-	int PlayerHP;
+    char PacketType;
+    char PlayerNumber;
+    char ActivatedMissiles;
+    int PlayerHP;
 };
 
 #pragma pack()

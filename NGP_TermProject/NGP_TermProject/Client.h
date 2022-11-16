@@ -12,7 +12,7 @@
 #include <string.h> // strncpy(), ...
 #include <string>
 #include <iostream>
-
+#include"CLPacket.h"
 #include"error.h"
 
 #pragma comment(lib, "ws2_32") // ws2_32.lib ¸µÅ©
@@ -22,6 +22,8 @@
 #pragma pack(1)
 #pragma once
 
+
+PlayerInfoPacket SendPlayerDater[4];
 class ConnectServer {
 public:
 	ConnectServer();
@@ -31,6 +33,8 @@ public:
 	void SetClientsock();
 	char* GetSERVERIP() { return SERVERIP; };
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	DWORD WINAPI ReceiveFromServer(LPVOID arg);
+	
 private:
 	SOCKET Clientsock = 0;
 	char* SERVERIP = (char*)"127.0.0.1";
