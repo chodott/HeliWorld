@@ -1,6 +1,5 @@
 
 #pragma once
-#include "stdafx.h"
 
 const char SC_PlayerInfo = 0;
 const char SC_PlayerStatus = 1;

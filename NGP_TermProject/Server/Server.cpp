@@ -10,6 +10,7 @@
 std::unordered_map<SOCKET, int> PlayerDataMap;
 
 
+int ReceiveServer()
 Server::Server()
 {
 	WSADATA wsa;
@@ -50,14 +51,14 @@ void Server::SendAllClient()
 	{
 		for (int j = 0; i < clientNum; ++i)
 		{
-			//if (clients.at(i) != nullptr)
-				//send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
+			if (clients.at(i) != nullptr)
+				send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
 				// need conversion operator packet => char* 
 		}
 	}
 }
 
-DWORD __stdcall AcceptClient(LPVOID arg)
+int ReceiveServer()
 {
 	int retval;
 
@@ -87,7 +88,7 @@ DWORD __stdcall AcceptClient(LPVOID arg)
 
 
 
-	SOCKET client_sock = (SOCKET)arg;
+	SOCKET client_sock;
 	struct sockaddr_in clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
@@ -181,8 +182,6 @@ int main()
 {
 	//Create Object Mgr
 	GameObjectMgr* ObjectMgr = new GameObjectMgr();
-	HANDLE AcceptThread;
-	AcceptThread = CreateThread(NULL, 0, AcceptClient, NULL, 0, NULL);
 
 	while (1)
 	{

@@ -10,22 +10,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CPlayer
 
-void CPlayer::SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
-{
-	m_movement = movement;
-	m_rotation = rotation;
-}
-
-XMFLOAT3 CPlayer::GetMovement()
-{
-	return m_movement;
-}
-
-XMFLOAT3 CPlayer::GetRotation()
-{
-	return m_rotation;
-}
-
 CPlayer::CPlayer()
 {
 	m_pCamera = NULL;

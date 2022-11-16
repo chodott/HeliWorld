@@ -70,12 +70,6 @@ public:
     void AnimateObjects(float fTimeElapsed);
     void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
 
-public:
-	void Update();
-	float xDelta, yDelta, zDelta;
-	float pitch, yaw, roll;
-
-public:
 	void ReleaseUploadBuffers();
 	CHeightMapTerrain* GetTerrain() { return(m_pTerrain); }
 

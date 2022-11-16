@@ -1,8 +1,9 @@
-// LabProject08-0-1.cpp : 응용 프로그램에 대한 진입점을 정의합니다.
+// NGPTermProject.cpp : Defines the entry point for the application.
 //
 
+
 #include "stdafx.h"
-#include "NGP_TermProject.h"
+#include "NGPTermProject.h"
 #include "GameFramework.h"
 
 #define MAX_LOADSTRING 100
@@ -41,7 +42,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCm
 
 	hAccelTable = ::LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_NGPTERMPROJECT));
 
-	// AcceptClient();
+	AcceptClient();
 
 	while (1)
 	{
@@ -78,7 +79,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hIcon = ::LoadIcon(hInstance, MAKEINTRESOURCE(IDI_NGPTERMPROJECT));
 	wcex.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-	wcex.lpszMenuName = NULL;//MAKEINTRESOURCE(IDC_LABPROJECT0801);
+	wcex.lpszMenuName = NULL;//MAKEINTRESOURCE(IDC_NGPTERMPROJECT);
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = ::LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 

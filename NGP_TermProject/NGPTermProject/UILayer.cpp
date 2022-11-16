@@ -1,7 +1,7 @@
 ﻿#include "stdafx.h"
 //#include "UILayer.h"
 //
-////using namespace std;
+//using namespace std;
 //
 //UILayer::UILayer(UINT nFrame, ID3D12Device* pd3dDevice, ID3D12CommandQueue* pd3dCommandQueue)
 //{

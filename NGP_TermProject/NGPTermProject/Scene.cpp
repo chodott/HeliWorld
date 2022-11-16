@@ -528,12 +528,3 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 }
 
 //state machine이 설정에 따라 달라지므로 배열로 바꾸면 된다. 오호 ->꿀
-
-void CScene::Update()
-{
-	// SetShifts will be update before update
-	m_pPlayer->Move(m_pPlayer->GetMovement());
-	XMFLOAT3 rotation = m_pPlayer->GetRotation();
-	m_pPlayer->Rotate(rotation.x, rotation.y, rotation.z);
-}
-

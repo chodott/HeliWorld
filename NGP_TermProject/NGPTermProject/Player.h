@@ -10,7 +10,7 @@
 #include "Object.h"
 #include "Camera.h"
 
-#include "Shader.h"
+#include"Shader.h"
 
 
 class CPlayer : public CGameObject
@@ -35,20 +35,10 @@ protected:
 	LPVOID						m_pCameraUpdatedContext;
 
 	CCamera						*m_pCamera = NULL;
-
+	
 	CShader						*m_pShader = NULL;
 
 	CShader   *m_pMissileShader = NULL;
-
-protected:
-	XMFLOAT3 m_movement;
-	XMFLOAT3 m_rotation;
-
-public:
-	void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation);
-	XMFLOAT3 GetMovement();
-	XMFLOAT3 GetRotation();
-
 public:
 	CPlayer();
 	virtual ~CPlayer();

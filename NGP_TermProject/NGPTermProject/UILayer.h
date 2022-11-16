@@ -15,7 +15,7 @@
 //    void UpdateLabels(const std::wstring& strUIText);
 //    void Render(UINT nFrame);
 //    void ReleaseResources();
-//    void Resize(/*ID3D12Resource** ppd3dRenderTargets*/ComPtr<ID3D12Resource>* ppd3dRenderTargets, UINT width, UINT height);
+//    void Resize(ID3D12Resource** ppd3dRenderTargets, UINT width, UINT height);
 //
 //private:
 //    UINT FrameCount() { return static_cast<UINT>(m_vWrappedRenderTargets.size()); }

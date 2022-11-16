@@ -12,7 +12,7 @@ public:
 	float m_fSpeed;
 
 	void Move();
-	virtual void Rotate(float Pitch, float Yaw, float Roll);
+	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
 
 };
@@ -26,16 +26,11 @@ class Missile :public GameObject
 class Player : public GameObject
 {
 public:
-	float						m_fFriction;
-
-	float           			m_fPitch;
-	float           			m_fYaw;
-	float           			m_fRoll;
+	float m_fFriction;
 	int m_nHp;
 	Missile m_pMissiles[8];
 
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
-	virtual void Rotate(float Pitch, float Yaw, float Roll);
 };
 
 class Item : public GameObject

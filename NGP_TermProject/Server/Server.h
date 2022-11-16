@@ -18,10 +18,11 @@ const char KEY_S = 0x04;
 const char MOUSE_LEFT = 0x10;
 const char MOUSE_RIGHT = 0x20;
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg);
-DWORD AcceptClient(LPVOID arg);
+int RecieveServer();
 
-int AcceptClient();
+DWORD WINAPI ReceiveAllClient(LPVOID arg);
+
+int ReceiveServer();
 
 class Client;
 
@@ -33,7 +34,6 @@ public:
 	void OpenListenSocket();
 
 	void SendAllClient();
-
 
 	SOCKET* GetSocket() { return &listenSock; }
 

@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d148056f-ddf7-4649-ab03-d7b1ecd6070b}</ProjectGuid>
+    <ProjectGuid>{ae96692c-7a8e-4e17-9ebb-b0a72e224654}</ProjectGuid>
     <RootNamespace>Server</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -127,17 +127,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameObjectMgr.h" />
-    <ClInclude Include="SCPacket.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="Socket.h" />
-    <ClInclude Include="stdafx.h" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObject.cpp" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObjectMgr.cpp" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameObjectMgr.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObject.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObjectMgr.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\SCPacket.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Server.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Socket.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

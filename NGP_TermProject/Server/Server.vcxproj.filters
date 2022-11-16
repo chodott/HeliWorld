@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="SCPacket.h" />
-    <ClInclude Include="Server.h" />
-    <ClInclude Include="Socket.h" />
-    <ClInclude Include="GameObject.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="GameObjectMgr.h" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObject.cpp" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObjectMgr.cpp" />
+    <ClCompile Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Server.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Server.cpp" />
-    <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameObjectMgr.cpp" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObject.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\GameObjectMgr.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\SCPacket.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Server.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\Socket.h" />
+    <ClInclude Include="..\..\..\NetGameTermProject\NGP_TermProject\Server\stdafx.h" />
   </ItemGroup>
 </Project>
