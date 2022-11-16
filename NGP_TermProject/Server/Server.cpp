@@ -7,18 +7,22 @@
 
 //#pragma lib(lib, "ws2_32")
 
-int ReceiveServer()
+Server::Server()
 {
-	int retval;
-
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
 	WSADATA wsa;
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-		return 1;
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listen_sock == INVALID_SOCKET) err_quit("socket()");
+Server::~Server()
+{
+	WSACleanup();
+}
+
+void Server::OpenListenSocket()
+{
+	// ¼ÒÄÏ »ý¼º
+	listenSock = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenSock == INVALID_SOCKET) err_quit("socket()");
 
 	// bind()
 	struct sockaddr_in serveraddr;
@@ -26,43 +30,83 @@ int ReceiveServer()
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	retval = bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR) err_quit("bind()");
+	//retval = bind(listenSock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	if (bind(listenSock, (sockaddr*)&serveraddr, sizeof(serveraddr)) == SOCKET_ERROR)
+		err_quit("bind()");
+	//if (retval == SOCKET_ERROR) err_quit("bind()");
 
 	// listen()
-	retval = listen(listen_sock, SOMAXCONN);
-	if (retval == SOCKET_ERROR) err_quit("listen()");
+	if (listen(listenSock, SOMAXCONN) == SOCKET_ERROR)
+		err_quit("listen()");
+	//if (retval == SOCKET_ERROR) err_quit("listen()");
+}
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+void Server::SendAllClient()
+{
+	for (int i = 0; i < clientNum; ++i)
+	{
+		for (int j = 0; i < clientNum; ++i)
+		{
+			if (clients.at(i) != nullptr)
+				send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
+				// need conversion operator packet => char* 
+		}
+	}
+}
+
+int ReceiveServer()
+{
+	int retval;
+
+	//// À©¼Ó ÃÊ±âÈ­
+	//WSADATA wsa;
+	//if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	//	return 1;
+
+	//// ¼ÒÄÏ »ý¼º
+	//SOCKET listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	//if (listen_sock == INVALID_SOCKET) err_quit("socket()");
+
+	//// bind()
+	//struct sockaddr_in serveraddr;
+	//memset(&serveraddr, 0, sizeof(serveraddr));
+	//serveraddr.sin_family = AF_INET;
+	//serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	//serveraddr.sin_port = htons(SERVERPORT);
+	//retval = bind(listen_sock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
+	//if (retval == SOCKET_ERROR) err_quit("bind()");
+
+	//// listen()
+	//retval = listen(listen_sock, SOMAXCONN);
+	//if (retval == SOCKET_ERROR) err_quit("listen()");
+
+	// µ¥ÀÌÅÍ Åë½Å¿¡ »ç¿ëÇÒ º¯¼ö
+
+
+
 	SOCKET client_sock;
-	HANDLE ReceiveThread;
 	struct sockaddr_in clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
 
-	//Create ReceiveAllClient Thread
-	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient,
-		NULL, 0, NULL);
-	CloseHandle(ReceiveThread);
-
 	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
-		client_sock = accept(listen_sock, (struct sockaddr*)&clientaddr, &addrlen);
+		client_sock = accept(*g_server.GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
 		if (client_sock == INVALID_SOCKET) {
 			err_display("accept()");
 			break;
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		// Á¢¼ÓÇÑ Å¬¶óÀÌ¾ðÆ® Á¤º¸ Ãâ·Â
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf_s("\n[TCP ï¿½ï¿½ï¿½ï¿½] Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½: IP ï¿½Ö¼ï¿½=%s, ï¿½ï¿½Æ® ï¿½ï¿½È£=%d\n",
+		printf("\n[TCP ¼­¹ö] Å¬¶óÀÌ¾ðÆ® Á¢¼Ó: IP ÁÖ¼Ò=%s, Æ÷Æ® ¹øÈ£=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 
-		// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		// Å¬¶óÀÌ¾ðÆ®¿Í µ¥ÀÌÅÍ Åë½Å
 		while (1) {
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½
+			// µ¥ÀÌÅÍ ¹Þ±â
 			retval = recv(client_sock, buf, BUFSIZE, 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("recv()");
@@ -71,11 +115,11 @@ int ReceiveServer()
 			else if (retval == 0)
 				break;
 
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+			// ¹ÞÀº µ¥ÀÌÅÍ Ãâ·Â
 			buf[retval] = '\0';
-			printf_s("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
+			printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
 
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// µ¥ÀÌÅÍ º¸³»±â
 			retval = send(client_sock, buf, retval, 0);
 			if (retval == SOCKET_ERROR) {
 				err_display("send()");
@@ -83,49 +127,18 @@ int ReceiveServer()
 			}
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ý±ï¿½
+		// ¼ÒÄÏ ´Ý±â
 		closesocket(client_sock);
-		printf_s("[TCP ï¿½ï¿½ï¿½ï¿½] Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½: IP ï¿½Ö¼ï¿½=%s, ï¿½ï¿½Æ® ï¿½ï¿½È£=%d\n",
+		printf("[TCP ¼­¹ö] Å¬¶óÀÌ¾ðÆ® Á¾·á: IP ÁÖ¼Ò=%s, Æ÷Æ® ¹øÈ£=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ý±ï¿½
-	closesocket(listen_sock);
+	// ¼ÒÄÏ ´Ý±â
+	closesocket(*g_server.GetSocket());
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// À©¼Ó Á¾·á
 	WSACleanup();
 	return 0;
 }
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg)
-{
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê¿ï¿½
-	int retval;
-	sockaddr_in clientaddr;
-	char addr[INET_ADDRSTRLEN];
-	char buf[BUFSIZE + 1];
-	char PlayerInput[4];
 
-
-	// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	while (1) {
-		int cnt = 0;
-		for (auto PlayerData: PlayerDataMap){	//ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å­ ï¿½ï¿½È¯
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ±ï¿½
-			retval = recv(PlayerData.first, buf, BUFSIZE, 0);
-			if (retval == SOCKET_ERROR) {
-				err_display("recv()");
-				break;
-			}
-
-			//Å° on/off È®ï¿½ï¿½
-			PlayerInput[cnt] = buf[0];
-			cnt++;
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-			//buf[retval] = '\0';
-			//printf("[TCP/%s:%d] %s\n", addr, ntohs(clientaddr.sin_port), buf);
-			}
-		}
-
-	return 1;
-}

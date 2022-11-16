@@ -7,17 +7,20 @@ const char SC_PlayerStatus = 1;
 
 #pragma pack(1)
 struct PlayerInfoPacket {
-    char PacketType;
-    char PlayerNumber;
-    float pitch, yaw, roll;
-    float xDelta, yDelta, zDelta;
+	PlayerInfoPacket() : packetType(SC_PlayerInfo) {}
+
+
+	char packetType;
+	char playerNumber;
+	float pitch, yaw, roll;
+	float xDelta, yDelta, zDelta;
 };
 
 struct PlayerStatusPacket {
-    char PacketType;
-    char PlayerNumber;
-    char ActivatedMissiles;
-    int PlayerHP;
+	char PacketType;
+	char PlayerNumber;
+	char ActivatedMissiles;
+	int PlayerHP;
 };
 
 #pragma pack()
