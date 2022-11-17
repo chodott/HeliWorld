@@ -11,7 +11,7 @@ const char SC_PlayerKey = 2;
 struct PlayerInfoPacket {
     char packetType;
     char playerNumber;
-    XMFLOAT3 rotationAxis;
+    XMFLOAT3 movement;
     XMFLOAT3 rotation;
 };
 

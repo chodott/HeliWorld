@@ -38,7 +38,7 @@ public:
 	SOCKET* GetSocket() { return &listenSock; }
 
 	std::array<Client*, 4> clients;
-	std::array<SOCKET, 4> clientSock;
+	//std::array<SOCKET, 4> clientSock;
 	std::array<char, 4> playerKey;
 private:
 	SOCKET listenSock;
@@ -52,18 +52,18 @@ private:
 
 class Client {
 public:
-	friend Server;
+	//friend Server;
 
-private:
 	SOCKET clientSock;
-
-	//char playerNumber;	// maybe client class can have playerID inside
-
 	float oldxPos, oldyPos, oldzPos;
 	float xPos, yPos, zPos;
 
 	float oldPitch, oldYaw, oldRoll;
 	float pitch, yaw, roll;
+private:
+
+	char playerNumber;	// maybe client class can have playerID inside
+
 
 	int hp;
 

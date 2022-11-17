@@ -49,11 +49,28 @@ void Server::SendAllClient()
 {
 	for (int i = 0; i < clientNum; ++i)
 	{
+		// sending playerinfo packet
+		char packetType = SC_PlayerInfo;
 		for (int j = 0; i < clientNum; ++i)
 		{
 			//if (clients.at(i) != nullptr)
 				//send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
 				// need conversion operator packet => char* 
+			if (clients.at(i) != nullptr)
+			{
+				SOCKET* sock = &clients.at(i)->clientSock;
+				Client* c = clients.at(i);
+				XMFLOAT3 movement{  c->xPos - c->oldxPos,
+									c->yPos - c->oldyPos,
+									c->zPos - c->oldzPos };
+				XMFLOAT3 rotation{  c->pitch - c->oldPitch,
+									c->yaw - c->oldYaw,
+									c->roll - c->oldRoll };
+				send(*sock, (char*)&packetType, sizeof(char), 0);
+				send(*sock, (char*)&i, sizeof(char), 0);
+				send(*sock, (char*)&movement, sizeof(char), 0);
+				send(*sock, (char*)&rotation, sizeof(char), 0);
+			}
 		}
 	}
 }
@@ -75,15 +92,15 @@ DWORD  AcceptClient(LPVOID arg)
 			break;
 		}
 		for (int i = 0; i < 4; ++i) {
-			if (!g_server->clientSock[i]) {
-				g_server->clientSock[i] = Temp_sock;
+			if (!g_server->clients.at(i)) {
+				g_server->clients.at(i)->clientSock = Temp_sock;
 				index = i;
 				break;
 			}
 		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP ����] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
+		printf("\n[TCP���� ] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 		//closesocket(client_sock[index]);
 		printf("[TCP ����] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
@@ -104,13 +121,13 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)//
 
 
 
-	// Ŭ���̾�Ʈ�� ������ ���
+	// Ŭ���̾�Ʈ�� ������ ���?
 	while (1) {
 		// Event off
 		for (int i = 0; i < 4; ++i)
 		{
 			char buf[BUFSIZE];
-			retval = recv(g_server->clientSock[i], buf, BUFSIZE, 0);
+			retval = recv(g_server->clients.at(i)->clientSock, buf, BUFSIZE, 0);
 			g_server->playerKey[i] = buf[0];
 		}
 		//retval = recv(g_server->clientSock[i], buf, BUFSIZE, 0);

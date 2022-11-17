@@ -82,13 +82,13 @@ DWORD __stdcall ConnectServer::ReceiveFromServer(LPVOID arg)
 	PlayerInfoPacket Client;
 	while (1) {
 		for (int i = 0; i < 4; i++) {
-			retval = recv(client_sock, (char*)&PlayerInfo[i].PacketType, sizeof(char), MSG_WAITALL);
+			retval = recv(client_sock, (char*)&PlayerInfo[i].packetType, sizeof(char), MSG_WAITALL);
 			recvData += retval;
-			retval = recv(client_sock, (char*)&PlayerInfo[i].PlayerNumber, sizeof(int), MSG_WAITALL);
+			retval = recv(client_sock, (char*)&PlayerInfo[i].playerNumber, sizeof(int), MSG_WAITALL);
 			recvData += retval;
-			retval = recv(client_sock, (char*)&PlayerInfo[i].RotationAxis, sizeof(XMFLOAT3), MSG_WAITALL);
+			retval = recv(client_sock, (char*)&PlayerInfo[i].movement, sizeof(XMFLOAT3), MSG_WAITALL);
 			recvData += retval;
-			retval = recv(client_sock, (char*)&PlayerInfo[i].Rotation, sizeof(XMFLOAT3), MSG_WAITALL);
+			retval = recv(client_sock, (char*)&PlayerInfo[i].rotation, sizeof(XMFLOAT3), MSG_WAITALL);
 			recvData += retval;
 			SendPlayerDater[i] = PlayerInfo[i];//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
 			recvData = 0;
