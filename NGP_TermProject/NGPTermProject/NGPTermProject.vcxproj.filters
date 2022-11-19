@@ -1,173 +1,237 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{2b41dd30-212f-44ca-aec1-46fb2ee9e43b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Object">
+      <UniqueIdentifier>{1869343e-015e-4938-8302-077fedd25e7d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="Object\MissileObject">
+      <UniqueIdentifier>{22d6498d-7df7-4a94-aaae-f41b43a85283}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{9a024a30-70ff-4ab7-9e76-f530261e832b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\MultiSpriteObjectsShader">
+      <UniqueIdentifier>{54f83f26-cdbf-47f6-8dce-764204cbfa14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object\MultiSpriteObject">
+      <UniqueIdentifier>{d8fc5677-7e59-4ce0-b1cb-13f68e185b00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\HLSL">
+      <UniqueIdentifier>{9b70bb4a-141c-4c0c-a24a-15a1fae6073e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TextureLoader">
+      <UniqueIdentifier>{3758b266-6459-465d-9ea8-2e1c56e38640}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TextureLoader\DDSTextureLoader12">
+      <UniqueIdentifier>{2228c843-016d-4de3-a40c-cb8377afc442}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TextureLoader\WICTextureLoader12">
+      <UniqueIdentifier>{7f5dd6d1-c1dc-449b-9311-47928677cc6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Vertex">
+      <UniqueIdentifier>{b2b8858c-dbe6-4100-a52a-aed9fc716ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Timer">
+      <UniqueIdentifier>{2c8ca834-341d-481f-a430-39a4a2d18418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader\MissileObjectShader">
+      <UniqueIdentifier>{9a45d79b-7716-447e-9a2d-127ad097fa93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameFramework">
+      <UniqueIdentifier>{50d9c242-fb4f-4aaa-9348-4740ea84c230}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Object\Player">
+      <UniqueIdentifier>{d4e788d1-b699-4106-a016-eef1f5e58033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stdafx">
+      <UniqueIdentifier>{f3bc9a9d-b218-4a6c-b970-a0c2bfe03169}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stdafx\Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Object\Camera">
+      <UniqueIdentifier>{064797c1-c891-412a-bfe7-a855f560c486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Client">
+      <UniqueIdentifier>{50f972f1-51af-492e-ba2e-2f0f0da2a291}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Client\Error">
+      <UniqueIdentifier>{16c263ef-ed22-440f-b9f7-8eefbdd81119}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{e7170694-23ca-46a1-b056-20507ee11ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="stdafx\Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="stdafx\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NGPTermProject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MultiSpriteObjectsShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CMultiSpriteObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d3dx12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DDSTextureLoader12.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="error.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameFramework.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Missileobject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MissileObjectShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MultiSpriteObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
+      <Filter>Mesh</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
-      <Filter>Header Files</Filter>
+      <Filter>Object</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Missileobject.h">
+      <Filter>Object\MissileObject</Filter>
     </ClInclude>
-    <ClInclude Include="Scene.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Shader.h">
+      <Filter>Shader</Filter>
     </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="MultiSpriteObjectsShader.h">
+      <Filter>Shader\MultiSpriteObjectsShader</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="MultiSpriteObject.h">
+      <Filter>Object\MultiSpriteObject</Filter>
     </ClInclude>
-    <ClInclude Include="UILayer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CMultiSpriteObject.h">
+      <Filter>Object\MultiSpriteObject</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="DDSTextureLoader12.h">
+      <Filter>TextureLoader\DDSTextureLoader12</Filter>
     </ClInclude>
     <ClInclude Include="WICTextureLoader12.h">
-      <Filter>Header Files</Filter>
+      <Filter>TextureLoader\WICTextureLoader12</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>Mesh\Vertex</Filter>
+    </ClInclude>
+    <ClInclude Include="Timer.h">
+      <Filter>Timer</Filter>
+    </ClInclude>
+    <ClInclude Include="MissileObjectShader.h">
+      <Filter>Shader\MissileObjectShader</Filter>
+    </ClInclude>
+    <ClInclude Include="GameFramework.h">
+      <Filter>GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="NGPTermProject.h">
+      <Filter>GameFramework</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Object\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>stdafx</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Object\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
+      <Filter>Client</Filter>
     </ClInclude>
     <ClInclude Include="CSPacket.h">
-      <Filter>Header Files</Filter>
+      <Filter>Client</Filter>
+    </ClInclude>
+    <ClInclude Include="error.h">
+      <Filter>Client\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="d3dx12.h">
+      <Filter>stdafx</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>stdafx</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>stdafx</Filter>
+    </ClInclude>
+    <ClInclude Include="UILayer.h">
+      <Filter>stdafx</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="NGPTermProject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Client.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CMultiSpriteObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DDSTextureLoader12.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="error.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameFramework.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Mesh</Filter>
     </ClCompile>
     <ClCompile Include="Missileobject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MissileObjectShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MultiSpriteObjectsShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Object\MissileObject</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Object</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Shader</Filter>
     </ClCompile>
-    <ClCompile Include="Scene.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="MultiSpriteObjectsShader.cpp">
+      <Filter>Shader\MultiSpriteObjectsShader</Filter>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="CMultiSpriteObject.cpp">
+      <Filter>Object\MultiSpriteObject</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="UILayer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="DDSTextureLoader12.cpp">
+      <Filter>TextureLoader\DDSTextureLoader12</Filter>
     </ClCompile>
     <ClCompile Include="WICTextureLoader12.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>TextureLoader\WICTextureLoader12</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Mesh\Vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="Timer.cpp">
+      <Filter>Timer</Filter>
+    </ClCompile>
+    <ClCompile Include="MissileObjectShader.cpp">
+      <Filter>Shader\MissileObjectShader</Filter>
+    </ClCompile>
+    <ClCompile Include="GameFramework.cpp">
+      <Filter>GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="NGPTermProject.cpp">
+      <Filter>GameFramework</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Object\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>stdafx</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Object\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Client.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
+    <ClCompile Include="UILayer.cpp">
+      <Filter>stdafx</Filter>
+    </ClCompile>
+    <ClCompile Include="error.cpp">
+      <Filter>Client\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NGPTermProject.rc">
-      <Filter>Resource Files</Filter>
+      <Filter>stdafx\Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>stdafx\Resource Files</Filter>
     </Image>
     <Image Include="NGPTermProject.ico">
-      <Filter>Resource Files</Filter>
+      <Filter>stdafx\Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Light.hlsl" />
-    <FxCompile Include="Shaders.hlsl" />
+    <FxCompile Include="Light.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders.hlsl">
+      <Filter>Shader\HLSL</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

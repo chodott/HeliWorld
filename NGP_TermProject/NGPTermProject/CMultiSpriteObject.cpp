@@ -3,13 +3,13 @@
 
 CMultiSpriteObjects::CMultiSpriteObjects() :CGameObject(1, 1)
 {
-}
 
+}
 CMultiSpriteObjects::~CMultiSpriteObjects()
 {
-}
 
-void CMultiSpriteObjects::Animate(float fTimeElapsed)
+}
+void CMultiSpriteObjects::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_ppMaterials && m_ppMaterials[0]->m_pTexture)
 	{
@@ -22,7 +22,6 @@ void CMultiSpriteObjects::Animate(float fTimeElapsed)
 void CMultiSpriteObjects::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	OnPrepareRender();
-
 	if (m_ppMaterials)
 	{
 		if (m_ppMaterials[0]->m_pShader)//->½¦ÀÌ´õ 
@@ -38,9 +37,7 @@ void CMultiSpriteObjects::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCa
 			if (m_pcbMappedGameObject) XMStoreFloat4x4(&m_pcbMappedGameObject->m_xmf4x4Texture, XMMatrixTranspose(XMLoadFloat4x4(&m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture)));
 		}
 	}
-
 	pd3dCommandList->SetGraphicsRootDescriptorTable(13, m_d3dCbvGPUDescriptorHandle);
-
 	if (m_ppMeshes)
 	{
 		for (int i = 0; i < m_nMeshes; i++)

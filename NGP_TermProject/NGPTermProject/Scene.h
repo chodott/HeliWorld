@@ -8,6 +8,7 @@
 #include "Player.h"
 #include"MissileObjectShader.h"
 #include"MultiSpriteObjectsShader.h"
+
 #define MAX_LIGHTS			16 
 
 #define POINT_LIGHT			1
@@ -48,59 +49,63 @@ struct TIMER
 class CScene
 {
 public:
-    CScene();
-    ~CScene();
+	CScene();
+	~CScene();
 
 	bool OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	bool OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
-	virtual void CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
-	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList);
+	virtual void CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
+	virtual void UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList);
 	virtual void ReleaseShaderVariables();
 
 	void BuildDefaultLightsAndMaterials();
-	void BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList);
+	void BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList);
 	void ReleaseObjects();
 
-	ID3D12RootSignature *CreateGraphicsRootSignature(ID3D12Device *pd3dDevice);
-	ID3D12RootSignature *GetGraphicsRootSignature() { return(m_pd3dGraphicsRootSignature); }
+	ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice);
+	ID3D12RootSignature* GetGraphicsRootSignature() { return(m_pd3dGraphicsRootSignature); }
 	void SetGraphicsRootSignature(ID3D12GraphicsCommandList* pd3dCommandList) { pd3dCommandList->SetGraphicsRootSignature(m_pd3dGraphicsRootSignature); }
 
-	bool ProcessInput(UCHAR *pKeysBuffer);
-    void AnimateObjects(float fTimeElapsed);
-    void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera=NULL);
+	bool ProcessInput(UCHAR* pKeysBuffer);
+	void AnimateObjects(float fTimeElapsed);
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
 	void ReleaseUploadBuffers();
+	void CheckObjectByObjectCollisions(float ftimeelapsed);
 	CHeightMapTerrain* GetTerrain() { return(m_pTerrain); }
 
-	CPlayer								*m_pPlayer = NULL;
-	CBulletShader						*m_pBulletShader{ NULL };
+	CPlayer* m_pPlayer = NULL;
+	CBulletShader* m_pBulletShader{ NULL };
+
+	CObjectsShader* pObjectsShader;
 
 public:
-	ID3D12RootSignature					*m_pd3dGraphicsRootSignature = NULL;
+	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 
 	int									m_nGameObjects = 0;
-	CGameObject							**m_ppGameObjects = NULL;
+	CGameObject** m_ppGameObjects = NULL;
 
 	int									m_nShaders = 0;
-	CShader								**m_ppShaders = NULL;
+	CShader** m_ppShaders = NULL;
 
-	CSkyBox								*m_pSkyBox = NULL;
-	CHeightMapTerrain					*m_pTerrain = NULL;
-	CHeightMapTerrain					*m_pWater = NULL;
-	CMissileObjectsShader*				pMissileobjectShader;
-
-	LIGHT								*m_pLights = NULL;
+	CSkyBox* m_pSkyBox = NULL;
+	CHeightMapTerrain* m_pTerrain = NULL;
+	CHeightMapTerrain* m_pWater = NULL;
+	CMissileObjectsShader* pMissileobjectShader;
+	CMultiSpriteObjectsShader* pMultiSpriteObjectShader;
+	LIGHT* m_pLights = NULL;
 	int									m_nLights = 0;
 
 	XMFLOAT4							m_xmf4GlobalAmbient;
 
-	ID3D12Resource						*m_pd3dcbLights = NULL;
-	LIGHTS								*m_pcbMappedLights = NULL;
+	ID3D12Resource* m_pd3dcbLights = NULL;
+	LIGHTS* m_pcbMappedLights = NULL;
 
-	ID3D12Resource						*m_pd3dcbTimer = NULL;
-	TIMER								*m_pcbMappedTimer = NULL;
+	ID3D12Resource* m_pd3dcbTimer = NULL;
+	TIMER* m_pcbMappedTimer = NULL;
 
 	float								fTimer = 5.0f;
 	float								fAlPha = 0.3f;
+	float								CollisionTimer = 0.0f;
 };

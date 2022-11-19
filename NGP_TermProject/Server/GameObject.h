@@ -9,31 +9,39 @@ public:
 	XMFLOAT3 m_xmf3MovingDirection;
 	XMFLOAT3 m_xmf3RotationAxis;
 
-	float m_fSpeed;
+	bool m_bActive;//active
+	float m_fSpeed;//speed
+	int m_nObjects{};
+
 
 	void Move();
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
+	void SetActive(bool active);
+	bool GetActive();
+	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation)
+	{
+		m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation);
+	}
+	BoundingOrientedBox GetBoundingBox() { return m_xmOOBB; }
 
 };
 
-class Missile :public GameObject
+class CMissileObject :public GameObject
 {
 	char m_cPlayerNumber;
-	bool m_bActive;
 };
-
-class Player : public GameObject
+class CPlayer : public GameObject
 {
 public:
 	float m_fFriction;
 	int m_nHp;
-	Missile m_pMissiles[8];
+	CMissileObject m_pMissiles[8];
 
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
 };
 
 class Item : public GameObject
 {
-	bool m_bActive;
+
 };

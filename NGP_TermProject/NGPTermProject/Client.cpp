@@ -32,7 +32,7 @@ void ConnectServer::SetClientsock()
 	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
 	serveraddr.sin_port = htons(SERVERPORT);
 	retval = connect(Clientsock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-	if (retval == SOCKET_ERROR)err_quit("socket()");
+	//if (retval == SOCKET_ERROR)err_quit("socket()");
 	//	closesocket(Clientsock);
 }
 

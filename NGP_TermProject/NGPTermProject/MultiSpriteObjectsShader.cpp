@@ -111,7 +111,7 @@ void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Gra
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
 	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[0], 0, 11);
-	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[1], 0,11);
+	CreateShaderResourceViews(pd3dDevice, ppSpriteTextures[1], 0, 11);
 
 	m_ppObjects = new CGameObject * [m_nObjects];
 
@@ -121,7 +121,7 @@ void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Gra
 	{
 		pSpriteObject = new CMultiSpriteObjects();
 		pSpriteObject->SetMesh(0, pSpriteMesh);
-		pSpriteObject->SetMaterial(0,ppSpriteMaterials[j]);
+		pSpriteObject->SetMaterial(0, ppSpriteMaterials[j]);
 		pSpriteObject->SetPosition(XMFLOAT3(xmf3Position.x, xmf3Position.y, xmf3Position.z));
 		pSpriteObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * j));
 		pSpriteObject->m_fSpeed = 3.0f / (ppSpriteTextures[j]->m_nRows * ppSpriteTextures[j]->m_nCols);
@@ -149,7 +149,7 @@ void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandLis
 		{
 			if (m_ppObjects[j])
 			{
-				m_ppObjects[j]->SetPosition(xmf3Position);
+					m_ppObjects[j]->SetPosition(xmf3Position);
 				m_ppObjects[j]->SetLookAt(xmf3CameraPosition, XMFLOAT3(0.0f, 1.0f, 0.0f));
 			}
 		}
