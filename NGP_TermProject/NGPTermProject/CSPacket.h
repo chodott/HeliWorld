@@ -19,4 +19,11 @@ struct PlayerStatusPacket {
     int PlayerHP;
 };
 
+struct ItemInfoPacket {
+    char packetType;
+    float x, y, z;
+    bool active;
+};
+
+
 #pragma pack()

@@ -27,4 +27,11 @@ struct PlayerKeyPacket {
 	POINT mousePosition;
 
 };
+
+struct ItemInfoPacket {
+	char packetType;
+	float x, y, z;
+	bool active;
+};
+
 #pragma pack()

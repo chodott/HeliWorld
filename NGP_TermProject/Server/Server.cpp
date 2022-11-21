@@ -121,25 +121,23 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)//
 
 
 
-	// Ŭ���̾�Ʈ�� ������ ���?
-	while (1) {
-		// Event off
-		for (int i = 0; i < 4; ++i)
-		{
-			char buf[BUFSIZE];
-			retval = recv(g_server->clients.at(i)->clientSock, buf, BUFSIZE, 0);
-			g_server->playerKey[i] = buf[0];
-		}
-		//retval = recv(g_server->clientSock[i], buf, BUFSIZE, 0);
-		if (retval == SOCKET_ERROR) {
-			err_display("recv()");
-			break;
-		}
+	//while (1) {
+	//	// Event off
+	//	for (int i = 0; i < 4; ++i)
+	//	{
+	//		char buf[BUFSIZE];
+	//		retval = recv(g_server->clients.at(i)->clientSock, buf, BUFSIZE, 0);
+	//		g_server->playerKey[i] = buf[0];
+	//	}
+	//	if (retval == SOCKET_ERROR) {
+	//		err_display("recv()");
+	//		break;
+	//	}
 
-		int playerNumber = (int)buf[0];
-		g_server->playerKey[playerNumber] = buf[1];
-		// Event on
-	}
+	//	int playerNumber = (int)buf[0];
+	//	g_server->playerKey[playerNumber] = buf[1];
+	//	// Event on
+	//}
 
 	return 1;
 }
