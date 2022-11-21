@@ -28,6 +28,7 @@ public:
 	float m_fSpeed;//speed
 	int m_nObjects{};
 
+	int Player_id;
 
 	void Move();
 	void Rotate(float Pitch, float Yaw, float Roll);

@@ -6,8 +6,9 @@ class GameObjectMgr
 {
 
 public:
-	std::vector<GameObject*> Objects;
-
+	
+	GameObject** pMissleObject;
+	CPlayer** PlayerObject;
 	void AnimateObjects();
 	void CheckCollision();
 };
