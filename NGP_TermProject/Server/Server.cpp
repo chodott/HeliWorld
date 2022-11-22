@@ -87,7 +87,6 @@ void Server::SendAllClient()
 	}
 }
 
-DWORD WINAPI AcceptClient(LPVOID arg)
 void Server::AnimateObjects()
 {
 }
@@ -142,7 +141,7 @@ void Server::CheckCollision()
 	}*/
 }
 
-DWORD  AcceptClient(LPVOID arg)
+DWORD WINAPI AcceptClient(LPVOID arg)
 {
 	//int index = 0;
 	int retval;

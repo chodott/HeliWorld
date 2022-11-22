@@ -19,7 +19,7 @@ const char MOUSE_LEFT = 0x10;
 const char MOUSE_RIGHT = 0x20;
 
 DWORD WINAPI ReceiveAllClient(LPVOID arg);
-DWORD AcceptClient(LPVOID arg);
+DWORD WINAPI AcceptClient(LPVOID arg);
 
 class Client;
 
