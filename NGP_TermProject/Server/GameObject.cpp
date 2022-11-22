@@ -2,6 +2,7 @@
 
 void GameObject::Move()
 {
+
 }
 
 void GameObject::Rotate(float Pitch, float Yaw, float Roll)

@@ -3,13 +3,11 @@
   <ItemGroup>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameObjectMgr.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameObjectMgr.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Socket.h" />
   </ItemGroup>

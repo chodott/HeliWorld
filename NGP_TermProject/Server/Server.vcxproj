@@ -128,12 +128,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="GameObjectMgr.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GameObjectMgr.h" />
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Socket.h" />

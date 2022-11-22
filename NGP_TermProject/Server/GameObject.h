@@ -24,9 +24,17 @@ public:
 	float           			m_fYaw;
 	float           			m_fRoll;
 
-	bool m_bActive;//active
-	float m_fSpeed;//speed
-	int m_nObjects{};
+	float						m_fOldxPos;
+	float						m_fOldyPos;
+	float						m_fOldzPos;
+
+	float						m_fOldPitch;
+	float						m_fOldYaw;
+	float						m_fOldRoll;
+
+	bool						m_bActive;//active
+	float						m_fSpeed;//speed
+	int							m_nObjects{};
 
 	int Player_id;
 

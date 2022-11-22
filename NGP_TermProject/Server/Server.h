@@ -7,7 +7,7 @@
 #include <array>
 
 #include "Socket.h"
-#include "GameObjectMgr.h"
+#include "GameObject.h"
 #define SERVERPORT 9000
 #define BUFSIZE    512
 
@@ -21,8 +21,6 @@ const char MOUSE_RIGHT = 0x20;
 DWORD WINAPI ReceiveAllClient(LPVOID arg);
 DWORD AcceptClient(LPVOID arg);
 
-int AcceptClient();
-
 class Client;
 
 class Server {
@@ -34,10 +32,15 @@ public:
 
 	void SendAllClient();
 
+	void AnimateObjects();
+
+	void CheckCollision();
+
 
 	SOCKET* GetSocket() { return &listenSock; }
 
 	std::array<Client*, 4> clients;
+	std::array<CPlayer*, 4> players;
 	//std::array<SOCKET, 4> clientSock;
 	std::array<char, 4> playerKey;
 private:

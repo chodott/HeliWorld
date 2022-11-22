@@ -15,11 +15,23 @@ Server::Server()
 {
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	for (int i = 0; i < 4; ++i)
+	{
+		//ego jonna byeollo - Chodot
+		clients[i] = new Client;
+		players[i] = new CPlayer;
+	}
 }
 
 Server::~Server()
 {
 	WSACleanup();
+	for (int i = 0; i < 4; ++i)
+	{
+		delete(clients[i]);
+		delete(players[i]);
+	}
 }
 
 void Server::OpenListenSocket()
@@ -73,6 +85,60 @@ void Server::SendAllClient()
 			}
 		}
 	}
+}
+
+void Server::AnimateObjects()
+{
+}
+
+void Server::CheckCollision()
+{
+	for(int i=0; i<4; ++i)
+	{
+		if (!players[i]->GetActive()) continue;
+
+		for (int j = 0; j < 4; ++j)
+		{
+			if (i == j) continue;		//Same Player
+
+			//Collision Players
+			if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
+			{
+				
+			}
+
+			for (auto& missile : players[j]->m_pMissiles)
+			{
+				//Collision between Player and Missiles
+				if (players[i]->GetBoundingBox().Intersects(missile.GetBoundingBox()))
+				{
+					players[i]->SetActive(FALSE);
+					missile.SetActive(FALSE);
+				}
+			}
+	
+		}
+	}
+
+	/*if (pMissleObject && PlayerObject)
+	{
+		for (int i = 0; i < sizeof(PlayerObject); ++i)
+		{
+			for (int j = 0; j < sizeof(pMissleObject); ++j)
+			{
+				if (PlayerObject[i]->GetActive() && pMissleObject[j]->GetActive()) {
+					if (PlayerObject[i]->Player_id != pMissleObject[j]->Player_id) {
+						if (PlayerObject[i]->m_xmOOBB.Intersects(pMissleObject[j]->m_xmOOBB))
+						{
+							PlayerObject[i]->SetActive(FALSE);
+							pMissleObject[j]->SetActive(FALSE);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}*/
 }
 
 DWORD  AcceptClient(LPVOID arg)
@@ -147,15 +213,14 @@ int main()
 	//Create Object Mgr
 	g_server = new Server;
 	g_server->OpenListenSocket();
-	GameObjectMgr* ObjectMgr = new GameObjectMgr();
 	HANDLE AcceptThread, ReceiveThread;
 	AcceptThread = CreateThread(NULL, 0, AcceptClient, (LPVOID)&g_server->clients, 0, NULL);//client->g_server
 	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, (LPVOID)&g_server->clients, 0, NULL);
 	while (1)
 	{
 		// Event is on?
-		ObjectMgr->AnimateObjects();
-		ObjectMgr->CheckCollision();
+		g_server->AnimateObjects();
+		g_server->CheckCollision();
 		//SendAllClient
 	}
 }
