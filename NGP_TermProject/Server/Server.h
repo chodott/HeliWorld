@@ -54,15 +54,18 @@ class Client {
 public:
 	//friend Server;
 
-	SOCKET clientSock;
+	SOCKET sock;
 	float oldxPos, oldyPos, oldzPos;
 	float xPos, yPos, zPos;
 
 	float oldPitch, oldYaw, oldRoll;
 	float pitch, yaw, roll;
+
+	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
+
 private:
 
-	char playerNumber;	// maybe client class can have playerID inside
+	char m_playerNumber;	// maybe client class can have playerID inside
 
 
 	int hp;

@@ -80,6 +80,10 @@ public:
 
 	CObjectsShader* pObjectsShader;
 
+// update player update with received data from server
+public:
+	void Update();
+
 public:
 	ID3D12RootSignature* m_pd3dGraphicsRootSignature = NULL;
 

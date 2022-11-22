@@ -39,6 +39,21 @@ protected:
 	CShader						*m_pShader = NULL;
 
 	CShader   *m_pMissileShader = NULL;
+
+// Client update part
+protected:
+	XMFLOAT3 m_movement;
+	XMFLOAT3 m_rotation;
+
+public:
+	void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
+	{
+		m_movement = movement;
+		m_rotation = rotation;
+	}	
+	XMFLOAT3 GetMovement() { return m_movement; }
+	XMFLOAT3 GetRotation() { return m_rotation; }
+
 public:
 	CPlayer();
 	virtual ~CPlayer();

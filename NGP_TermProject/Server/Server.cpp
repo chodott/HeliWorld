@@ -24,7 +24,7 @@ Server::~Server()
 
 void Server::OpenListenSocket()
 {
-	// ���� ����
+	// create listen socket
 	listenSock = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenSock == INVALID_SOCKET) err_quit("socket()");
 
@@ -58,7 +58,7 @@ void Server::SendAllClient()
 				// need conversion operator packet => char* 
 			if (clients.at(i) != nullptr)
 			{
-				SOCKET* sock = &clients.at(i)->clientSock;
+				SOCKET* sock = &clients.at(i)->sock;
 				Client* c = clients.at(i);
 				XMFLOAT3 movement{  c->xPos - c->oldxPos,
 									c->yPos - c->oldyPos,
@@ -75,36 +75,38 @@ void Server::SendAllClient()
 	}
 }
 
-DWORD  AcceptClient(LPVOID arg)
+DWORD WINAPI AcceptClient(LPVOID arg)
 {
-	int index = 0;
+	//int index = 0;
 	int retval;
-	SOCKET Temp_sock = (SOCKET)arg;
+	SOCKET clientSock = (SOCKET)arg;
 	struct sockaddr_in clientaddr;
 	int addrlen;
 	char buf[BUFSIZE + 1];
 	while (1) {
 		// accept()
 		addrlen = sizeof(clientaddr);
-		Temp_sock = accept(*g_server->GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
-		if (Temp_sock == INVALID_SOCKET) {
-			err_display("accept()");
-			break;
+		// maybe a event need that notify server accepted four player already or not
+		clientSock = accept(*g_server->GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
+		if (clientSock == INVALID_SOCKET) {
+			//err_display("accept()");
+			std::cout << "Invalid Socket detected\n";
+			//break;
+			continue;
 		}
 		for (int i = 0; i < 4; ++i) {
 			if (!g_server->clients.at(i)) {
-				g_server->clients.at(i)->clientSock = Temp_sock;
-				index = i;
+				g_server->clients.at(i)->sock = clientSock;
+				//index = i;
+				g_server->clients.at(i)->SetPlayerNumber(i);
 				break;
 			}
 		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("\n[TCP���� ] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
+		printf("\n[Server] Client Accepted: IP= %s, Port Number= %d\n",
 			addr, ntohs(clientaddr.sin_port));
 		//closesocket(client_sock[index]);
-		printf("[TCP ����] Ŭ���̾�Ʈ ����: IP �ּ�=%s, ��Ʈ ��ȣ=%d\n",
-			addr, ntohs(clientaddr.sin_port));
 	}
 	//closesocket(*g_server->GetSocket());
 	//WSACleanup();
