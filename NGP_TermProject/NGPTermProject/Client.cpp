@@ -31,9 +31,15 @@ void ConnectServer::SetClientsock()
 	serveraddr.sin_family = AF_INET;
 	inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
 	serveraddr.sin_port = htons(SERVERPORT);
+
 	retval = connect(Clientsock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
-	//if (retval == SOCKET_ERROR)err_quit("socket()");
-	//	closesocket(Clientsock);
+
+	if (retval == SOCKET_ERROR)	//err_quit("socket()");
+		std::cout << "Connection to server not established\n";
+	else
+		std::cout << "Connection established successful\n";
+
+	//closesocket(Clientsock);
 }
 
 void ConnectServer::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
