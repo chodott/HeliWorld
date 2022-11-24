@@ -471,21 +471,21 @@ XMFLOAT3 RandomPositionInSphere(XMFLOAT3 xmf3Center, float fRadius, int nColumn,
 
 void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, void* pContext)
 {
-	m_nObjects = 2;
+	m_nObjects = 4;
 	m_ppObjects = new CGameObject * [m_nObjects];
 
-	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 17 + 50); //SuperCobra(17), Gunship(2)
+	CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 17 ); //SuperCobra(17), Gunship(2)
 
-	CGameObject* pSuperCobraModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "Model/SuperCobra.bin", this);
+	CGameObject* pSuperCobraModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "Model/Mi24.bin", this);
 
 
 	int nObjects = 0;
 	for (int h = 0; h < m_nObjects; h++)
 	{
-		m_ppObjects[h] = new CSuperCobraObject(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+		m_ppObjects[h] = new CMi24Object(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 		m_ppObjects[h]->SetChild(pSuperCobraModel);
 		pSuperCobraModel->AddRef();
-		m_ppObjects[h]->SetPosition(0, 0, 0 + h * 100);
+		m_ppObjects[h]->SetPosition(100, 0, 0 + h * 100);
 		m_ppObjects[h]->SetOOBB(m_ppObjects[h]->GetPosition(), XMFLOAT3(5, 5, 5), XMFLOAT4(0., 0., 0., 1.));
 		m_ppObjects[h]->Rotate(0.0f, 90.0f, 0.0f);
 		m_ppObjects[h]->PrepareAnimate();
@@ -561,7 +561,7 @@ void CObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera*
 		if (m_ppObjects[j])
 		{
 			m_ppObjects[j]->Animate(0.16f); //->헬기 
-		//	m_ppObjects[j]->UpdateTransform(NULL);//오류
+			m_ppObjects[j]->UpdateTransform(NULL);//오류
 			if (m_ppObjects[j]->GetActive())
 			{
 				m_ppObjects[j]->Render(pd3dCommandList, pCamera);

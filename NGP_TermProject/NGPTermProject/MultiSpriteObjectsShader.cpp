@@ -103,7 +103,7 @@ void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Gra
 
 	CTexturedRectMesh* pSpriteMesh = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 50.0f, 50.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
-	m_nObjects = 1;
+	m_nObjects = 10;
 
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
@@ -121,10 +121,11 @@ void CMultiSpriteObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Gra
 	{
 		pSpriteObject = new CMultiSpriteObjects();
 		pSpriteObject->SetMesh(0, pSpriteMesh);
-		pSpriteObject->SetMaterial(0, ppSpriteMaterials[j]);
+		pSpriteObject->SetActive(FALSE);
+		pSpriteObject->SetMaterial(0, ppSpriteMaterials[j%2]);
 		pSpriteObject->SetPosition(XMFLOAT3(xmf3Position.x, xmf3Position.y, xmf3Position.z));
 		pSpriteObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * j));
-		pSpriteObject->m_fSpeed = 3.0f / (ppSpriteTextures[j]->m_nRows * ppSpriteTextures[j]->m_nCols);
+		pSpriteObject->m_fSpeed = 3.0f / (ppSpriteTextures[j%2]->m_nRows * ppSpriteTextures[j%2]->m_nCols);
 		m_ppObjects[j] = pSpriteObject;
 	}
 }
@@ -144,17 +145,17 @@ void CMultiSpriteObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandLis
 		XMFLOAT3 xmf3PlayerPosition = pPlayer->GetPosition();
 		XMFLOAT3 xmf3PlayerLook = pPlayer->GetLookVector();
 		xmf3PlayerPosition.y += 5.0f;
-		XMFLOAT3 xmf3Position = Vector3::Add(xmf3PlayerPosition, Vector3::ScalarProduct(xmf3PlayerLook, 50.0f, false));
+		//XMFLOAT3 xmf3Position = Vector3::Add(xmf3PlayerPosition, Vector3::ScalarProduct(xmf3PlayerLook, 50.0f, false));
 		for (int j = 0; j < m_nObjects; j++)
 		{
-			if (m_ppObjects[j])
+			if (m_ppObjects[j]->GetActive())
 			{
-					m_ppObjects[j]->SetPosition(xmf3Position);
+					//m_ppObjects[j]->SetPosition(xmf3Position);
 				m_ppObjects[j]->SetLookAt(xmf3CameraPosition, XMFLOAT3(0.0f, 1.0f, 0.0f));
+				CObjectsShader::Render(pd3dCommandList, pCamera);
 			}
 		}
-
-		CObjectsShader::Render(pd3dCommandList, pCamera);
+		
 	}
 }
 

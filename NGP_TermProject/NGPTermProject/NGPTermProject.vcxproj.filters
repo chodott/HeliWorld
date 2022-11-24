@@ -90,9 +90,6 @@
     <ClInclude Include="MultiSpriteObjectsShader.h">
       <Filter>Shader\MultiSpriteObjectsShader</Filter>
     </ClInclude>
-    <ClInclude Include="MultiSpriteObject.h">
-      <Filter>Object\MultiSpriteObject</Filter>
-    </ClInclude>
     <ClInclude Include="CMultiSpriteObject.h">
       <Filter>Object\MultiSpriteObject</Filter>
     </ClInclude>

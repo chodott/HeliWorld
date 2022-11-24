@@ -139,7 +139,6 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Missileobject.h" />
     <ClInclude Include="MissileObjectShader.h" />
-    <ClInclude Include="MultiSpriteObject.h" />
     <ClInclude Include="MultiSpriteObjectsShader.h" />
     <ClInclude Include="NGPTermProject.h" />
     <ClInclude Include="Object.h" />

@@ -478,7 +478,7 @@ void CScene::CheckObjectByObjectCollisions(float ftimeelapsed)
 						pObjectsShader->m_ppObjects[i]->SetActive(FALSE);
 						pMissileobjectShader->m_ppObjects[j]->SetActive(FALSE);
 						for (int t = 0; t < pMultiSpriteObjectShader->m_nObjects; ++t) {
-							pMultiSpriteObjectShader->SetActive(true);
+							pMultiSpriteObjectShader->m_ppObjects[t]->SetActive(true);
 							pMultiSpriteObjectShader->m_ppObjects[t]->SetPosition(pMissileobjectShader->m_ppObjects[j]->GetPosition());
 						}
 						break;
