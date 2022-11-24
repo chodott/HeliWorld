@@ -188,6 +188,7 @@ class CGameObject
 private:
 	int								m_nReferences = 0;
 	bool							b_Active = TRUE;
+	float								m_HP = 100;
 public:
 	void AddRef();
 	void Release();
@@ -319,6 +320,9 @@ public:
 	bool GetActive() { return b_Active; };
 	void SetActive(bool Active) { b_Active = Active; }
 	void DeleteMesh();
+
+	void SetHP(float HP) { m_HP = HP; };
+	float GetHP() { return m_HP; };
 
 public:
 	void LoadMaterialsFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, CGameObject* pParent, FILE* pInFile, CShader* pShader);

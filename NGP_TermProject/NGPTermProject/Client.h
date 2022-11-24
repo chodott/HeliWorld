@@ -1,11 +1,11 @@
 #pragma once
 #include "stdafx.h"
 
-#define _CRT_SECURE_NO_WARNINGS // ±¸Çü C ÇÔ¼ö »ç¿ë ½Ã °æ°í ²ô±â
-#define _WINSOCK_DEPRECATED_NO_WARNINGS // ±¸Çü ¼ÒÄÏ API »ç¿ë ½Ã °æ°í ²ô±â
+#define _CRT_SECURE_NO_WARNINGS // ï¿½ï¿½ï¿½ï¿½ C ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+#define _WINSOCK_DEPRECATED_NO_WARNINGS // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ API ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
-#include <winsock2.h> // À©¼Ó2 ¸ÞÀÎ Çì´õ
-#include <ws2tcpip.h> // À©¼Ó2 È®Àå Çì´õ
+#include <winsock2.h> // ï¿½ï¿½ï¿½ï¿½2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+#include <ws2tcpip.h> // ï¿½ï¿½ï¿½ï¿½2 È®ï¿½ï¿½ ï¿½ï¿½ï¿½
 
 #include <tchar.h> // _T(), ...
 #include <stdio.h> // printf(), ...
@@ -17,7 +17,7 @@
 #include "CSPacket.h"
 #include "error.h"
 
-#pragma comment(lib, "ws2_32") // ws2_32.lib ¸µÅ©
+#pragma comment(lib, "ws2_32") // ws2_32.lib ï¿½ï¿½Å©
 
 #define SERVERPORT 9000
 #define BUFSIZE 512
