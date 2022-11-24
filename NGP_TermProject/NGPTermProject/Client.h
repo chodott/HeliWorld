@@ -21,7 +21,7 @@
 #define SERVERPORT 9000
 #define BUFSIZE 512
 
-#pragma pack(1)
+
 
 class ConnectServer {
 public:
