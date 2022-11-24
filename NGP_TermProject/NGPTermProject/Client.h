@@ -1,5 +1,5 @@
 #pragma once
-#include"stdafx.h"
+#include "stdafx.h"
 
 #define _CRT_SECURE_NO_WARNINGS // 구형 C 함수 사용 시 경고 끄기
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // 구형 소켓 API 사용 시 경고 끄기
@@ -14,33 +14,33 @@
 #include <string>
 #include <iostream>
 
-#include"CSPacket.h"
-#include"error.h"
+#include "CSPacket.h"
+#include "error.h"
 
 #pragma comment(lib, "ws2_32") // ws2_32.lib 링크
+
 #define SERVERPORT 9000
 #define BUFSIZE 512
 
-#pragma pack(1)
-
-class ConnectServer {
+class Client {
 public:
-	ConnectServer();
-	~ConnectServer();
+	Client();
+	~Client();
 
-	SOCKET GetClientsock() { return Clientsock; };
-	void SetClientsock();
+	SOCKET GetClientsock() { return sock; };
+	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	DWORD WINAPI ReceiveFromServer(LPVOID arg);
 
+	PlayerInfoPacket playerData[4];
+
 private:
-	SOCKET Clientsock = 0;
+	SOCKET sock = NULL;
+
 	char* SERVERIP = (char*)"127.0.0.1";
-	WSADATA wsa;
-	int retval;
-	struct sockaddr_in serveraddr;
-	unsigned char SendKey;
+
+	unsigned char sendKey = NULL;
 	unsigned char option0 = 1 << 0; // 0000 0001 
 	unsigned char option1 = 1 << 1; // 0000 0010
 	unsigned char option2 = 1 << 2; // 0000 0100
@@ -50,3 +50,4 @@ private:
 	unsigned char option6 = 1 << 6; // 0100 0000
 	unsigned char option7 = 1 << 7; // 1000 0000
 };
+

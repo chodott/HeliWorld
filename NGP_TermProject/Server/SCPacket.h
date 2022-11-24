@@ -9,10 +9,10 @@ const char SC_PlayerKey = 2;
 
 #pragma pack(1)
 struct PlayerInfoPacket {
-    char packetType;
-    char playerNumber;
-    XMFLOAT3 movement;
-    XMFLOAT3 rotation;
+	char packetType;
+	char playerNumber;
+	XMFLOAT3 movement;
+	XMFLOAT3 rotation;
 };
 
 struct PlayerStatusPacket {
@@ -25,13 +25,19 @@ struct PlayerStatusPacket {
 struct PlayerKeyPacket {
 	char playerKeyInput;
 	POINT mousePosition;
-
 };
 
 struct ItemInfoPacket {
 	char packetType;
 	float x, y, z;
 	bool active;
+};
+
+struct MissileInfoPacket {
+	char packetType;
+	char playerNumber;
+	XMFLOAT3 movement;
+	XMFLOAT3 rotation;
 };
 
 #pragma pack()

@@ -1,15 +1,6 @@
-//#include "stdafx.h"
-//#include <WS2tcpip.h>
 #include "Server.h"
+#include "GameObject.h"
 
-
-//#include "Socket.h"
-
-//#pragma lib(lib, "ws2_32")
-
-std::unordered_map<SOCKET, int> PlayerDataMap;
-//SOCKET client_sock[4];
-Server* g_server;
 
 Server::Server()
 {
@@ -18,9 +9,10 @@ Server::Server()
 
 	for (int i = 0; i < 4; ++i)
 	{
+		clients[i] = nullptr;
 		//ego jonna byeollo - Chodot
-		clients[i] = new Client;
-		players[i] = new CPlayer;
+		//clients[i] = new Client;
+		//players[i] = new CPlayer;
 	}
 }
 
@@ -29,71 +21,65 @@ Server::~Server()
 	WSACleanup();
 	for (int i = 0; i < 4; ++i)
 	{
-		delete(clients[i]);
-		delete(players[i]);
+		if (clients[i] != nullptr)
+			delete(clients[i]);
+		//delete(players[i]);
 	}
 }
 
 void Server::OpenListenSocket()
 {
 	// create listen socket
-	listenSock = socket(AF_INET, SOCK_STREAM, 0);
-	if (listenSock == INVALID_SOCKET) err_quit("socket()");
+	if ((listenSock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) err_quit("socket()");
 
-	// bind()
-	struct sockaddr_in serveraddr;
+	sockaddr_in serveraddr;
 	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
 	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
 	serveraddr.sin_port = htons(SERVERPORT);
-	//retval = bind(listenSock, (struct sockaddr*)&serveraddr, sizeof(serveraddr));
 	if (bind(listenSock, (sockaddr*)&serveraddr, sizeof(serveraddr)) == SOCKET_ERROR)
 		err_quit("bind()");
-	//if (retval == SOCKET_ERROR) err_quit("bind()");
 
-	// listen()
 	if (listen(listenSock, SOMAXCONN) == SOCKET_ERROR)
 		err_quit("listen()");
-	//if (retval == SOCKET_ERROR) err_quit("listen()");
+
+	std::cout << "Listen socket opened\n";
 }
 
 void Server::SendAllClient()
 {
-	for (int i = 0; i < clientNum; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
 		// sending playerinfo packet
 		char packetType = SC_PlayerInfo;
-		for (int j = 0; i < clientNum; ++i)
+		for (int j = 0; i < 4; ++i)
 		{
-			//if (clients.at(i) != nullptr)
-				//send(clients.at(i)->clientSock, (char*)infoPackets.at(i), sizeof(PlayerInfoPacket), 0);
-				// need conversion operator packet => char* 
-			if (clients.at(i) != nullptr)
+			// need conversion operator packet => char* 
+			if (clients.at(i)->sock != NULL)
 			{
-				SOCKET* sock = &clients.at(i)->sock;
 				Client* c = clients.at(i);
-				XMFLOAT3 movement{  c->xPos - c->oldxPos,
+				XMFLOAT3 movement{ c->xPos - c->oldxPos,
 									c->yPos - c->oldyPos,
 									c->zPos - c->oldzPos };
-				XMFLOAT3 rotation{  c->pitch - c->oldPitch,
+				XMFLOAT3 rotation{ c->pitch - c->oldPitch,
 									c->yaw - c->oldYaw,
 									c->roll - c->oldRoll };
-				send(*sock, (char*)&packetType, sizeof(char), 0);
-				send(*sock, (char*)&i, sizeof(char), 0);
-				send(*sock, (char*)&movement, sizeof(char), 0);
-				send(*sock, (char*)&rotation, sizeof(char), 0);
+				send(clients.at(i)->sock, (char*)&packetType, sizeof(char), 0);
+				send(clients.at(i)->sock, (char*)&i, sizeof(char), 0);
+				send(clients.at(i)->sock, (char*)&movement, sizeof(char), 0);
+				send(clients.at(i)->sock, (char*)&rotation, sizeof(char), 0);
 			}
 		}
 	}
 }
 
-void Server::AnimateObjects()
+void Server::Update()
 {
 }
 
 void Server::CheckCollision()
 {
-	for(int i=0; i<4; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
 		if (!players[i]->GetActive()) continue;
 
@@ -104,7 +90,7 @@ void Server::CheckCollision()
 			//Collision Players
 			if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
 			{
-				
+
 			}
 
 			for (auto& missile : players[j]->m_pMissiles)
@@ -112,11 +98,11 @@ void Server::CheckCollision()
 				//Collision between Player and Missiles
 				if (players[i]->GetBoundingBox().Intersects(missile.GetBoundingBox()))
 				{
-					players[i]->SetActive(FALSE);
-					missile.SetActive(FALSE);
+					players[i]->SetActive(false);
+					missile.SetActive(false);
 				}
 			}
-	
+
 		}
 	}
 
@@ -143,28 +129,30 @@ void Server::CheckCollision()
 
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
-	//int index = 0;
-	int retval;
-	SOCKET clientSock = (SOCKET)arg;
-	struct sockaddr_in clientaddr;
+	UNREFERENCED_PARAMETER(arg);
+
+	SOCKET clientSock;
+	sockaddr_in clientaddr;
 	int addrlen;
-	char buf[BUFSIZE + 1];
-	while (1) {
-		// accept()
+	while (true)
+	{
 		addrlen = sizeof(clientaddr);
 		// maybe a event need that notify server accepted four player already or not
-		clientSock = accept(*g_server->GetSocket(), (struct sockaddr*)&clientaddr, &addrlen);
-		if (clientSock == INVALID_SOCKET) {
-			//err_display("accept()");
+		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
+		std::cout << "Client accepted\n";
+		if (clientSock == INVALID_SOCKET)
+		{
 			std::cout << "Invalid Socket detected\n";
-			//break;
 			continue;
 		}
-		for (int i = 0; i < 4; ++i) {
-			if (!g_server->clients.at(i)) {
-				g_server->clients.at(i)->sock = clientSock;
-				//index = i;
-				g_server->clients.at(i)->SetPlayerNumber(i);
+
+		for (int i = 0; i < 4; ++i)
+		{
+			if (g_server->clients.at(i) == nullptr) {
+				Client* client = new Client();
+				client->sock = clientSock;
+				client->SetPlayerNumber(i);
+				g_server->clients.at(i) = client;
 				break;
 			}
 		}
@@ -172,58 +160,48 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
 		printf("\n[Server] Client Accepted: IP= %s, Port Number= %d\n",
 			addr, ntohs(clientaddr.sin_port));
-		//closesocket(client_sock[index]);
 	}
-	//closesocket(*g_server->GetSocket());
-	//WSACleanup();
 	return 0;
 }
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg)//
+DWORD WINAPI ReceiveAllClient(LPVOID arg)
 {
-	int retval{};
+	UNREFERENCED_PARAMETER(arg);
+
 	sockaddr_in clientaddr{};
-	char addr[INET_ADDRSTRLEN];
-	char buf[BUFSIZE + 1];
-	char PlayerInput[4];
+	char buf[BUFSIZE];
 
+	while (true) {
+		// Event off
+		for (int i = 0; i < 1; ++i)
+		{
+			if (g_server->clients.at(i) != nullptr)
+			{
+				if (recv(g_server->clients.at(i)->sock, buf, BUFSIZE, 0) == SOCKET_ERROR)
+					std::cout << "recv failed from " << i << " client\n";
+				g_server->playerKey[i] = buf[0];
+				g_server->playerKey[(int)buf[0]] = buf[1];
+			}
+		}
+	}
 
-
-	//while (1) {
-	//	// Event off
-	//	for (int i = 0; i < 4; ++i)
-	//	{
-	//		char buf[BUFSIZE];
-	//		retval = recv(g_server->clients.at(i)->clientSock, buf, BUFSIZE, 0);
-	//		g_server->playerKey[i] = buf[0];
-	//	}
-	//	if (retval == SOCKET_ERROR) {
-	//		err_display("recv()");
-	//		break;
-	//	}
-
-	//	int playerNumber = (int)buf[0];
-	//	g_server->playerKey[playerNumber] = buf[1];
-	//	// Event on
-	//}
-
-	return 1;
+	return 0;
 }
 
 int main()
 {
 	//Create Object Mgr
-	g_server = new Server;
+	g_server = new Server();
 	g_server->OpenListenSocket();
 	HANDLE AcceptThread, ReceiveThread;
-	AcceptThread = CreateThread(NULL, 0, AcceptClient, (LPVOID)&g_server->clients, 0, NULL);//client->g_server
-	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, (LPVOID)&g_server->clients, 0, NULL);
-	while (1)
+	AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
+	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, nullptr, 0, NULL);
+	while (true)
 	{
 		// Event is on?
-		g_server->AnimateObjects();
+		g_server->Update();
 		g_server->CheckCollision();
-		//SendAllClient
+		// SendAllClient
 	}
 }
 

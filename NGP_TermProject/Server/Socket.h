@@ -1,10 +1,9 @@
 ﻿#pragma once
 #include <cstdio>
-
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32")
 
-inline void err_quit(const char* msg)
+void err_quit(const char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
@@ -17,7 +16,7 @@ inline void err_quit(const char* msg)
 	exit(1);
 }
 
-inline void err_display(const char* msg)
+void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(
@@ -29,7 +28,7 @@ inline void err_display(const char* msg)
 	LocalFree(lpMsgBuf);
 }
 
-inline void err_display(int errcode)
+void err_display(int errcode)
 {
 	LPVOID lpMsgBuf;
 	FormatMessageA(

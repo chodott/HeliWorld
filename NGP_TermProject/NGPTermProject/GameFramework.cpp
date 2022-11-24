@@ -36,7 +36,6 @@ CGameFramework::CGameFramework()
 
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
 
-	Client.SetClientsock();//connectServer;
 }
 
 CGameFramework::~CGameFramework()
@@ -47,6 +46,10 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 {
 	m_hInstance = hInstance;
 	m_hWnd = hMainWnd;
+
+
+	client.ConnectServer();
+
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();

@@ -25,5 +25,4 @@ struct ItemInfoPacket {
     bool active;
 };
 
-
 #pragma pack()

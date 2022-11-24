@@ -1,27 +1,23 @@
 #pragma once
-//#include "error.h"
-#include <unordered_map>
-#include <vector>
 #include "Socket.h"
 #include "SCPacket.h"
 #include <array>
 
-#include "Socket.h"
-#include "GameObject.h"
-#define SERVERPORT 9000
-#define BUFSIZE    512
 
+#define SERVERPORT		9000
+#define BUFSIZE			512
 
-const char KEY_W = 0x01;
-const char KEY_A = 0x02;
-const char KEY_S = 0x04;
-const char MOUSE_LEFT = 0x10;
-const char MOUSE_RIGHT = 0x20;
+const char KEY_W		= 0x01;
+const char KEY_A		= 0x02;
+const char KEY_S		= 0x04;
+const char MOUSE_LEFT	= 0x10;
+const char MOUSE_RIGHT	= 0x20;
 
 DWORD WINAPI ReceiveAllClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 
 class Client;
+class CPlayer;
 
 class Server {
 public:
@@ -31,32 +27,33 @@ public:
 	void OpenListenSocket();
 
 	void SendAllClient();
-
-	void AnimateObjects();
-
+	
+	// 클라 충돌 및 움직임 송수신
+	void Update();
 	void CheckCollision();
 
 
 	SOCKET* GetSocket() { return &listenSock; }
 
+
 	std::array<Client*, 4> clients;
 	std::array<CPlayer*, 4> players;
-	//std::array<SOCKET, 4> clientSock;
 	std::array<char, 4> playerKey;
+
 private:
 	SOCKET listenSock;
 
-	int clientNum = 0;
 
 	std::array<PlayerInfoPacket, 4> infoPackets;
 
 };
 
+Server* g_server;
+
+
 
 class Client {
 public:
-	//friend Server;
-
 	SOCKET sock;
 	float oldxPos, oldyPos, oldzPos;
 	float xPos, yPos, zPos;
@@ -67,11 +64,9 @@ public:
 	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
 
 private:
-
 	char m_playerNumber;	// maybe client class can have playerID inside
 
-
-	int hp;
+	int hp = 70;
 
 };
 
