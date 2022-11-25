@@ -40,6 +40,8 @@ public:
 	std::array<CPlayer*, 4> players;
 	std::array<char, 4> playerKey;
 
+	HANDLE ReceiveEvent;
+
 private:
 	SOCKET listenSock;
 
@@ -47,9 +49,6 @@ private:
 	std::array<PlayerInfoPacket, 4> infoPackets;
 
 };
-
-Server* g_server;
-
 
 
 class Client {

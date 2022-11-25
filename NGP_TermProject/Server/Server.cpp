@@ -1,6 +1,7 @@
 #include "Server.h"
 #include "GameObject.h"
 
+Server* g_server;
 
 Server::Server()
 {
@@ -75,6 +76,8 @@ void Server::SendAllClient()
 
 void Server::Update()
 {
+	WaitForSingleObject(g_server->ReceiveEvent, INFINITE);
+	CheckCollision();
 }
 
 void Server::CheckCollision()
@@ -183,6 +186,8 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 				g_server->playerKey[(int)buf[0]] = buf[1];
 			}
 		}
+		SetEvent(g_server->ReceiveEvent);
+		// Is the event terminated immediately after run?
 	}
 
 	return 0;
@@ -196,11 +201,11 @@ int main()
 	HANDLE AcceptThread, ReceiveThread;
 	AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, nullptr, 0, NULL);
+	g_server->ReceiveEvent = CreateEvent(NULL, false, false, NULL);
 	while (true)
 	{
 		// Event is on?
 		g_server->Update();
-		g_server->CheckCollision();
 		// SendAllClient
 	}
 }
