@@ -49,8 +49,8 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client.ConnectServer();
-
-
+	ReceiveFromServerThread= CreateThread(NULL, 0, ReceiveFromServer, nullptr, 0, NULL);
+	
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
 	CreateRtvAndDsvDescriptorHeaps();

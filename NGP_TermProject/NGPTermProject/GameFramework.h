@@ -7,7 +7,7 @@
 #include "Player.h"
 #include "Scene.h"
 #include "Client.h"
-
+Client client;
 class CGameFramework
 {
 public:
@@ -43,7 +43,7 @@ public:
 	LRESULT CALLBACK OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 
-	Client client;
+	
 
 private:
 	HINSTANCE					m_hInstance;

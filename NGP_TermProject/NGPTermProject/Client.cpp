@@ -1,7 +1,26 @@
 #include "stdafx.h"
 #include "Client.h"
+#include"GameFramework.h"
 
 
+//DWORD WINAPI ReceiveFromServer(LPVOID arg)
+//{
+//	PlayerInfoPacket piPacket;
+//	while (1) {
+//		for (int i = 0; i < 4; i++) {
+//			int retval = recv(client.GetClientsock(), (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
+//			//recvData += retval;
+//			retval = recv(client.GetClientsock(), (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
+//			//recvData += retval;
+//			retval = recv(client.GetClientsock(), (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
+//			//recvData += retval;
+//			retval = recv(client.GetClientsock(), (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
+//			//recvData += retval;
+//			client.playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+//			//recvData = 0;
+//		}
+//	}
+//}
 Client::Client()
 {
 	WSADATA wsa;
@@ -31,6 +50,8 @@ void Client::ConnectServer()
 		std::cout << "Connection to server not established\n";
 	else
 		std::cout << "Connection established successful\n";
+
+	
 }
 
 void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -59,22 +80,6 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", sentBytes);
 }
 
-DWORD WINAPI Client::ReceiveFromServer(LPVOID arg)
-{
-	PlayerInfoPacket piPacket;
-	while (1) {
-		for (int i = 0; i < 2; i++) {
-			int retval = recv(sock, (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
-			//recvData += retval;
-			retval = recv(sock, (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
-			//recvData += retval;
-			retval = recv(sock, (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
-			//recvData += retval;
-			retval = recv(sock, (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
-			//recvData += retval;
-			playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
-			//recvData = 0;
-		}
-	}
-}
+
+
 

@@ -21,6 +21,9 @@
 
 #define SERVERPORT 9000
 #define BUFSIZE 512
+HANDLE  ReceiveFromServerThread;
+
+DWORD WINAPI ReceiveFromServer(LPVOID arg);
 
 class Client {
 public:
@@ -31,7 +34,7 @@ public:
 	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	DWORD WINAPI ReceiveFromServer(LPVOID arg);
+	
 
 	PlayerInfoPacket playerData[4];
 
@@ -50,4 +53,6 @@ private:
 	unsigned char option6 = 1 << 6; // 0100 0000
 	unsigned char option7 = 1 << 7; // 1000 0000
 };
+
+
 
