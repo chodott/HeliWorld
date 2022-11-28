@@ -137,6 +137,8 @@
     <ClInclude Include="DDSTextureLoader12.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="GameFramework.h" />
+    <ClInclude Include="HealObjectShader.h" />
+    <ClInclude Include="ItemObject.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Missileobject.h" />
     <ClInclude Include="MissileObjectShader.h" />
@@ -161,6 +163,8 @@
     <ClCompile Include="DDSTextureLoader12.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="GameFramework.cpp" />
+    <ClCompile Include="HealObjectShader.cpp" />
+    <ClCompile Include="ItemObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Missileobject.cpp" />
     <ClCompile Include="MissileObjectShader.cpp" />
