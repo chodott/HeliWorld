@@ -300,7 +300,7 @@ public:
 	void SetLook(XMFLOAT3 value);
 	void SetUp(XMFLOAT3 value);
 	void SetRight(XMFLOAT3 value);
-	void SetPosition(float x, float y, float z);
+	virtual void SetPosition(float x, float y, float z);
 	void SetPosition(XMFLOAT3 xmf3Position);
 	void SetScale(float x, float y, float z);
 	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation)
@@ -396,8 +396,9 @@ private:
 	CGameObject* m_pTailRotorFrame = NULL;
 
 public:
+	//virtual void SetPosition(float x, float y, float z);
 	virtual void PrepareAnimate();
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent , PlayerInfoPacket* packet);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

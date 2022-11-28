@@ -478,9 +478,9 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial *pMaterial)
 
 void CGameObject::Animate(float fTimeElapsed,  XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
-	SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
-	Move(GetMovement());
-
+//	SetShifts(, PlayerPacket->rotation);
+	//Move(PlayerPacket->movement);
+	Move(XMFLOAT3(0,0,0));
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }
@@ -1152,6 +1152,15 @@ CMi24Object::CMi24Object(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd
 CMi24Object::~CMi24Object()
 {
 }
+//
+//void CMi24Object::SetPosition(float x, float y, float z)
+//{
+//
+//		m_xmf4x4Transform._41 = x;
+//		m_xmf4x4Transform._42 = y;
+//		m_xmf4x4Transform._43 = z;
+//	
+//}
 
 void CMi24Object::PrepareAnimate()
 {
@@ -1159,7 +1168,7 @@ void CMi24Object::PrepareAnimate()
 	m_pTailRotorFrame = FindFrame("Tail_Rotor");
 }
 
-void CMi24Object::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CMi24Object::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,PlayerInfoPacket *packet)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -1172,7 +1181,7 @@ void CMi24Object::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
 		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
 	}
 
-	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent,packet);
 }
 
 CHeightMapTerrain::CHeightMapTerrain(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, LPCTSTR pFileName, int nWidth, int nLength, int nBlockWidth, int nBlockLength, XMFLOAT3 xmf3Scale, XMFLOAT4 xmf4Color) :CGameObject(1)

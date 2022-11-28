@@ -36,9 +36,9 @@ void Client::ConnectServer()
 
 }
 
-void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, POINT ptCursorPos)
+void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-
+	
 	switch (nMessageID)
 	{
 		cout << "메세지 보내는중" << endl;
@@ -67,11 +67,11 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 		return;
 	}
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", sentBytes);
-	buf[0] = (char)&ptCursorPos;
+	//buf[0] = (char)&ptCursorPos;
+	
+	//sentBytes = send(*sock, buf, 1, 0);
 
-	sentBytes = send(*sock, buf, 1, 0);
-
-
+	
 }
 //
 DWORD WINAPI ReceiveFromServer(LPVOID arg)

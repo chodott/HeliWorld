@@ -33,7 +33,7 @@ public:
 	SOCKET* GetClientsock() { return sock; };
 	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
-	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, POINT ptCursorPos);
+	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	PlayerInfoPacket playerData[4];
 	int PlayerNum = 0;
 
