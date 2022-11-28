@@ -10,11 +10,15 @@ Server::Server()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i] = nullptr;
 		//ego jonna byeollo - Chodot
-		//clients[i] = new Client;
+		clients[i] = new Client;
 		//players[i] = new CPlayer;
 	}
+}
+
+Client::Client()
+{
+	m_player = new CPlayer();
 }
 
 Server::~Server()
@@ -56,19 +60,19 @@ void Server::SendAllClient()
 		for (int j = 0; i < 4; ++i)
 		{
 			// need conversion operator packet => char* 
-			if (clients.at(i)->sock != NULL)
+			if (clients[i]->IsConnected() == true)
 			{
-				Client* c = clients.at(i);
+				Client* c = clients[i];
 				XMFLOAT3 movement{ c->xPos - c->oldxPos,
 									c->yPos - c->oldyPos,
 									c->zPos - c->oldzPos };
 				XMFLOAT3 rotation{ c->pitch - c->oldPitch,
 									c->yaw - c->oldYaw,
 									c->roll - c->oldRoll };
-				send(clients.at(i)->sock, (char*)&packetType, sizeof(char), 0);
-				send(clients.at(i)->sock, (char*)&i, sizeof(char), 0);
-				send(clients.at(i)->sock, (char*)&movement, sizeof(char), 0);
-				send(clients.at(i)->sock, (char*)&rotation, sizeof(char), 0);
+				send(c->sock, (char*)&packetType, sizeof(char), 0);
+				send(c->sock, (char*)&i, sizeof(char), 0);
+				send(c->sock, (char*)&movement, sizeof(char), 0);
+				send(c->sock, (char*)&rotation, sizeof(char), 0);
 			}
 		}
 	}
@@ -80,7 +84,9 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		players[i]->Move(playerKey[i], 1.f, true);
+		//players[i]->Move(playerKey[i], 1.f, true);
+		//clients[i]->m_player->Move(playerKey[i], 1.f, true);
+		clients[i]->m_player->Move(clients[i]->m_player->playerKey, 1.f, true);
 
 	}
 
@@ -91,26 +97,35 @@ void Server::CheckCollision()
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		if (players[i] == nullptr) continue;
-		else if (!players[i]->GetActive()) continue;
+		//if (players[i] == nullptr) continue;
+		if (!clients[i]->IsConnected()) continue;
+
+		CPlayer* iPlayer = clients[i]->m_player;
+		if (!iPlayer->GetActive()) continue;
+
 
 		for (int j = 0; j < 4; ++j)
 		{
 			if (i == j) continue;		//Same Player
-			else if (players[j] == nullptr) continue;
+			if (!clients[j]->IsConnected()) continue;
+			//else if (players[j] == nullptr) continue;
+
+			CPlayer* jPlayer = clients[j]->m_player;
 
 			//Collision Players
-			if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
+			//if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
+			if (!jPlayer->GetActive()) continue;
+			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
 			{
-
+				// function will be called
 			}
 
-			for (auto& missile : players[j]->m_pMissiles)
+			for (auto& missile : jPlayer->m_pMissiles)
 			{
 				//Collision between Player and Missiles
-				if (players[i]->GetBoundingBox().Intersects(missile.GetBoundingBox()))
+				if (iPlayer->GetBoundingBox().Intersects(missile.GetBoundingBox()))
 				{
-					players[i]->SetActive(false);
+					iPlayer->SetActive(false);
 					missile.SetActive(false);
 				}
 			}
@@ -160,32 +175,35 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 		for (int i = 0; i < 4; ++i)
 		{
-			if (g_server->clients.at(i) == nullptr) {
+			//if (g_server->clients.at(i) == nullptr)
+			if (g_server->clients[i]->IsConnected() == false)
+			{
 				Client* client = new Client();
 				client->sock = clientSock;
 				client->SetPlayerNumber(i);
-				g_server->clients.at(i) = client;
+				g_server->clients[i] = client;
 
+				CPlayer* player = g_server->clients[i]->m_player;
 				//Set Player Initial Pos
-				g_server->players[i]->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
+				player->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
 
 				//Set Player Initial Rotation
 				switch (i)
 				{
 				case 0:
-					g_server->players[i]->Rotate(0.f,0.f,0.f);
+					player->Rotate(0.f, 0.f, 0.f);
 					break;
 				case 1:
-					g_server->players[i]->Rotate(0.f, -45.f, 0.f);
+					player->Rotate(0.f, -45.f, 0.f);
 					break;
 				case 2:
-					g_server->players[i]->Rotate(0.f, 90.f, 0.f);
+					player->Rotate(0.f, 90.f, 0.f);
 					break;
 				case 3:
-					g_server->players[i]->Rotate(0.f, 45.f, 0.f);
+					player->Rotate(0.f, 45.f, 0.f);
 					break;
 				}
-				
+
 				break;
 			}
 		}
@@ -206,14 +224,18 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 	while (true) {
 		// Event off
+		ResetEvent(g_server->ReceiveEvent);
 		for (int i = 0; i < 4; ++i)
 		{
-			if (g_server->clients.at(i) != nullptr)
+			//if (g_server->clients.at(i) != nullptr)
+			if (g_server->clients[i]->IsConnected() != false)
 			{
-				if (recv(g_server->clients.at(i)->sock, buf, BUFSIZE, 0) == SOCKET_ERROR)
+				if (recv(g_server->clients[i]->sock, buf, BUFSIZE, 0) == SOCKET_ERROR)
 					std::cout << "recv failed from " << i << " client\n";
-				g_server->playerKey[i] = buf[0];
-				cout << g_server->playerKey[i] << endl;
+				//g_server->playerKey[i] = buf[0];
+				g_server->clients[i]->m_player->playerKey = buf[0];
+				//cout << g_server->playerKey[i] << endl;
+				cout << g_server->clients[i]->m_player->playerKey << endl;
 				//g_server->playerKey[(int)buf[0]] = buf[1];
 			}
 		}
@@ -232,7 +254,7 @@ int main()
 	HANDLE AcceptThread, ReceiveThread;
 	AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, nullptr, 0, NULL);
-	g_server->ReceiveEvent = CreateEvent(NULL, false, false, NULL);
+	g_server->ReceiveEvent = CreateEvent(NULL, true, false, NULL);
 	while (true)
 	{
 		// Event is on?

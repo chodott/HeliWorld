@@ -9,14 +9,14 @@
 #define DIR_DOWN				0x20
 
 //Key BitMask
-unsigned char option0 = 0x00; // 0000 0001 
-unsigned char option1 = 0x02; // 0000 0010
-unsigned char option2 = 0x04; // 0000 0100
-unsigned char option3 = 0x08; // 0000 1000
-unsigned char option4 = 0x16; // 0001 0000
-unsigned char option5 = 0x32; // 0010 0000
-unsigned char option6 = 0x64; // 0100 0000
-unsigned char option7 = 0x128; // 1000 0000
+//unsigned char option0 = 0x00; // 0000 0001 
+//unsigned char option1 = 0x02; // 0000 0010
+//unsigned char option2 = 0x04; // 0000 0100
+//unsigned char option3 = 0x08; // 0000 1000
+//unsigned char option4 = 0x16; // 0001 0000
+//unsigned char option5 = 0x32; // 0010 0000
+//unsigned char option6 = 0x64; // 0100 0000
+//unsigned char option7 = 0x128; // 1000 0000
 
 class GameObject {
 public:
@@ -62,7 +62,7 @@ public:
 
 };
 
-class CMissileObject :public GameObject
+class CMissileObject : public GameObject
 {
 	char m_cPlayerNumber;
 };
@@ -70,11 +70,24 @@ class CPlayer : public GameObject
 {
 public:
 	float m_fFriction;
-	int m_nHp;
+	int m_nHp = 100;
 	CMissileObject m_pMissiles[8];
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
 	void Move(char key, float Distance, bool updateVelocity);
+
+	char playerKey;
+	char playerMouse;
+
+private:
+	unsigned char option0 = 0x00; // 0000 0001 
+	unsigned char option1 = 0x02; // 0000 0010
+	unsigned char option2 = 0x04; // 0000 0100
+	unsigned char option3 = 0x08; // 0000 1000
+	unsigned char option4 = 0x16; // 0001 0000
+	unsigned char option5 = 0x32; // 0010 0000
+	unsigned char option6 = 0x64; // 0100 0000
+	unsigned char option7 = 0x128; // 1000 0000
 };
 
 class Item : public GameObject
