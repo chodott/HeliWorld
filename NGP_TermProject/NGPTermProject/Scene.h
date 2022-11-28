@@ -8,6 +8,7 @@
 #include "Player.h"
 #include"MissileObjectShader.h"
 #include"MultiSpriteObjectsShader.h"
+#include "HealObjectShader.h"
 
 #define MAX_LIGHTS			16 
 
@@ -69,6 +70,7 @@ public:
 
 	bool ProcessInput(UCHAR* pKeysBuffer);
 	void AnimateObjects(float fTimeElapsed);
+	void AnimateObjects(float fTimeElapsed, PlayerInfoPacket* PlayerInfoPacket);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
 	void ReleaseUploadBuffers();
@@ -98,6 +100,7 @@ public:
 	CHeightMapTerrain* m_pWater = NULL;
 	CMissileObjectsShader* pMissileobjectShader;
 	CMultiSpriteObjectsShader* pMultiSpriteObjectShader;
+//	CHealObjectsShader* 
 	LIGHT* m_pLights = NULL;
 	int									m_nLights = 0;
 

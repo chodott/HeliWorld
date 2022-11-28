@@ -35,6 +35,7 @@ public:
 	char* GetSERVERIP() { return SERVERIP; };
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, POINT ptCursorPos);
 	PlayerInfoPacket playerData[4];
+	int PlayerNum = 0;
 
 private:
 

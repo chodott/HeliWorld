@@ -471,28 +471,37 @@ void CGameFramework::ProcessInput()
 			if (cxDelta || cyDelta)
 			{
 				if (pKeysBuffer[VK_RBUTTON] & 0xF0) {
-		
+
 					m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 				}
 				else {
-				
+
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
 			if (dwDirection) m_pPlayer->Move(dwDirection, 1.21f, true);
 		}
 	}
-	
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }
 
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
+	XMFLOAT4X4 TEMP4X4 ;
+	for (int i = 0; i < 4; i++) {
+		if (client->playerData[i].playerNumber == client->PlayerNum) 
+		{
+				m_pPlayer->Animate(fTimeElapsed, NULL,&client->playerData[i]);
+		}
+		else if(client->playerData[i].playerNumber != client->PlayerNum) {
+			if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
+			if (m_pScene) m_pScene->m_ppShaders[0]->
+		}
+	}
+	
 
-	if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed);
-
-	m_pPlayer->Animate(fTimeElapsed, NULL);
+	
 }
 
 void CGameFramework::WaitForGpuComplete()

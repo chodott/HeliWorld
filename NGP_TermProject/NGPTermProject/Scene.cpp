@@ -3,7 +3,8 @@
 //-----------------------------------------------------------------------------
 
 #include "stdafx.h"
-#include "Scene.h"
+#include "Scene.h" 
+#include"CSPacket.h"
 
 CScene::CScene()
 {
@@ -85,7 +86,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pObjectsShader = new CObjectsShader();
 	pObjectsShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pObjectsShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, NULL);
-	m_ppShaders[3] = pObjectsShader;
+	m_ppShaders[0] = pObjectsShader;
 
 
 	/*CGSBillboardObjectsShader* pGSBillboardObjectShader = new CGSBillboardObjectsShader();
@@ -97,7 +98,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pBillboardObjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pBillboardObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pTerrain);
 	pBillboardObjectShader->SetActive(true);
-	m_ppShaders[4] = pBillboardObjectShader;
+	m_ppShaders[1] = pBillboardObjectShader;
 
 	pMissileobjectShader = new CMissileObjectsShader();
 	pMissileobjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
@@ -109,13 +110,13 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	C2dUIObjectsShader* p2dUIObjectShader = new C2dUIObjectsShader();
 	p2dUIObjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	p2dUIObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, m_pTerrain);
-	m_ppShaders[1] = p2dUIObjectShader;
+	m_ppShaders[3] = p2dUIObjectShader;
 
 	pMultiSpriteObjectShader = new CMultiSpriteObjectsShader();
 	pMultiSpriteObjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pMultiSpriteObjectShader->SetActive(false);
-	m_ppShaders[0] = pMultiSpriteObjectShader;
+	m_ppShaders[4] = pMultiSpriteObjectShader;
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
@@ -541,6 +542,22 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		pMissileobjectShader->SetPlayer(m_pPlayer);
 	}
 	for (int i = 0; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->AnimateObjects(fTimeElapsed);
+	CheckObjectByObjectCollisions(fTimeElapsed);
+	if (m_pLights)
+	{
+		m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
+		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
+	}
+}
+void CScene::AnimateObjects(float fTimeElapsed,PlayerInfoPacket* PlayerInfoPacket)
+{
+	fTimer += fTimeElapsed;
+	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
+	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->UpdateTransform(NULL);
+	if (m_pPlayer && pMissileobjectShader) {
+		pMissileobjectShader->SetPlayer(m_pPlayer);
+	}
+	for (int i = 1; i < m_nShaders; i++) if (m_ppShaders[i]) m_ppShaders[i]->AnimateObjects(fTimeElapsed);
 	CheckObjectByObjectCollisions(fTimeElapsed);
 	if (m_pLights)
 	{

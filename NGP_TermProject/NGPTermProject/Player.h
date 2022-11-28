@@ -9,7 +9,7 @@
 
 #include "Object.h"
 #include "Camera.h"
-
+#include"Client.h"
 #include"Shader.h"
 
 
@@ -39,20 +39,10 @@ protected:
 	CShader						*m_pShader = NULL;
 
 	CShader   *m_pMissileShader = NULL;
+	
 
 // Client update part
-protected:
-	XMFLOAT3 m_movement;
-	XMFLOAT3 m_rotation;
 
-public:
-	void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
-	{
-		m_movement = movement;
-		m_rotation = rotation;
-	}	
-	XMFLOAT3 GetMovement() { return m_movement; }
-	XMFLOAT3 GetRotation() { return m_rotation; }
 
 public:
 	CPlayer();
@@ -78,12 +68,13 @@ public:
 	CCamera *GetCamera() { return(m_pCamera); }
 	void SetCamera(CCamera *pCamera) { m_pCamera = pCamera; }
 
-	void Move(ULONG nDirection, float fDistance, bool bVelocity = false);
-	void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
-	void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
-	void Rotate(float x, float y, float z);
+	virtual	void Move(ULONG nDirection, float fDistance, bool bVelocity = false);
+	virtual void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
+	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
+	virtual void Rotate(float x, float y, float z);
 
 	void Update(float fTimeElapsed);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
 	void SetPlayerUpdatedContext(LPVOID pContext) { m_pPlayerUpdatedContext = pContext; }
@@ -113,7 +104,7 @@ public:
 
 private:
 	virtual void PrepareAnimate();
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent = NULL);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
 
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);

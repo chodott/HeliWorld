@@ -6,6 +6,7 @@
 
 #include "Mesh.h"
 #include "Camera.h"
+#include"CSPacket.h"
 
 #define DIR_FORWARD					0x01
 #define DIR_BACKWARD				0x02
@@ -220,6 +221,19 @@ public:
 
 	BoundingOrientedBox m_xmOOBB;
 	BoundingOrientedBox m_xmOOBBTransformed;
+protected:
+	XMFLOAT3 m_movement;
+	XMFLOAT3 m_rotation;
+
+public:
+	void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
+	{
+		m_movement = movement;
+		m_rotation = rotation;
+	}
+	XMFLOAT3 GetMovement() { return m_movement; }
+	XMFLOAT3 GetRotation() { return m_rotation; }
+	
 
 
 protected:
@@ -261,7 +275,8 @@ public:
 	virtual void BuildMaterials(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) { }
 
 	virtual void PrepareAnimate() { }
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
+	virtual void Animate(float fTimeElapsed,   XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket );
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent=NULL);
 	//	virtual void Animate(float fTimeElapsed);
 	virtual void AnimateObject(float fTimeElapsed);
 
@@ -300,6 +315,11 @@ public:
 	void MoveStrafe(float fDistance = 1.0f);
 	void MoveUp(float fDistance = 1.0f);
 	void MoveForward(float fDistance = 1.0f);
+
+	virtual	void Move(ULONG nDirection, float fDistance, bool bVelocity = false);
+	virtual void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
+	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
+	//virtual void Rotate(float x, float y, float z);
 
 	void Rotate(float fPitch = 10.0f, float fYaw = 10.0f, float fRoll = 10.0f);
 	void Rotate(XMFLOAT3* pxmf3Axis, float fAngle);
