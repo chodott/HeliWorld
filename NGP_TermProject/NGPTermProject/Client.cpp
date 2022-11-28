@@ -79,18 +79,17 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 	PlayerInfoPacket piPacket;
-	while (true) {
-		for (int i = 0; i < 4; i++) {
+	while (true)
+	{
+		for (int i = 0; i < 4; i++)
+		{
 			int retval = recv(*sock, (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
-			//recvData += retval;
 			retval = recv(*sock, (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
-			//recvData += retval;
 			retval = recv(*sock, (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
-			//recvData += retval;
 			retval = recv(*sock, (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
-			//recvData += retval;
+
+
 			client->playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
-			//recvData = 0;
 		}
 	}
 }

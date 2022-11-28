@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "GameObject.h"
+#include <bitset>
 
 Server* g_server;
 
@@ -183,6 +184,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 				client->SetPlayerNumber(i);
 				g_server->clients[i] = client;
 
+
 				CPlayer* player = g_server->clients[i]->m_player;
 				//Set Player Initial Pos
 				player->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
@@ -204,6 +206,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 					break;
 				}
 
+				g_server->clients[i]->ToggleConnected();
 				break;
 			}
 		}
@@ -235,7 +238,10 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 				//g_server->playerKey[i] = buf[0];
 				g_server->clients[i]->m_player->playerKey = buf[0];
 				//cout << g_server->playerKey[i] << endl;
-				cout << g_server->clients[i]->m_player->playerKey << endl;
+
+
+				std::bitset<8> x(g_server->clients[i]->m_player->playerKey);
+				std::cout << x << std::endl;
 				//g_server->playerKey[(int)buf[0]] = buf[1];
 			}
 		}

@@ -58,6 +58,8 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 
 void CPlayer::Move(char key, float Distance, bool updateVelocity)
 {
+	RecalculateLook();
+	RecalculateRight();
 	if (key)
 	{
 		int n = 0;

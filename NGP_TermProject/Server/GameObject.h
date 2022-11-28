@@ -31,6 +31,11 @@ public:
 	XMFLOAT3					m_xmf3Up;
 	XMFLOAT3					m_xmf3Look;
 
+
+	void RecalculateLook() { m_xmf3Look = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._31, m_xmf4x4World._32, m_xmf4x4World._33)); }
+	void RecalculateRight() { m_xmf3Right = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._11, m_xmf4x4World._12, m_xmf4x4World._13)); }
+	
+
 	float           			m_fPitch;
 	float           			m_fYaw;
 	float           			m_fRoll;
