@@ -191,6 +191,7 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
+	Move(PlayerPacket->movement, NULL);
 }
 
 CCamera *CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)

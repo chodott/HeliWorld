@@ -59,11 +59,11 @@ class Client {
 public:
 	Client();
 	SOCKET sock;
-	float oldxPos, oldyPos, oldzPos;
-	float xPos, yPos, zPos;
+	float oldxPos = 0.f, oldyPos = 0.f, oldzPos = 0.f;
+	float xPos = 0.f, yPos = 0.f, zPos = 0.f;
 
-	float oldPitch, oldYaw, oldRoll;
-	float pitch, yaw, roll;
+	float oldPitch = 0.f, oldYaw = 0.f, oldRoll = 0.f;
+	float pitch = 0.f, yaw = 0.f, roll = 0.f;
 
 	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
 

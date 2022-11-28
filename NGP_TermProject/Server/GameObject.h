@@ -20,7 +20,7 @@
 
 class GameObject {
 public:
-
+	GameObject();
 	XMFLOAT4X4 m_xmf4x4World;
 	BoundingOrientedBox m_xmOOBB;
 	XMFLOAT3 m_xmf3MovingDirection;
@@ -31,17 +31,26 @@ public:
 	XMFLOAT3					m_xmf3Up;
 	XMFLOAT3					m_xmf3Look;
 
-	float           			m_fPitch;
-	float           			m_fYaw;
-	float           			m_fRoll;
 
-	float						m_fOldxPos;
-	float						m_fOldyPos;
-	float						m_fOldzPos;
+	void RecalculateLook() { m_xmf3Look = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._31, m_xmf4x4World._32, m_xmf4x4World._33)); }
+	void RecalculateRight() { m_xmf3Right = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._11, m_xmf4x4World._12, m_xmf4x4World._13)); }
 
-	float						m_fOldPitch;
-	float						m_fOldYaw;
-	float						m_fOldRoll;
+
+	float           			m_fPitch = 0.f;
+	float           			m_fYaw = 0.f;
+	float           			m_fRoll = 0.f;
+
+	float						m_fOldxPos = 0.f;
+	float						m_fOldyPos = 0.f;
+	float						m_fOldzPos = 0.f;
+
+	float						m_fxPos = 0.f;
+	float						m_fyPos = 0.f;
+	float						m_fzPos = 0.f;
+
+	float						m_fOldPitch = 0.f;
+	float						m_fOldYaw = 0.f;
+	float						m_fOldRoll = 0.f;
 
 	bool						m_bActive;//active
 	float						m_fSpeed;//speed
@@ -80,7 +89,7 @@ public:
 	char playerMouse;
 
 private:
-	unsigned char option0 = 0x00; // 0000 0001 
+	unsigned char option0 = 0x01; // 0000 0001 
 	unsigned char option1 = 0x02; // 0000 0010
 	unsigned char option2 = 0x04; // 0000 0100
 	unsigned char option3 = 0x08; // 0000 1000

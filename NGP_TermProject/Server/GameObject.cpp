@@ -1,5 +1,10 @@
 #include "GameObject.h"
 
+GameObject::GameObject()
+{
+	m_xmf4x4World = Matrix4x4::Identity();
+}
+
 void GameObject::Move()
 {
 
@@ -37,7 +42,18 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 	{
 		m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, xmf3Shift);
 	}*/
+
+	m_fOldxPos = m_xmf3Position.x;
+	m_fOldyPos = m_xmf3Position.y;
+	m_fOldzPos = m_xmf3Position.z;
+
 	m_xmf3Position = Vector3::Add(m_xmf3Position, xmf3Shift);
+
+	m_fxPos = m_xmf3Position.x;
+	m_fyPos = m_xmf3Position.y;
+	m_fzPos = m_xmf3Position.z;
+
+
 	//	m_pCamera->Move(xmf3Shift); ->
 }
 
@@ -58,14 +74,21 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 
 void CPlayer::Move(char key, float Distance, bool updateVelocity)
 {
+	RecalculateLook();
+	RecalculateRight();
+
 	if (key)
 	{
-		int n = 0;
+		//int n = 0;
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-		if ((key >> n++) & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
-		if ((key >> n++) & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
-		if ((key >> n++) & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
-		if ((key >> n++) & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
+
+
+		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
+		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
+		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
+		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
+
+
 		Move(xmf3Shift, updateVelocity);
 	}
 }

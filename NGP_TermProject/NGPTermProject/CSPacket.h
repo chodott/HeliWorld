@@ -8,7 +8,7 @@ const char CL_PlayerStatus = 1;
 struct PlayerInfoPacket {
     char packetType;
     char playerNumber;
-    XMFLOAT3  movement;
+    XMFLOAT3 movement;
     XMFLOAT3 rotation;
 };
 
