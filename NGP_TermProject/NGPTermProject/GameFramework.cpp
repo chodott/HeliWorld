@@ -49,7 +49,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client.ConnectServer();
-	ReceiveFromServerThread= CreateThread(NULL, 0, ReceiveFromServer, nullptr, 0, NULL);
+	//ReceiveFromServerThread= CreateThread(NULL, 0, ReceiveFromServer, nullptr, 0, NULL);
 	
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -366,6 +366,7 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
         case WM_KEYDOWN:
         case WM_KEYUP:
 			OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+		//	client.SendtoServer(hWnd, nMessageID, wParam, lParam, ptCursorPos);
 			break;
 	}
 	return(0);
@@ -451,6 +452,7 @@ void CGameFramework::ProcessInput()
 
 		float cxDelta = 0.0f, cyDelta = 0.0f;
 		POINT ptCursorPos;
+		(char*)&ptCursorPos;
 		if (GetCapture() == m_hWnd)
 		{
 			SetCursor(NULL);
@@ -477,6 +479,7 @@ void CGameFramework::ProcessInput()
 			if (dwDirection) m_pPlayer->Move(dwDirection, 1.21f, true);
 		}
 	}
+	
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 }
 

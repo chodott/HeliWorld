@@ -39,6 +39,7 @@ public:
 	std::array<Client*, 4> clients;
 	std::array<CPlayer*, 4> players;
 	std::array<char, 4> playerKey;
+	std::array<char, 4> playerMouse;
 
 	HANDLE ReceiveEvent;
 

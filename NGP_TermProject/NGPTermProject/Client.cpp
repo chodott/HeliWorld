@@ -1,26 +1,9 @@
 #include "stdafx.h"
 #include "Client.h"
-#include"GameFramework.h"
 
 
-//DWORD WINAPI ReceiveFromServer(LPVOID arg)
-//{
-//	PlayerInfoPacket piPacket;
-//	while (1) {
-//		for (int i = 0; i < 4; i++) {
-//			int retval = recv(client.GetClientsock(), (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
-//			//recvData += retval;
-//			retval = recv(client.GetClientsock(), (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
-//			//recvData += retval;
-//			retval = recv(client.GetClientsock(), (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
-//			//recvData += retval;
-//			retval = recv(client.GetClientsock(), (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
-//			//recvData += retval;
-//			client.playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
-//			//recvData = 0;
-//		}
-//	}
-//}
+
+ Client* client;
 Client::Client()
 {
 	WSADATA wsa;
@@ -54,10 +37,12 @@ void Client::ConnectServer()
 	
 }
 
-void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam,POINT ptCursorPos)
 {
+	
 	switch (nMessageID)
 	{
+		cout << "메세지 보내는중" << endl;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
@@ -70,16 +55,44 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 		}
 	}
 	char buf[1];
+	cout << sendKey << endl;
 	buf[0] = sendKey;
+	/*if (buf[0] == option1) {
+		cout << "OK!" << endl;
+	}*/
 	int sentBytes = send(sock, buf, 1, 0);
+
 	if (sentBytes == SOCKET_ERROR)
 	{
 		err_display("send()");
 		return;
 	}
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", sentBytes);
-}
+	buf[0] = (char)&ptCursorPos;
+	
+	sentBytes = send(sock, buf, 1, 0);
 
+	
+}
+//
+DWORD WINAPI ReceiveFromServer(LPVOID arg)
+{
+	PlayerInfoPacket piPacket;
+	while (1) {
+		for (int i = 0; i < 4; i++) {
+			int retval = recv(client->GetClientsock(), (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
+			//recvData += retval;
+			retval = recv(client->GetClientsock(), (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
+			//recvData += retval;
+			retval = recv(client->GetClientsock(), (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
+			//recvData += retval;
+			retval = recv(client->GetClientsock(), (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
+			//recvData += retval;
+			client->playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+			//recvData = 0;
+		}
+	}
+}
 
 
 

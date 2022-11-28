@@ -176,14 +176,15 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 	while (true) {
 		// Event off
-		for (int i = 0; i < 1; ++i)
+		for (int i = 0; i < 4; ++i)
 		{
 			if (g_server->clients.at(i) != nullptr)
 			{
 				if (recv(g_server->clients.at(i)->sock, buf, BUFSIZE, 0) == SOCKET_ERROR)
 					std::cout << "recv failed from " << i << " client\n";
 				g_server->playerKey[i] = buf[0];
-				g_server->playerKey[(int)buf[0]] = buf[1];
+				cout << g_server->playerKey[i] << endl;
+				//g_server->playerKey[(int)buf[0]] = buf[1];
 			}
 		}
 		SetEvent(g_server->ReceiveEvent);
@@ -205,7 +206,7 @@ int main()
 	while (true)
 	{
 		// Event is on?
-		g_server->Update();
+		//g_server->Update();
 		// SendAllClient
 	}
 }

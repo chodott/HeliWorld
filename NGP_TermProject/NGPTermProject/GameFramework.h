@@ -7,7 +7,7 @@
 #include "Player.h"
 #include "Scene.h"
 #include "Client.h"
-Client client;
+
 class CGameFramework
 {
 public:
@@ -41,7 +41,6 @@ public:
 	void OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-
 
 	
 
@@ -89,5 +88,7 @@ private:
 	POINT						m_ptOldCursorPos;
 
 	_TCHAR						m_pszFrameRate[70];
+
+	Client client;
 };
 

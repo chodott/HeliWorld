@@ -1,5 +1,5 @@
 #pragma once
-#include "stdafx.h"
+
 
 #define _CRT_SECURE_NO_WARNINGS // ���� C �Լ� ��� �� ��� ���
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // ���� ���� API ��� �� ��� ���
@@ -17,13 +17,13 @@
 #include "CSPacket.h"
 #include "error.h"
 
+
+
 #pragma comment(lib, "ws2_32") // ws2_32.lib ��ũ
 
 #define SERVERPORT 9000
 #define BUFSIZE 512
-HANDLE  ReceiveFromServerThread;
-
-DWORD WINAPI ReceiveFromServer(LPVOID arg);
+//HANDLE  ReceiveFromServerThread;
 
 class Client {
 public:
@@ -33,12 +33,11 @@ public:
 	SOCKET GetClientsock() { return sock; };
 	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
-	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	
-
+	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, POINT ptCursorPos);
 	PlayerInfoPacket playerData[4];
 
 private:
+
 	SOCKET sock = NULL;
 
 	char* SERVERIP = (char*)"127.0.0.1";
@@ -53,6 +52,8 @@ private:
 	unsigned char option6 = 1 << 6; // 0100 0000
 	unsigned char option7 = 1 << 7; // 1000 0000
 };
+DWORD WINAPI ReceiveFromServer(LPVOID arg);
+
 
 
 
