@@ -40,6 +40,9 @@ public:
 	std::array<CPlayer*, 4> players;
 	std::array<char, 4> playerKey;
 	std::array<char, 4> playerMouse;
+	float initialPos[4][3]{
+		{500,0,300},{1000,500,300},{500,1000,300},{0,500,300}
+	};
 
 	HANDLE ReceiveEvent;
 

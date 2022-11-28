@@ -55,3 +55,18 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 		Move(xmf3Shift, updateVelocity);
 	}
 }
+
+void CPlayer::Move(char key, float Distance, bool updateVelocity)
+{
+	if (key)
+	{
+		int n = 0;
+		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
+		if ((key >> n++) & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
+		if ((key >> n++) & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
+		if ((key >> n++) & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
+		if ((key >> n++) & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
+		Move(xmf3Shift, updateVelocity);
+	}
+}
+

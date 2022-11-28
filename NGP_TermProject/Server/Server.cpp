@@ -77,6 +77,13 @@ void Server::SendAllClient()
 void Server::Update()
 {
 	WaitForSingleObject(g_server->ReceiveEvent, INFINITE);
+	int n = 0;
+	for (int i = 0; i < 4; ++i)
+	{
+		players[i]->Move(playerKey[i], 1.f, true);
+
+	}
+
 	CheckCollision();
 }
 
@@ -84,11 +91,13 @@ void Server::CheckCollision()
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		if (!players[i]->GetActive()) continue;
+		if (players[i] == nullptr) continue;
+		else if (!players[i]->GetActive()) continue;
 
 		for (int j = 0; j < 4; ++j)
 		{
 			if (i == j) continue;		//Same Player
+			else if (players[j] == nullptr) continue;
 
 			//Collision Players
 			if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
@@ -156,6 +165,27 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 				client->sock = clientSock;
 				client->SetPlayerNumber(i);
 				g_server->clients.at(i) = client;
+
+				//Set Player Initial Pos
+				g_server->players[i]->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
+
+				//Set Player Initial Rotation
+				switch (i)
+				{
+				case 0:
+					g_server->players[i]->Rotate(0.f,0.f,0.f);
+					break;
+				case 1:
+					g_server->players[i]->Rotate(0.f, -45.f, 0.f);
+					break;
+				case 2:
+					g_server->players[i]->Rotate(0.f, 90.f, 0.f);
+					break;
+				case 3:
+					g_server->players[i]->Rotate(0.f, 45.f, 0.f);
+					break;
+				}
+				
 				break;
 			}
 		}

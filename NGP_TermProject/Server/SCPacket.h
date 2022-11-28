@@ -1,11 +1,9 @@
-
 #pragma once
 #include"stdafx.h"
 
 const char SC_PlayerInfo = 0;
 const char SC_PlayerStatus = 1;
 const char SC_PlayerKey = 2;
-
 
 #pragma pack(1)
 struct PlayerInfoPacket {
