@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "Scene.h"
 #include "Client.h"
+#include <WS2tcpip.h>
 
 class CGameFramework
 {
@@ -43,6 +44,8 @@ public:
 	LRESULT CALLBACK OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 	
+	SOCKET* GetSocket() { return client->GetClientsock(); }
+
 
 private:
 	HINSTANCE					m_hInstance;
@@ -89,6 +92,6 @@ private:
 
 	_TCHAR						m_pszFrameRate[70];
 
-	Client client;
+	Client* client;
 };
 

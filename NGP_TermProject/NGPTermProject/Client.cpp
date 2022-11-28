@@ -2,23 +2,23 @@
 #include "Client.h"
 
 
-
- Client* client;
 Client::Client()
 {
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	sock = new SOCKET();
 }
 
 Client::~Client()
 {
-	closesocket(sock);
+	closesocket(*sock);
 	WSACleanup();
 }
 
 void Client::ConnectServer()
 {
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 		err_quit("socket()");
 
 	sockaddr_in serverAddr;
@@ -29,12 +29,11 @@ void Client::ConnectServer()
 
 	std::cout << "Socket initalize successful\n";
 
-	if (connect(sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)	//err_quit("socket()");
+	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)	//err_quit("socket()");
 		std::cout << "Connection to server not established\n";
 	else
 		std::cout << "Connection established successful\n";
 
-	
 }
 
 void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam,POINT ptCursorPos)
@@ -60,7 +59,7 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	/*if (buf[0] == option1) {
 		cout << "OK!" << endl;
 	}*/
-	int sentBytes = send(sock, buf, 1, 0);
+	int sentBytes = send(*sock, buf, 1, 0);
 
 	if (sentBytes == SOCKET_ERROR)
 	{
@@ -70,23 +69,25 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", sentBytes);
 	buf[0] = (char)&ptCursorPos;
 	
-	sentBytes = send(sock, buf, 1, 0);
+	sentBytes = send(*sock, buf, 1, 0);
 
 	
 }
 //
 DWORD WINAPI ReceiveFromServer(LPVOID arg)
 {
+	Client* client = (Client*)arg;
+	SOCKET* sock = client->GetClientsock();
 	PlayerInfoPacket piPacket;
-	while (1) {
+	while (true) {
 		for (int i = 0; i < 4; i++) {
-			int retval = recv(client->GetClientsock(), (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
+			int retval = recv(*sock, (char*)&piPacket.packetType, sizeof(char), MSG_WAITALL);
 			//recvData += retval;
-			retval = recv(client->GetClientsock(), (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
+			retval = recv(*sock, (char*)&piPacket.playerNumber, sizeof(int), MSG_WAITALL);
 			//recvData += retval;
-			retval = recv(client->GetClientsock(), (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
+			retval = recv(*sock, (char*)&piPacket.movement, sizeof(XMFLOAT3), MSG_WAITALL);
 			//recvData += retval;
-			retval = recv(client->GetClientsock(), (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
+			retval = recv(*sock, (char*)&piPacket.rotation, sizeof(XMFLOAT3), MSG_WAITALL);
 			//recvData += retval;
 			client->playerData[i] = piPacket;	//->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
 			//recvData = 0;

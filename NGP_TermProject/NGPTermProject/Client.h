@@ -30,7 +30,7 @@ public:
 	Client();
 	~Client();
 
-	SOCKET GetClientsock() { return sock; };
+	SOCKET* GetClientsock() { return sock; };
 	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
 	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, POINT ptCursorPos);
@@ -38,8 +38,9 @@ public:
 
 private:
 
-	SOCKET sock = NULL;
+	SOCKET* sock = nullptr;
 
+	//char* SERVERIP = (char*)"192.168.203.20";
 	char* SERVERIP = (char*)"127.0.0.1";
 
 	unsigned char sendKey = NULL;
