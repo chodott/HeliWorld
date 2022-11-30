@@ -12,7 +12,6 @@ Server::Server()
 	{
 		//ego jonna byeollo - Chodot
 		clients[i] = new Client;
-		//players[i] = new CPlayer;
 	}
 }
 
@@ -28,7 +27,6 @@ Server::~Server()
 	{
 		if (clients[i] != nullptr)
 			delete(clients[i]);
-		//delete(players[i]);
 	}
 }
 
@@ -60,11 +58,11 @@ void Server::SendAllClient()
 {
 	for (int i = 0; i < 4; ++i)		// client number
 	{
-		// sending playerinfo packet
+		char packetType = SC_PlayerInfo;
+		PlayerInfoPacket toSend;
+		toSend.packetType = packetType;
 		if (clients[i]->IsConnected())
 		{
-			char packetType = SC_PlayerInfo;
-
 			Client* c = clients.at(i);
 			GameObject* p = c->m_player;
 
@@ -75,25 +73,17 @@ void Server::SendAllClient()
 						   p->m_fYaw - p->m_fOldYaw,
 						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
 
-			PlayerInfoPacket playerInfo;
-			playerInfo.packetType = packetType;
-			playerInfo.playerNumber = c->GetPlayerNumber();
-			playerInfo.movement = movement;
-			playerInfo.rotation = rotation;
+			toSend.playerNumber = c->GetPlayerNumber();
+			toSend.movement = movement;
+			toSend.rotation = rotation;
+		}
 
-			std::cout << "Player" << playerInfo.playerNumber
-				<< " x: " << playerInfo.movement.x
-				<< " y: " << playerInfo.movement.y
-				<< " z: " << playerInfo.movement.z << std::endl;
-
-			//std::cout << "Player " << i
-			//	<< " x: " << movement.x;
-			for (int j = 0; j < 4; ++j)		// send to 4 client about info of i client
+		// sending playerinfo packet
+		for (const auto& client : clients)
+		{
+			if (client->IsConnected())
 			{
-				if (clients[j]->IsConnected())
-				{
-					send(c->sock, (char*)&playerInfo, sizeof(PlayerInfoPacket), 0);
-				}
+				send(client->sock, (char*)&toSend, sizeof(PlayerInfoPacket), 0);
 			}
 		}
 	}
@@ -105,11 +95,7 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		//players[i]->Move(playerKey[i], 1.f, true);
-		//clients[i]->m_player->Move(playerKey[i], 1.f, true);
-
 		clients[i]->m_player->Move(clients[i]->m_player->playerKey, 0.5f, true);
-
 	}
 
 	CheckCollision();
@@ -120,7 +106,6 @@ void Server::CheckCollision()
 {
 	for (int i = 0; i < 4; ++i)
 	{
-		//if (players[i] == nullptr) continue;
 		if (!clients[i]->IsConnected()) continue;
 
 		CPlayer* iPlayer = clients[i]->m_player;
@@ -131,12 +116,10 @@ void Server::CheckCollision()
 		{
 			if (i == j) continue;		//Same Player
 			if (!clients[j]->IsConnected()) continue;
-			//else if (players[j] == nullptr) continue;
 
 			CPlayer* jPlayer = clients[j]->m_player;
 
 			//Collision Players
-			//if (players[j]->GetActive() && players[i]->GetBoundingBox().Intersects(players[j]->GetBoundingBox()))
 			if (!jPlayer->GetActive()) continue;
 			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
 			{
@@ -155,26 +138,6 @@ void Server::CheckCollision()
 
 		}
 	}
-
-	/*if (pMissleObject && PlayerObject)
-	{
-		for (int i = 0; i < sizeof(PlayerObject); ++i)
-		{
-			for (int j = 0; j < sizeof(pMissleObject); ++j)
-			{
-				if (PlayerObject[i]->GetActive() && pMissleObject[j]->GetActive()) {
-					if (PlayerObject[i]->Player_id != pMissleObject[j]->Player_id) {
-						if (PlayerObject[i]->m_xmOOBB.Intersects(pMissleObject[j]->m_xmOOBB))
-						{
-							PlayerObject[i]->SetActive(FALSE);
-							pMissleObject[j]->SetActive(FALSE);
-							break;
-						}
-					}
-				}
-			}
-		}
-	}*/
 }
 
 DWORD WINAPI AcceptClient(LPVOID arg)
@@ -197,7 +160,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 		for (int i = 0; i < 4; ++i)
 		{
-			//if (g_server->clients.at(i) == nullptr)
 			if (g_server->clients[i]->IsConnected() == false)
 			{
 				g_server->clients[i]->sock = clientSock;
@@ -211,8 +173,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 				g_server->clients[i]->ToggleConnected();
 
 
-				//g_server->clients[i] = client;
-
 				CPlayer* player = g_server->clients[i]->m_player;
 				//Set Player Initial Pos
 				player->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
@@ -225,8 +185,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 					player->Rotate(0.f, 0.f, 0.f);
 					break;
 				case 1:
-					//player->Rotate(0.f, -45.f, 0.f);
-					player->Rotate(0.f, 0.f, 0.f);
+					player->Rotate(0.f, -45.f, 0.f);
 					break;
 				case 2:
 					player->Rotate(0.f, 90.f, 0.f);
@@ -252,28 +211,19 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 	UNREFERENCED_PARAMETER(arg);
 
 	sockaddr_in clientaddr{};
-	//char buf[BUFSIZE];
 
 	while (true) {
 		// Event off
 		ResetEvent(g_server->ReceiveEvent);
 		for (int i = 0; i < 4; ++i)
 		{
-			//if (g_server->clients.at(i) != nullptr)
 			if (g_server->clients[i]->IsConnected() != false)
 			{
 				if (recv(g_server->clients[i]->sock, g_server->clients[i]->buf, BUFSIZE, 0) == SOCKET_ERROR)
-					//std::cout << "recv failed from " << i << " client\n";
-				//g_server->playerKey[i] = buf[0];
-				g_server->clients[i]->m_player->playerKey = g_server->clients[i]->buf[0];
-
-
-				//cout << g_server->playerKey[i] << endl;
-				//g_server->playerKey[(int)buf[0]] = buf[1];
+					g_server->clients[i]->m_player->playerKey = g_server->clients[i]->buf[0];
 			}
 		}
 		SetEvent(g_server->ReceiveEvent);
-		// Is the event terminated immediately after run?
 	}
 
 	return 0;
@@ -290,9 +240,7 @@ int main()
 	g_server->ReceiveEvent = CreateEvent(NULL, true, false, NULL);
 	while (true)
 	{
-		// Event is on?
 		g_server->Update();
-		// SendAllClient
 	}
 }
 

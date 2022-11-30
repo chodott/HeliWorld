@@ -497,14 +497,11 @@ void CGameFramework::AnimateObjects()
 		{
 			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
 		}
-		if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
-	}
-	for (int j = 0; j < 4; j++)
-	{
-		if (client->playerData[j].playerNumber != client->PlayerNum)
+		else
 		{
-			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[j]->Animate(fTimeElapsed, NULL, &client->playerData[j]);//Enemy Update 
+			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
 		}
+		if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
 	}
 
 }

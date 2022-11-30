@@ -82,7 +82,7 @@ public:
 
 	CObjectsShader* pObjectsShader;
 
-// update player update with received data from server
+	// update player update with received data from server
 public:
 	void Update();
 
@@ -100,7 +100,7 @@ public:
 	CHeightMapTerrain* m_pWater = NULL;
 	CMissileObjectsShader* pMissileobjectShader;
 	CMultiSpriteObjectsShader* pMultiSpriteObjectShader;
-//	CHealObjectsShader* 
+	//CHealObjectsShader* 
 	LIGHT* m_pLights = NULL;
 	int									m_nLights = 0;
 

@@ -38,10 +38,6 @@ bool GameObject::GetActive()
 
 void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 {
-	/*if (bUpdateVelocity)
-	{
-		m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, xmf3Shift);
-	}*/
 
 	m_fOldxPos = m_xmf3Position.x;
 	m_fOldyPos = m_xmf3Position.y;
@@ -54,7 +50,6 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 	m_fzPos = m_xmf3Position.z;
 
 
-	//m_pCamera->Move(xmf3Shift); ->
 }
 
 void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
@@ -79,9 +74,7 @@ void CPlayer::Move(char key, float Distance, bool updateVelocity)
 
 	if (key)
 	{
-		//int n = 0;
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-
 
 		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
 		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
