@@ -414,7 +414,24 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
-	pAirplanePlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 500.0f));
+	switch (client->PlayerNum)
+	{
+	case 0:
+		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 500.0f));
+		break;
+	case 1:
+		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 600.0f));
+		break;
+	case 2:
+		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
+		break;
+	case 3:
+		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
+		break;
+	default:
+			break;
+	}
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
@@ -496,6 +513,7 @@ void CGameFramework::AnimateObjects()
 		if (client->playerData[i].playerNumber == client->PlayerNum)
 		{
 			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
+			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(FALSE);
 		}
 		else
 		{

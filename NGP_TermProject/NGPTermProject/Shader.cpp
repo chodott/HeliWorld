@@ -485,7 +485,8 @@ void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComman
 		m_ppObjects[h] = new CMi24Object(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 		m_ppObjects[h]->SetChild(pSuperCobraModel);
 		pSuperCobraModel->AddRef();
-		m_ppObjects[h]->SetPosition(100, 0, 0 + h * 100);
+		m_ppObjects[h]->SetPosition(300.0f, 500.0f, 500.0f+ h * 100);
+		m_ppObjects[h]->Rotate(0,-90,0);
 		m_ppObjects[h]->SetOOBB(m_ppObjects[h]->GetPosition(), XMFLOAT3(5, 5, 5), XMFLOAT4(0., 0., 0., 1.));
 		m_ppObjects[h]->Rotate(0.0f, 90.0f, 0.0f);
 		m_ppObjects[h]->PrepareAnimate();
