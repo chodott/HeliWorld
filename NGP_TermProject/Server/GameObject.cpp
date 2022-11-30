@@ -54,7 +54,7 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 	m_fzPos = m_xmf3Position.z;
 
 
-	//	m_pCamera->Move(xmf3Shift); ->
+	//m_pCamera->Move(xmf3Shift); ->
 }
 
 void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
@@ -84,8 +84,8 @@ void CPlayer::Move(char key, float Distance, bool updateVelocity)
 
 
 		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
-		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
-		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
+		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
+		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
 		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
 
 

@@ -21,6 +21,10 @@ void Client::ConnectServer()
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
 		err_quit("socket()");
 
+	//u_long nonBlockingMode = 1;
+	//ioctlsocket(*sock, FIONBIO, &nonBlockingMode);
+
+
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
@@ -34,9 +38,13 @@ void Client::ConnectServer()
 	else
 		std::cout << "Connection established successful\n";
 
+	recv(*sock, (char*)&PlayerNum, sizeof(int), 0);
 
-	recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL);
+	playerData[PlayerNum].playerNumber = PlayerNum;
 
+
+	DWORD optval = 1;
+	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
 
 void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -58,6 +66,7 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	char buf[1];
 	//cout << sendKey << endl;
 	buf[0] = sendKey;
+	sendKey = NULL;
 	/*if (buf[0] == option1) {
 		cout << "OK!" << endl;
 	}*/
@@ -70,26 +79,31 @@ void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	}
 	//printf("[TCP 클라이언트] %d바이트를 보냈습니다.\n", sentBytes);
 	//buf[0] = (char)&ptCursorPos;
-	
+
 	//sentBytes = send(*sock, buf, 1, 0);
 
-	
+
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
-	PlayerInfoPacket piPacket;
-	while (true) {
-		for (int i = 0; i < 4; i++) {
-
-
-			int retval = recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), MSG_WAITALL);
-			client->playerData[i] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
-			//recvData = 0;
+	while (true)
+	{
+		//for (int i = 0; i < 4; i++)
+		{
+			PlayerInfoPacket piPacket;
+			int retval = recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), 0);
+			client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+			//if (piPacket.playerNumber == client->PlayerNum)
+			//{
+			//	std::cout << "PlayerNum: " << piPacket.playerNumber << std::endl;
+			//	std::cout << " x: " << piPacket.movement.x
+			//		<< " y: " << piPacket.movement.y
+			//		<< " z: " << piPacket.movement.z << std::endl;
+			//}
 		}
 	}
 }
-
 

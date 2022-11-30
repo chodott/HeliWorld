@@ -222,8 +222,8 @@ public:
 	BoundingOrientedBox m_xmOOBB;
 	BoundingOrientedBox m_xmOOBBTransformed;
 protected:
-	XMFLOAT3 m_movement;
-	XMFLOAT3 m_rotation;
+	XMFLOAT3 m_movement = { 0,0,0 };
+	XMFLOAT3 m_rotation = { 0,0,0 };
 
 public:
 	void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
