@@ -7,7 +7,7 @@ const char CL_PlayerStatus = 1;
 #pragma pack(1)
 struct PlayerInfoPacket {
     char packetType;
-    char playerNumber;
+    int playerNumber;
     XMFLOAT3 movement;
     XMFLOAT3 rotation;
 };

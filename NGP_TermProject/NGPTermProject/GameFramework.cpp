@@ -470,11 +470,13 @@ void CGameFramework::ProcessInput()
 		{
 			if (cxDelta || cyDelta)
 			{
-				if (pKeysBuffer[VK_RBUTTON] & 0xF0) {
+				if (pKeysBuffer[VK_RBUTTON] & 0xF0)
+				{
 
 					m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 				}
-				else {
+				else
+				{
 
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
@@ -489,11 +491,11 @@ void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
 	XMFLOAT4X4 TEMP4X4;
-	int j = 0;
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		if (client->playerData[i].playerNumber == client->PlayerNum)
 		{
-			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);//player update
+			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
 		}
 		if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
 	}
@@ -504,7 +506,6 @@ void CGameFramework::AnimateObjects()
 			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[j]->Animate(fTimeElapsed, NULL, &client->playerData[j]);//Enemy Update 
 		}
 	}
-
 
 }
 

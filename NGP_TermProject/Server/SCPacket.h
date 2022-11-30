@@ -8,14 +8,14 @@ const char SC_PlayerKey = 2;
 #pragma pack(1)
 struct PlayerInfoPacket {
 	char packetType;
-	char playerNumber;
+	int playerNumber;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 };
 
 struct PlayerStatusPacket {
 	char packetType;
-	char playerNumber;
+	int playerNumber;
 	char activatedMissiles;
 	int playerHP;
 };
@@ -33,7 +33,7 @@ struct ItemInfoPacket {
 
 struct MissileInfoPacket {
 	char packetType;
-	char playerNumber;
+	int playerNumber;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 };

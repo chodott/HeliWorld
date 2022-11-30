@@ -48,35 +48,52 @@ void Server::OpenListenSocket()
 	if (listen(listenSock, SOMAXCONN) == SOCKET_ERROR)
 		err_quit("listen()");
 
+
+	u_long nonBlockingMode = 1;
+	ioctlsocket(listenSock, FIONBIO, &nonBlockingMode);
+
+
 	std::cout << "Listen socket opened\n";
 }
 
 void Server::SendAllClient()
 {
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 4; ++i)		// client number
 	{
 		// sending playerinfo packet
-		char packetType = SC_PlayerInfo;
-		for (int j = 0; i < 4; ++i)
+		if (clients[i]->IsConnected())
 		{
-			// need conversion operator packet => char* 
-			if (clients.at(i)->sock != NULL)
-			{
-				Client* c = clients.at(i);
-				GameObject* p = clients.at(i)->m_player;
-				XMFLOAT3 movement{ p->m_fxPos - p->m_fOldxPos,
-							   p->m_fyPos - p->m_fOldyPos,
-							   p->m_fzPos - p->m_fOldzPos };
-				XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
-							   p->m_fYaw - p->m_fOldYaw,
-							   p->m_fRoll - p->m_fOldRoll };
-				PlayerInfoPacket playerInfo;
-				playerInfo.packetType = packetType;
-				playerInfo.playerNumber = i;
-				playerInfo.movement = movement;
-				playerInfo.rotation = rotation;
+			char packetType = SC_PlayerInfo;
 
-				send(clients.at(i)->sock, (char*)&playerInfo, sizeof(PlayerInfoPacket), 0);
+			Client* c = clients.at(i);
+			GameObject* p = c->m_player;
+
+			XMFLOAT3 movement{ p->m_fxPos - p->m_fOldxPos,
+			   p->m_fyPos - p->m_fOldyPos,
+			   p->m_fzPos - p->m_fOldzPos };
+			XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
+						   p->m_fYaw - p->m_fOldYaw,
+						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
+
+			PlayerInfoPacket playerInfo;
+			playerInfo.packetType = packetType;
+			playerInfo.playerNumber = c->GetPlayerNumber();
+			playerInfo.movement = movement;
+			playerInfo.rotation = rotation;
+
+			std::cout << "Player" << playerInfo.playerNumber
+				<< " x: " << playerInfo.movement.x
+				<< " y: " << playerInfo.movement.y
+				<< " z: " << playerInfo.movement.z << std::endl;
+
+			//std::cout << "Player " << i
+			//	<< " x: " << movement.x;
+			for (int j = 0; j < 4; ++j)		// send to 4 client about info of i client
+			{
+				if (clients[j]->IsConnected())
+				{
+					send(c->sock, (char*)&playerInfo, sizeof(PlayerInfoPacket), 0);
+				}
 			}
 		}
 	}
@@ -172,10 +189,9 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		addrlen = sizeof(clientaddr);
 		// maybe a event need that notify server accepted four player already or not
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
-		std::cout << "Client accepted\n";
 		if (clientSock == INVALID_SOCKET)
 		{
-			std::cout << "Invalid Socket detected\n";
+			//std::cout << "Invalid Socket detected\n";
 			continue;
 		}
 
@@ -184,17 +200,23 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 			//if (g_server->clients.at(i) == nullptr)
 			if (g_server->clients[i]->IsConnected() == false)
 			{
-				Client* client = new Client();
-				client->sock = clientSock;
-				client->SetPlayerNumber(i);
-				g_server->clients[i] = client;
+				g_server->clients[i]->sock = clientSock;
+				g_server->clients[i]->SetPlayerNumber(i);
 
+				std::cout << "Client accepted in " <<
+					g_server->clients[i]->GetPlayerNumber() << std::endl;
+
+
+				send(g_server->clients[i]->sock, (char*)&i, sizeof(int), 0);
+				g_server->clients[i]->ToggleConnected();
+
+
+				//g_server->clients[i] = client;
 
 				CPlayer* player = g_server->clients[i]->m_player;
 				//Set Player Initial Pos
 				player->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
 
-				send(g_server->clients[i]->sock, (char*)&i, sizeof(int), 0);
 
 				//Set Player Initial Rotation
 				switch (i)
@@ -203,7 +225,8 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 					player->Rotate(0.f, 0.f, 0.f);
 					break;
 				case 1:
-					player->Rotate(0.f, -45.f, 0.f);
+					//player->Rotate(0.f, -45.f, 0.f);
+					player->Rotate(0.f, 0.f, 0.f);
 					break;
 				case 2:
 					player->Rotate(0.f, 90.f, 0.f);
@@ -213,13 +236,12 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 					break;
 				}
 
-				g_server->clients[i]->ToggleConnected();
 				break;
 			}
 		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
-		printf("[Server] Client Accepted: IP= %s, Port Number= %d\n",
+		printf("[Server] Client Accepted: IP=%s, Port Number=%d\n",
 			addr, ntohs(clientaddr.sin_port));
 	}
 	return 0;
@@ -230,7 +252,7 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 	UNREFERENCED_PARAMETER(arg);
 
 	sockaddr_in clientaddr{};
-	char buf[BUFSIZE];
+	//char buf[BUFSIZE];
 
 	while (true) {
 		// Event off
@@ -240,13 +262,13 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 			//if (g_server->clients.at(i) != nullptr)
 			if (g_server->clients[i]->IsConnected() != false)
 			{
-				if (recv(g_server->clients[i]->sock, buf, BUFSIZE, 0) == SOCKET_ERROR)
-					std::cout << "recv failed from " << i << " client\n";
+				if (recv(g_server->clients[i]->sock, g_server->clients[i]->buf, BUFSIZE, 0) == SOCKET_ERROR)
+					//std::cout << "recv failed from " << i << " client\n";
 				//g_server->playerKey[i] = buf[0];
-				g_server->clients[i]->m_player->playerKey = buf[0];
+				g_server->clients[i]->m_player->playerKey = g_server->clients[i]->buf[0];
+
+
 				//cout << g_server->playerKey[i] << endl;
-
-
 				//g_server->playerKey[(int)buf[0]] = buf[1];
 			}
 		}
