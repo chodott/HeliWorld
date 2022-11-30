@@ -58,6 +58,8 @@ public:
 
 	int Player_id;
 
+	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
+
 	void Move();
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
@@ -73,7 +75,9 @@ public:
 
 class CMissileObject : public GameObject
 {
+public:
 	char m_cPlayerNumber;
+	int damage = 5;
 };
 class CPlayer : public GameObject
 {
@@ -84,6 +88,7 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
 	void Move(char key, float Distance, bool updateVelocity);
+
 
 	char playerKey;
 	char playerMouse;

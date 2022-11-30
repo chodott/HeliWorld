@@ -10,7 +10,6 @@ Server::Server()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		//ego jonna byeollo - Chodot
 		clients[i] = new Client;
 	}
 }
@@ -66,15 +65,13 @@ void Server::SendAllClient()
 			Client* c = clients.at(i);
 			GameObject* p = c->m_player;
 
-			XMFLOAT3 movement{ p->m_fxPos - p->m_fOldxPos,
-			   p->m_fyPos - p->m_fOldyPos,
-			   p->m_fzPos - p->m_fOldzPos };
+			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos};
 			XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
 						   p->m_fYaw - p->m_fOldYaw,
 						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
 
 			toSend.playerNumber = c->GetPlayerNumber();
-			toSend.movement = movement;
+			toSend.movement = position;
 			toSend.rotation = rotation;
 		}
 
@@ -95,7 +92,7 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Move(clients[i]->m_player->playerKey, 0.5f, true);
+		clients[i]->m_player->Move(clients[i]->m_player->playerKey, 0.0005f, true);
 	}
 
 	CheckCollision();
@@ -124,6 +121,8 @@ void Server::CheckCollision()
 			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
 			{
 				// function will be called
+				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
+				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
 			}
 
 			for (auto& missile : jPlayer->m_pMissiles)
@@ -131,8 +130,13 @@ void Server::CheckCollision()
 				//Collision between Player and Missiles
 				if (iPlayer->GetBoundingBox().Intersects(missile.GetBoundingBox()))
 				{
-					iPlayer->SetActive(false);
+					iPlayer->m_nHp -= missile.damage;
 					missile.SetActive(false);
+					if (iPlayer->m_nHp <= 0)
+					{
+						iPlayer->SetActive(false);
+					}
+
 				}
 			}
 
@@ -174,26 +178,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 
 				CPlayer* player = g_server->clients[i]->m_player;
-				//Set Player Initial Pos
-				player->SetPosition(g_server->initialPos[i][0], g_server->initialPos[i][1], g_server->initialPos[i][2]);
-
-
-				//Set Player Initial Rotation
-				switch (i)
-				{
-				case 0:
-					player->Rotate(0.f, 0.f, 0.f);
-					break;
-				case 1:
-					player->Rotate(0.f, -45.f, 0.f);
-					break;
-				case 2:
-					player->Rotate(0.f, 90.f, 0.f);
-					break;
-				case 3:
-					player->Rotate(0.f, 45.f, 0.f);
-					break;
-				}
 
 				break;
 			}

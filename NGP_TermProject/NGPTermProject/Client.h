@@ -33,7 +33,10 @@ public:
 	SOCKET* GetClientsock() { return sock; };
 	void ConnectServer();
 	char* GetSERVERIP() { return SERVERIP; };
-	void SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
+
+	void SendtoServer();
 	PlayerInfoPacket playerData[4];
 	int PlayerNum = 0;
 

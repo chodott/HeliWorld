@@ -478,8 +478,9 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
 
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
-	SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
-	Move(PlayerPacket->movement);
+	//SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
+	//Move(PlayerPacket->movement);
+	SetPosition(PlayerPacket->movement);
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }

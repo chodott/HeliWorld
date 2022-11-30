@@ -367,11 +367,17 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 		OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
 		break;
 	case WM_KEYDOWN:
+		OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+		client->KeyDownHandler(hWnd, nMessageID, wParam, lParam);
+		break;
 	case WM_KEYUP:
 		OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
-		client->SendtoServer(hWnd, nMessageID, wParam, lParam);
+		client->KeyUpHandler(hWnd, nMessageID, wParam, lParam);
 		break;
 	}
+
+	client->SendtoServer();
+
 	return(0);
 }
 

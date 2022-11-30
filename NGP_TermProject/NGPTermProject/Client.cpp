@@ -43,29 +43,43 @@ void Client::ConnectServer()
 	//setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
 
-void Client::SendtoServer(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	switch (nMessageID)
 	{
-		//cout << "메세지 보내는중" << endl;
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'W': sendKey |= option0;	break;	//0000 0001 
-		case 'S': sendKey |= option1;	break;	//0000 0010
-		case 'A': sendKey |= option2;	break;	//0000 0100
-		case 'D': sendKey |= option3;	break;	//0000 1000
-		case 'Q': sendKey |= option4;	break;	//0001 0000
-		case 'R': sendKey |= option5;	break;	//0010 0000
+		case 'W': sendKey |= option0;   break;      //0000 0001 
+		case 'S': sendKey |= option1;   break;      //0000 0010
+		case 'A': sendKey |= option2;   break;      //0000 0100
+		case 'D': sendKey |= option3;   break;      //0000 1000
+		case 'Q': sendKey |= option4;   break;      //0001 0000
+		case 'R': sendKey |= option5;   break;      //0010 0000
 		}
 	}
-	char buf[1];
-	buf[0] = sendKey;
-	sendKey = NULL;
+}
 
+void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	switch (nMessageID)
+	{
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case 'W': sendKey &= (~option0);   break;
+		case 'S': sendKey &= (~option1);   break;
+		case 'A': sendKey &= (~option2);   break;
+		case 'D': sendKey &= (~option3);   break;
+		case 'Q': sendKey &= (~option4);   break;
+		case 'R': sendKey &= (~option5);   break;
+		}
+	}
+}
 
-	int sentBytes = send(*sock, buf, 1, 0);
-	if (sentBytes == SOCKET_ERROR)
+void Client::SendtoServer()
+{
+	if (send(*sock, (char*)&sendKey, 1, 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
 		return;
