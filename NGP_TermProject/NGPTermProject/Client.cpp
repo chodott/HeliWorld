@@ -34,7 +34,7 @@ void Client::ConnectServer()
 	else
 		std::cout << "Connection established successful\n";
 
-	recv(*sock, (char*)&PlayerNum, sizeof(int), 0);
+	recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL);
 
 	playerData[PlayerNum].playerNumber = PlayerNum;
 
@@ -95,6 +95,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	{
 		PlayerInfoPacket piPacket;
 		int retval = recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), 0);
+		//if(piPacket.playerNumber < 4 && piPacket.playerNumber >= 0) 
 		client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
 	}
 }

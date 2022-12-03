@@ -123,10 +123,12 @@ void Server::CheckCollision()
 				// function will be called
 				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
+				cout << "충돌스키" << endl;
 			}
 
 			for (auto& missile : jPlayer->m_pMissiles)
 			{
+				if (!missile.GetActive()) continue;
 				//Collision between Player and Missiles
 				if (iPlayer->GetBoundingBox().Intersects(missile.GetBoundingBox()))
 				{
@@ -178,6 +180,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 
 				CPlayer* player = g_server->clients[i]->m_player;
+				player->SetActive(true);
 
 				break;
 			}

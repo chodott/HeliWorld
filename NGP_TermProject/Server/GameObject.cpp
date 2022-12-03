@@ -3,7 +3,7 @@
 GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
-	SetOOBB(XMFLOAT3(0,0,0), XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,0));
+	SetOOBB(XMFLOAT3(0,0,0), XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1));
 }
 
 void GameObject::Move()
@@ -30,7 +30,10 @@ void GameObject::SetPosition(float x, float y, float z)
 	m_fyPos = y;
 	m_fzPos = z;
 
-	m_xmOOBB.Center = { x,y,z };
+	m_xmf3Position = XMFLOAT3{ x,y,z };
+	
+	//m_xmOOBB.Center = { x,y,z };
+	m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
 }
 
 void GameObject::SetActive(bool active)
@@ -79,7 +82,7 @@ void CPlayer::Move(char key, float Distance, bool updateVelocity)
 	if (key)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
-
+		
 		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
 		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
 		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
@@ -88,6 +91,7 @@ void CPlayer::Move(char key, float Distance, bool updateVelocity)
 
 		Move(xmf3Shift, updateVelocity);
 
-		m_xmOOBB.Center = GetCurPos();
+		//m_xmOOBB.Center = GetCurPos();
+		m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
 	}
 }
