@@ -16,7 +16,7 @@
 
 #include "CSPacket.h"
 #include "error.h"
-
+#include "Missileobject.h"
 
 
 #pragma comment(lib, "ws2_32")
@@ -37,6 +37,8 @@ public:
 
 	void SendtoServer();
 	PlayerInfoPacket playerData[4];
+	PlayerStatusPacket playerStatus[4];
+
 	int PlayerNum = 0;
 
 private:
@@ -56,8 +58,6 @@ private:
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
 };
+
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
-
-
-
 

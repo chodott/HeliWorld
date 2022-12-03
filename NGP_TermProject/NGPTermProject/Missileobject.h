@@ -1,6 +1,7 @@
 #pragma once
-#include"Object.h"
-#include"Shader.h"
+#include "Object.h"
+#include "Shader.h"
+
 class CMissleObject : public CGameObject
 {
 public:
@@ -17,8 +18,8 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket);
 
-	
 
 	void SetID(int id) { m_ID = id; }
 	int GetID()	const { return m_ID; }

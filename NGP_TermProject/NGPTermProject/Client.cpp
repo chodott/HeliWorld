@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "Client.h"
 
-
 Client::Client()
 {
 	WSADATA wsa;
@@ -29,18 +28,17 @@ void Client::ConnectServer()
 
 	std::cout << "Socket initalize successful\n";
 
-	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)	//err_quit("socket()");
-		std::cout << "Connection to server not established\n";
-	else
-		std::cout << "Connection established successful\n";
+	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+		err_quit("socket()");
 
-
-	std::cout << "Client before recv\n";
-	recv(*sock, (char*)&PlayerNum, sizeof(int), 0);
+	if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
+	{
+		err_quit("socket()");
+	}
 	playerData[PlayerNum].playerNumber = PlayerNum;
 
-	std::cout << "This is " << PlayerNum << " client\n";
 
+	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 
 	DWORD optval = 1;
 	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
@@ -53,12 +51,13 @@ void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'W': sendKey |= option0;   break;      //0000 0001 
-		case 'S': sendKey |= option1;   break;      //0000 0010
-		case 'A': sendKey |= option2;   break;      //0000 0100
-		case 'D': sendKey |= option3;   break;      //0000 1000
-		case 'Q': sendKey |= option4;   break;      //0001 0000
-		case 'R': sendKey |= option5;   break;      //0010 0000
+		case 'W': sendKey |= option0;	break;      //0000 0001 
+		case 'S': sendKey |= option1;	break;      //0000 0010
+		case 'A': sendKey |= option2;	break;      //0000 0100
+		case 'D': sendKey |= option3;	break;      //0000 1000
+		case 'Q': sendKey |= option4;	break;      //0001 0000
+		case 'E': sendKey |= option5;	break;      //0010 0000
+		case ' ': sendKey |= option6;	break;
 		}
 	}
 }
@@ -70,12 +69,13 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	case WM_KEYUP:
 		switch (wParam)
 		{
-		case 'W': sendKey &= (~option0);   break;
-		case 'S': sendKey &= (~option1);   break;
-		case 'A': sendKey &= (~option2);   break;
-		case 'D': sendKey &= (~option3);   break;
-		case 'Q': sendKey &= (~option4);   break;
-		case 'R': sendKey &= (~option5);   break;
+		case 'W': sendKey &= (~option0);	break;
+		case 'S': sendKey &= (~option1);	break;
+		case 'A': sendKey &= (~option2);	break;
+		case 'D': sendKey &= (~option3);	break;
+		case 'Q': sendKey &= (~option4);	break;
+		case 'E': sendKey &= (~option5);	break;
+		case ' ': sendKey &= (~option6);	break;
 		}
 	}
 }
@@ -97,9 +97,18 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	while (true)
 	{
 		PlayerInfoPacket piPacket;
-		int retval = recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), 0);
-		//if(piPacket.playerNumber < 4 && piPacket.playerNumber >= 0) 
+		if (recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
+		{
+			err_quit("PI Packet");
+		}
 		client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+
+		PlayerStatusPacket psPacket;
+		if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)
+		{
+			err_quit("PI Packet");
+		}
+		client->playerStatus[psPacket.playerNumber] = psPacket;
 	}
 }
 

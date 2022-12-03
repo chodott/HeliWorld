@@ -72,7 +72,6 @@ D3D12_BLEND_DESC CMissileObjectsShader::CreateBlendState()
 
 void CMissileObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
-	
 	m_pMissileTexture = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
 	m_pMissileTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/stones.dds", RESOURCE_TEXTURE2D, 0);
 
@@ -82,7 +81,7 @@ void CMissileObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Graphic
 
 	m_pMissileTexturedMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.5f, 5.f);
 
-	m_nObjects=10;
+	m_nObjects = 32;
 	m_ppObjects = new CGameObject * [m_nObjects];
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
@@ -146,7 +145,7 @@ void CMissileObjectsShader::AnimateObjects(float fTimeElapsed)
 {
 	double distance = 0.f;
 	// 플레이어의 총알 리스트를 루프를 통해 순회하면서, 애니메이트 시켜준다.
-	for (int i = 0; i<m_nObjects;i++)
+	for (int i = 0; i < m_nObjects; i++)
 	{
 		m_ppObjects[i]->AnimateObject(fTimeElapsed);
 		//// 총알이 충돌이라면
@@ -168,30 +167,30 @@ void CMissileObjectsShader::AnimateObjects(float fTimeElapsed)
 			+ pow((m_ppObjects[i]->GetPosition().y - m_pPlayer->GetPosition().y), 2.0)
 			+ pow((m_ppObjects[i]->GetPosition().z - m_pPlayer->GetPosition().z), 2.0)));
 
-			// 플레이어와 총알의 거리가 250m보다 커지면, 총알의 유효사거리를 벗어난거므로
-				// 총알을 계속 그리지 않고, 지워주어야 프레임레이트를 올릴 수 있다.
-			if (distance >= MaxBulletDistance)
-			{
-				// 삭제해야하는 Fire파티클 ID를 넘겨준다.
-				//m_pFireParticleShader->SetDeleteFireParticleID(((CBullet*)(*iter))->GetID());
+		// 플레이어와 총알의 거리가 250m보다 커지면, 총알의 유효사거리를 벗어난거므로
+			// 총알을 계속 그리지 않고, 지워주어야 프레임레이트를 올릴 수 있다.
+		if (distance >= MaxBulletDistance)
+		{
+			// 삭제해야하는 Fire파티클 ID를 넘겨준다.
+			//m_pFireParticleShader->SetDeleteFireParticleID(((CBullet*)(*iter))->GetID());
 
-				// 마지막에 터지는 파티클을 총알의 위치에 생성
-				//m_pExplosionParticleShader->Initialize((*iter)->GetPosition());
+			// 마지막에 터지는 파티클을 총알의 위치에 생성
+			//m_pExplosionParticleShader->Initialize((*iter)->GetPosition());
 
-				// 총알 삭제
-				m_ppObjects[i]->SetActive(false);
+			// 총알 삭제
+			m_ppObjects[i]->SetActive(false);
 			//	cout << "플레이어 총알 거리벗어남 삭제" << endl;
-			}
-			else
-			{
-				
-			
-			}
+		}
+		else
+		{
+
+
+		}
 	}
 }
 
 
-bool CMissileObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam,float *fTimeelapsed)
+bool CMissileObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, float* fTimeelapsed)
 {
 	switch (nMessageID)
 	{
@@ -201,9 +200,9 @@ bool CMissileObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessage
 			// 총알 발사 키
 		case VK_CONTROL:
 		{
-			 
 
-			if (m_pPlayer&& *fTimeelapsed>3)
+
+			if (m_pPlayer && *fTimeelapsed > 3)
 			{
 				*fTimeelapsed = 0.3;
 				if (m_MissileCount == 10) {
@@ -211,7 +210,7 @@ bool CMissileObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessage
 				}
 				// ID는 1번부터 시작
 				m_ppObjects[m_MissileCount]->SetActive(true);
-				
+
 				m_ppObjects[m_MissileCount]->SetLook(m_pPlayer->GetLook());
 				// 플레이어의 Up벡터, Right벡터도 똑같이 설정해주어야 플레이어가 회전했을 때,
 				// 총알 모양도 회전이 된 모양으로 바뀐다.
@@ -219,7 +218,7 @@ bool CMissileObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessage
 				m_ppObjects[m_MissileCount]->SetRight(m_pPlayer->GetRightVector());
 				// 총알의 생성위치는 플레이어의 위치로 설정
 				m_ppObjects[m_MissileCount]->SetPosition(m_pPlayer->GetPosition());
-				m_ppObjects[m_MissileCount]->SetScale(0.2,0.2,1.0);
+				m_ppObjects[m_MissileCount]->SetScale(0.2, 0.2, 1.0);
 				// 총알이 나아가는 방향은 총알이 바라보는 방향으로 준다.
 				m_ppObjects[m_MissileCount]->SetMovingDirection(m_pPlayer->GetLook());
 				//m_BulletList.push_back(pBullet);
@@ -249,7 +248,7 @@ void CMissileObjectsShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, C
 
 	for (int j = 0; j < m_nObjects; j++)
 	{
-		if (m_ppObjects[j]&& m_ppObjects[j]->GetActive())
+		if (m_ppObjects[j] && m_ppObjects[j]->GetActive())
 		{
 			m_ppObjects[j]->Animate(0.16f); //->헬기 
 			m_ppObjects[j]->Render(pd3dCommandList, pCamera);

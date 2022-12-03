@@ -200,6 +200,8 @@ public:
 	CGameObject(int nMaterials, int meshes);
 	virtual ~CGameObject();
 
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket) {};
+
 public:
 
 	XMFLOAT4X4						m_xmf4x4Transform;//변환 행렬
@@ -233,7 +235,9 @@ public:
 	}
 	XMFLOAT3 GetMovement() { return m_movement; }
 	XMFLOAT3 GetRotation() { return m_rotation; }
+
 	
+
 
 
 protected:

@@ -16,7 +16,8 @@ void CMissleObject::AnimateObject(float fElapsedTime)
 	/*cout << "น฿ป็" << endl;
 	cout << b_Active << endl;*/
 
-	if (GetActive()) {
+	if (GetActive())
+	{
 		//cout << GetActive() << endl;
 		if (m_fRotationSpeed != 0.0f)
 			Rotate(m_xmf3RotationAxis, m_fRotationSpeed * fElapsedTime);
@@ -63,6 +64,14 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 			if (m_ppMeshes[i]) m_ppMeshes[i]->Render(pd3dCommandList);
 		}
 	}
+}
+void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket)
+{
+	//SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
+	//Move(PlayerPacket->movement);
+	SetPosition(PlayerPacket->movement);
+	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
+	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {

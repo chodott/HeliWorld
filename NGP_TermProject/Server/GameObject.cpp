@@ -3,12 +3,12 @@
 GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
-	SetOOBB(XMFLOAT3(0,0,0), XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1));
+	SetOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(10, 10, 10), XMFLOAT4(0, 0, 0, 1));
 }
 
-void GameObject::Move()
+void GameObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
-
+	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
 void GameObject::Rotate(float Pitch, float Yaw, float Roll)
@@ -31,7 +31,7 @@ void GameObject::SetPosition(float x, float y, float z)
 	m_fzPos = z;
 
 	m_xmf3Position = XMFLOAT3{ x,y,z };
-	
+
 	//m_xmOOBB.Center = { x,y,z };
 	m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
 }
@@ -74,7 +74,32 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 	}
 }
 
-void CPlayer::Move(unsigned char key, float Distance, bool updateVelocity)
+void CPlayer::LaunchMissile()
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		if ((activatedMissiles >> i) & 0x01)
+		{
+			activatedMissiles |= (0x01 << i);
+			m_pMissiles[i].m_bActive = true;
+			m_pMissiles[i].m_xmf3Look = m_xmf3Look;
+			break;
+		}
+	}
+}
+
+void CPlayer::UpdateMissiles()
+{
+	for (auto& missile : m_pMissiles)
+	{
+		if (missile.GetActive())
+		{
+			missile.Move();
+		}
+	}
+}
+
+void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 {
 	RecalculateLook();
 	RecalculateRight();
@@ -82,16 +107,35 @@ void CPlayer::Move(unsigned char key, float Distance, bool updateVelocity)
 	if (key)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
-		
+
 		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
 		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
 		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
 		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
 
-
 		Move(xmf3Shift, updateVelocity);
 
 		//m_xmOOBB.Center = GetCurPos();
 		m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
+
+		//Attack
+		if (key & option6)  LaunchMissile();
+
+		UpdateMissiles();
 	}
+}
+
+
+void CMissileObject::Move()
+{
+	m_fMovingSpeed = 1.f;
+	if (m_fMovingSpeed != 0.0f)
+		Move(m_xmf3Look, m_fMovingSpeed);
+	SetOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));
+}
+
+
+void CMissileObject::Move(XMFLOAT3& vDirection, float fSpeed)
+{
+	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }

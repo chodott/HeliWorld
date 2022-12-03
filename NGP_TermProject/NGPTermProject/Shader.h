@@ -7,7 +7,7 @@
 #include "Object.h"
 #include "Camera.h"
 #include "Player.h"
-#include"stdafx.h"
+#include "stdafx.h"
 
 class CShader
 {

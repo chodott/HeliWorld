@@ -51,8 +51,6 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client->ConnectServer();
-	/*ReceiveFromServerThread= */
-	CreateThread(NULL, 0, ReceiveFromServer, client, 0, NULL);
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -436,7 +434,7 @@ void CGameFramework::BuildObjects()
 		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
 		break;
 	default:
-			break;
+		break;
 	}
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
@@ -518,15 +516,27 @@ void CGameFramework::AnimateObjects()
 		if (client->playerData[i].playerNumber == client->PlayerNum)
 		{
 			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
-			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(FALSE);
+			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 		}
 		else
 		{
 			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
 		}
 		if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
+
+
+		// Processing Player Status Packet
 	}
 
+	for (int i = 0; i < 32; ++i)
+	{
+		MissileInfoPacket miPacket;
+		miPacket.packetType = 4;
+		miPacket.playerNumber = 0;
+		miPacket.movement = XMFLOAT3(0.f, 0.f, 0.f);
+		miPacket.rotation = XMFLOAT3(0.f, 0.f, 0.f);
+		if (m_pScene) m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &miPacket);
+	}
 }
 
 void CGameFramework::WaitForGpuComplete()

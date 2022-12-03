@@ -2,6 +2,7 @@
 #pragma warning(disable : 26495)
 
 #include "stdafx.h"
+
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
 #define DIR_LEFT				0x04
@@ -9,15 +10,6 @@
 #define DIR_UP					0x10
 #define DIR_DOWN				0x20
 
-//Key BitMask
-//unsigned char option0 = 0x00; // 0000 0001 
-//unsigned char option1 = 0x02; // 0000 0010
-//unsigned char option2 = 0x04; // 0000 0100
-//unsigned char option3 = 0x08; // 0000 1000
-//unsigned char option4 = 0x16; // 0001 0000
-//unsigned char option5 = 0x32; // 0010 0000
-//unsigned char option6 = 0x64; // 0100 0000
-//unsigned char option7 = 0x128; // 1000 0000
 
 class GameObject {
 public:
@@ -61,7 +53,8 @@ public:
 
 	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
 
-	void Move();
+	void Move(float fElapsedTime);
+	void Move(XMFLOAT3& vDirection, float fSpeed);
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
 	void SetActive(bool active);
@@ -74,12 +67,18 @@ public:
 
 };
 
+
 class CMissileObject : public GameObject
 {
 public:
-	char m_cPlayerNumber;
+	int m_cPlayerNumber;
 	int damage = 5;
+	float m_fMovingSpeed;
+
+	void Move();
+	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 };
+
 
 class CPlayer : public GameObject
 {
@@ -89,10 +88,13 @@ public:
 	CMissileObject m_pMissiles[8];
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
-	void Move(unsigned char key, float Distance, bool updateVelocity);
+	void LaunchMissile();
+	void UpdateMissiles();
+	void Update(unsigned char key, float Distance, bool updateVelocity);
 
 	unsigned char playerKey;
 	char playerMouse;
+	char activatedMissiles;
 
 private:
 	unsigned char option0 = 0x01;	// 0000 0001 

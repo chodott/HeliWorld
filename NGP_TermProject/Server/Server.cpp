@@ -52,22 +52,31 @@ void Server::SendAllClient()
 {
 	for (int i = 0; i < 4; ++i)		// client number
 	{
-		char packetType = SC_PlayerInfo;
-		PlayerInfoPacket toSend;
-		toSend.packetType = packetType;
+		PlayerInfoPacket scInfo;
+		PlayerStatusPacket scStatus;
 		if (clients[i]->IsConnected())
 		{
 			Client* c = clients.at(i);
-			GameObject* p = c->m_player;
+			CPlayer* p = c->m_player;
+			int playerNumber = c->GetPlayerNumber();
 
 			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
 			XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
 						   p->m_fYaw - p->m_fOldYaw,
 						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
 
-			toSend.playerNumber = c->GetPlayerNumber();
-			toSend.movement = position;
-			toSend.rotation = rotation;
+
+			// PlayerInfo
+			scInfo.packetType = SC_PlayerInfo;
+			scInfo.playerNumber = playerNumber;
+			scInfo.movement = position;
+			scInfo.rotation = rotation;
+
+			// PlayerStatus
+			scStatus.packetType = SC_PlayerStatus;
+			scStatus.playerNumber = playerNumber;
+			scStatus.activatedMissiles = p->activatedMissiles;
+			scStatus.playerHP = p->m_nHp;
 		}
 
 		// sending playerinfo packet
@@ -75,7 +84,8 @@ void Server::SendAllClient()
 		{
 			if (client->IsConnected())
 			{
-				send(client->sock, (char*)&toSend, sizeof(PlayerInfoPacket), 0);
+				send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
+				send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
 			}
 		}
 	}
@@ -86,7 +96,8 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Move(clients[i]->m_player->playerKey, 0.0005f, true);
+		clients[i]->m_player->Update(clients[i]->m_player->playerKey, 0.001f, true);
+
 	}
 
 	CheckCollision();
@@ -117,6 +128,8 @@ void Server::CheckCollision()
 				// function will be called
 				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
+				iPlayer->m_nHp -= 5;
+				jPlayer->m_nHp -= 5;
 			}
 
 			for (auto& missile : jPlayer->m_pMissiles)
@@ -184,10 +197,10 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 	int playerNumber = client->GetPlayerNumber();
 	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
 
-	client->ToggleConnected();
 	client->m_player->SetActive(true);
 	client->m_player->SetPosition(g_server->initialPos[playerNumber].x, g_server->initialPos[playerNumber].y, g_server->initialPos[playerNumber].z);
 
+	client->ToggleConnected();
 
 	char buf[1]{};
 
