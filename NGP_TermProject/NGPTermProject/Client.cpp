@@ -34,13 +34,16 @@ void Client::ConnectServer()
 	else
 		std::cout << "Connection established successful\n";
 
-	recv(*sock, (char*)&PlayerNum, sizeof(int), 0);
 
+	std::cout << "Client before recv\n";
+	recv(*sock, (char*)&PlayerNum, sizeof(int), 0);
 	playerData[PlayerNum].playerNumber = PlayerNum;
 
+	std::cout << "This is " << PlayerNum << " client\n";
 
-	//DWORD optval = 1;
-	//setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
+
+	DWORD optval = 1;
+	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
