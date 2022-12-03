@@ -130,10 +130,8 @@ void Server::CheckCollision()
 					{
 						iPlayer->SetActive(false);
 					}
-
 				}
 			}
-
 		}
 	}
 }
@@ -211,8 +209,7 @@ int main()
 	//Create Object Mgr
 	g_server = new Server();
 	g_server->OpenListenSocket();
-	HANDLE AcceptThread, ReceiveThread;
-	AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
+	HANDLE AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	while (true)
 	{
 		g_server->Update();

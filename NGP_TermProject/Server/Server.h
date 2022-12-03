@@ -1,4 +1,6 @@
 #pragma once
+#pragma warning(disable : 26495)
+
 #include "Socket.h"
 #include "SCPacket.h"
 #include <array>
@@ -7,11 +9,11 @@
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
-const char KEY_W = 0x01;
-const char KEY_A = 0x02;
-const char KEY_S = 0x04;
-const char MOUSE_LEFT = 0x10;
-const char MOUSE_RIGHT = 0x20;
+const char KEY_W		= 0x01;
+const char KEY_A		= 0x02;
+const char KEY_S		= 0x04;
+const char MOUSE_LEFT	= 0x10;
+const char MOUSE_RIGHT	= 0x20;
 
 DWORD WINAPI ReceiveAllClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
@@ -41,11 +43,8 @@ public:
 		{500,0,300},{1000,500,300},{500,1000,300},{0,500,300}
 	};
 
-	HANDLE ReceiveEvent;
-
 private:
 	SOCKET listenSock;
-
 
 	std::array<PlayerInfoPacket, 4> infoPackets;
 
@@ -65,7 +64,6 @@ public:
 
 	CPlayer* m_player = nullptr;
 
-	char buf[1];
 private:
 
 	int m_playerNumber;	// maybe client class can have playerID inside
