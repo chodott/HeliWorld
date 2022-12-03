@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 26495)
 
 #include "stdafx.h"
 #define DIR_FORWARD				0x01
@@ -79,6 +80,7 @@ public:
 	char m_cPlayerNumber;
 	int damage = 5;
 };
+
 class CPlayer : public GameObject
 {
 public:
@@ -87,25 +89,19 @@ public:
 	CMissileObject m_pMissiles[8];
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
-	void Move(char key, float Distance, bool updateVelocity);
+	void Move(unsigned char key, float Distance, bool updateVelocity);
 
-
-	char playerKey;
+	unsigned char playerKey;
 	char playerMouse;
 
 private:
-	unsigned char option0 = 0x01; // 0000 0001 
-	unsigned char option1 = 0x02; // 0000 0010
-	unsigned char option2 = 0x04; // 0000 0100
-	unsigned char option3 = 0x08; // 0000 1000
-	unsigned char option4 = 0x16; // 0001 0000
-	unsigned char option5 = 0x32; // 0010 0000
-	unsigned char option6 = 0x64; // 0100 0000
-	unsigned char option7 = 0x128; // 1000 0000
-};
-
-class Item : public GameObject
-{
-
+	unsigned char option0 = 0x01;	// 0000 0001 
+	unsigned char option1 = 0x02;	// 0000 0010
+	unsigned char option2 = 0x04;	// 0000 0100
+	unsigned char option3 = 0x08;	// 0000 1000
+	unsigned char option4 = 0x10;	// 0001 0000
+	unsigned char option5 = 0x20;	// 0010 0000
+	unsigned char option6 = 0x40;	// 0100 0000
+	unsigned char option7 = 0x80;	// 1000 0000
 };
 

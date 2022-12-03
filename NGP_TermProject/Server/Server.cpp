@@ -45,11 +45,6 @@ void Server::OpenListenSocket()
 	if (listen(listenSock, SOMAXCONN) == SOCKET_ERROR)
 		err_quit("listen()");
 
-
-	u_long nonBlockingMode = 1;
-	ioctlsocket(listenSock, FIONBIO, &nonBlockingMode);
-
-
 	std::cout << "Listen socket opened\n";
 }
 
@@ -65,7 +60,7 @@ void Server::SendAllClient()
 			Client* c = clients.at(i);
 			GameObject* p = c->m_player;
 
-			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos};
+			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
 			XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
 						   p->m_fYaw - p->m_fOldYaw,
 						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
@@ -88,7 +83,6 @@ void Server::SendAllClient()
 
 void Server::Update()
 {
-	WaitForSingleObject(g_server->ReceiveEvent, INFINITE);
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
@@ -123,7 +117,7 @@ void Server::CheckCollision()
 				// function will be called
 				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
-				cout << "Ãæµ¹½ºÅ°" << endl;
+				cout << "ï¿½æµ¹ï¿½ï¿½Å°" << endl;
 			}
 
 			for (auto& missile : jPlayer->m_pMissiles)
@@ -138,10 +132,8 @@ void Server::CheckCollision()
 					{
 						iPlayer->SetActive(false);
 					}
-
 				}
 			}
-
 		}
 	}
 }
@@ -166,21 +158,14 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 		for (int i = 0; i < 4; ++i)
 		{
-			if (g_server->clients[i]->IsConnected() == false)
+			Client* client = g_server->clients[i];
+			if (!client->IsConnected())
 			{
-				g_server->clients[i]->sock = clientSock;
-				g_server->clients[i]->SetPlayerNumber(i);
+				client->sock = clientSock;
+				client->SetPlayerNumber(i);
 
-				std::cout << "Client accepted in " <<
-					g_server->clients[i]->GetPlayerNumber() << std::endl;
-
-
-				send(g_server->clients[i]->sock, (char*)&i, sizeof(int), 0);
-				g_server->clients[i]->ToggleConnected();
-
-
-				CPlayer* player = g_server->clients[i]->m_player;
-				player->SetActive(true);
+				std::cout << "Client accepted in " << client->GetPlayerNumber() << std::endl;
+				HANDLE receiver = CreateThread(NULL, 0, ReceiveAllClient, client, 0, NULL);
 
 				break;
 			}
@@ -195,22 +180,28 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 DWORD WINAPI ReceiveAllClient(LPVOID arg)
 {
-	UNREFERENCED_PARAMETER(arg);
+	Client* client = (Client*)arg;
 
-	sockaddr_in clientaddr{};
+	int playerNumber = client->GetPlayerNumber();
+	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
 
-	while (true) {
-		// Event off
-		ResetEvent(g_server->ReceiveEvent);
-		for (int i = 0; i < 4; ++i)
+	client->ToggleConnected();
+	client->m_player->SetActive(true);
+
+
+	char buf[1]{};
+
+	while (true)
+	{
+		if (client->IsConnected())
 		{
-			if (g_server->clients[i]->IsConnected() != false)
+			if (recv(client->sock, buf, 1, 0) == SOCKET_ERROR)
 			{
-				if (recv(g_server->clients[i]->sock, g_server->clients[i]->buf, BUFSIZE, 0) == SOCKET_ERROR)
-					g_server->clients[i]->m_player->playerKey = g_server->clients[i]->buf[0];
+				// cut the connection
+				continue;
 			}
+			client->m_player->playerKey = buf[0];
 		}
-		SetEvent(g_server->ReceiveEvent);
 	}
 
 	return 0;
@@ -221,10 +212,7 @@ int main()
 	//Create Object Mgr
 	g_server = new Server();
 	g_server->OpenListenSocket();
-	HANDLE AcceptThread, ReceiveThread;
-	AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
-	ReceiveThread = CreateThread(NULL, 0, ReceiveAllClient, nullptr, 0, NULL);
-	g_server->ReceiveEvent = CreateEvent(NULL, true, false, NULL);
+	HANDLE AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	while (true)
 	{
 		g_server->Update();

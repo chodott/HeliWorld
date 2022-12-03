@@ -513,7 +513,6 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	XMFLOAT4X4 TEMP4X4;
 	for (int i = 0; i < 4; i++)
 	{
 		if (client->playerData[i].playerNumber == client->PlayerNum)
