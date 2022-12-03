@@ -117,7 +117,6 @@ void Server::CheckCollision()
 				// function will be called
 				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
-				cout << "�浹��Ű" << endl;
 			}
 
 			for (auto& missile : jPlayer->m_pMissiles)
@@ -187,6 +186,7 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 	client->ToggleConnected();
 	client->m_player->SetActive(true);
+	client->m_player->SetPosition(g_server->initialPos[playerNumber].x, g_server->initialPos[playerNumber].y, g_server->initialPos[playerNumber].z);
 
 
 	char buf[1]{};
