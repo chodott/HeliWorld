@@ -39,8 +39,8 @@ public:
 
 
 	std::array<Client*, 4> clients;
-	float initialPos[4][3]{
-		{500,0,300},{1000,500,300},{500,1000,300},{0,500,300}
+	XMFLOAT3 initialPos[4]{
+		{0,0,0},{50,0,0},{100,0,0},{150,0,0}
 	};
 
 private:
