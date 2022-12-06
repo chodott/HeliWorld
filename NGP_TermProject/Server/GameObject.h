@@ -88,9 +88,13 @@ public:
 	CMissileObject m_pMissiles[8];
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
+	void Rotate(float x, float y, float z);
 	void LaunchMissile();
 	void UpdateMissiles();
 	void Update(unsigned char key, float Distance, bool updateVelocity);
+
+	float m_deltaX{};
+	float m_deltaY{};
 
 	unsigned char playerKey;
 	char playerMouse;

@@ -61,16 +61,18 @@ void Server::SendAllClient()
 			int playerNumber = c->GetPlayerNumber();
 
 			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
-			XMFLOAT3 rotation{ p->m_fPitch - p->m_fOldPitch,
-						   p->m_fYaw - p->m_fOldYaw,
-						   p->m_fRoll - p->m_fOldRoll };	// to Update function, into infopackets
+			XMFLOAT4X4 worldMatrix = p->m_xmf4x4World;
+			XMFLOAT3X3 rotationMatrix{ p->m_xmf3Look.x,p->m_xmf3Look.y,p->m_xmf3Look.z,
+						   p->m_xmf3Right.x, p->m_xmf3Right.y, p->m_xmf3Right.z,
+						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z };
+			// to Update function, into infopackets
 
 
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
 			scInfo.movement = position;
-			scInfo.rotation = rotation;
+			scInfo.rotationMatrix = rotationMatrix;
 
 			// PlayerStatus
 			scStatus.packetType = SC_PlayerStatus;
@@ -202,18 +204,22 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 	client->ToggleConnected();
 
-	char buf[1]{};
+	//char buf[1]{};
+	PlayerKeyPacket keyPacket;
 
 	while (true)
 	{
 		if (client->IsConnected())
 		{
-			if (recv(client->sock, buf, 1, 0) == SOCKET_ERROR)
+			if (recv(client->sock, (char*)&keyPacket, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 			{
 				// cut the connection
 				continue;
 			}
-			client->m_player->playerKey = buf[0];
+			client->m_player->playerKey = keyPacket.playerKeyInput;
+			
+			client->m_player->m_deltaX = keyPacket.deltaMouse.x;
+			client->m_player->m_deltaY = keyPacket.deltaMouse.y;
 		}
 	}
 

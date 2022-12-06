@@ -39,6 +39,8 @@ public:
 	PlayerInfoPacket playerData[4];
 	PlayerStatusPacket playerStatus[4];
 
+	POINT deltaMouse;
+
 	int PlayerNum = 0;
 
 private:

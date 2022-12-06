@@ -9,7 +9,7 @@ struct PlayerInfoPacket {
 	char packetType;
 	int playerNumber = -1;
 	XMFLOAT3 movement;
-	XMFLOAT3 rotation;
+	XMFLOAT3X3 rotationMatrix;
 };
 
 struct PlayerStatusPacket {
@@ -17,6 +17,11 @@ struct PlayerStatusPacket {
 	int playerNumber;
 	unsigned char activatedMissiles;
 	int playerHP;
+};
+
+struct PlayerKeyPacket {
+	char playerKeyInput;
+	POINT mousePosition;
 };
 
 struct ItemInfoPacket {
@@ -31,5 +36,6 @@ struct MissileInfoPacket {
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 };
+
 #pragma pack()
 

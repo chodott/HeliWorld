@@ -74,6 +74,49 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 	}
 }
 
+void CPlayer::Rotate(float x, float y, float z)
+{
+
+		if (x != 0.0f)
+		{
+			m_fPitch += x;
+			if (m_fPitch > +89.0f) { x -= (m_fPitch - 89.0f); m_fPitch = +89.0f; }
+			if (m_fPitch < -89.0f) { x -= (m_fPitch + 89.0f); m_fPitch = -89.0f; }
+		}
+		if (y != 0.0f)
+		{
+			m_fYaw += y;
+			if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
+			if (m_fYaw < 0.0f) m_fYaw += 360.0f;
+		}
+		if (z != 0.0f)
+		{
+			m_fRoll += z;
+			if (m_fRoll > +20.0f) { z -= (m_fRoll - 20.0f); m_fRoll = +20.0f; }
+			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
+		}
+
+		if (y != 0.0f)
+		{
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
+			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+		}
+		if (x != 0.0f)
+		{
+
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
+			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
+		}
+
+	
+	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
+	m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
+	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+
+}
+
 void CPlayer::LaunchMissile()
 {
 	for (int i = 0; i < 8; ++i)
@@ -104,6 +147,8 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 	RecalculateLook();
 	RecalculateRight();
 
+	Rotate(m_deltaX, m_deltaY, 0.f);
+
 	if (key)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
@@ -112,7 +157,8 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
 		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
 		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
-
+		if (key & option4) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -Distance);
+		if (key & option5) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, Distance);
 		Move(xmf3Shift, updateVelocity);
 
 		//m_xmOOBB.Center = GetCurPos();
