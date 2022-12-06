@@ -62,9 +62,9 @@ void Server::SendAllClient()
 
 			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
 			XMFLOAT4X4 worldMatrix = p->m_xmf4x4World;
-			XMFLOAT3X3 rotationMatrix{ p->m_xmf3Look.x,p->m_xmf3Look.y,p->m_xmf3Look.z,
-						   p->m_xmf3Right.x, p->m_xmf3Right.y, p->m_xmf3Right.z,
-						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z };
+			XMFLOAT3X3 rotationMatrix{ p->m_xmf3Right.x,p->m_xmf3Right.y,p->m_xmf3Right.z,
+						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z,
+						   p->m_xmf3Look.x, p->m_xmf3Look.y, p->m_xmf3Look.z };
 			// to Update function, into infopackets
 
 

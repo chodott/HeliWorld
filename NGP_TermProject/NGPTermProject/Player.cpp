@@ -192,6 +192,7 @@ void CPlayer::Update(float fTimeElapsed)
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
 	SetPosition(PlayerPacket->movement);
+	SetRotation(PlayerPacket->rotationMatrix);
 	//Move(PlayerPacket->movement, NULL);
 }
 
@@ -249,6 +250,15 @@ void CPlayer::OnPrepareRender()
 	UpdateTransform(NULL);
 }
 
+void CPlayer::SetRotation(XMFLOAT3X3 xmf3Rotation)
+{
+	m_xmf3Right.x = xmf3Rotation._11, m_xmf3Right.y = xmf3Rotation._12, m_xmf3Right.z = xmf3Rotation._13;
+	//cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
+	m_xmf3Up.x = xmf3Rotation._21, m_xmf3Up.y = xmf3Rotation._22, m_xmf3Up.z = xmf3Rotation._23;
+	m_xmf3Look.x = xmf3Rotation._31, m_xmf3Look.y= xmf3Rotation._32, m_xmf3Look.z = xmf3Rotation._33;
+
+	m_xmf4x4World = m_xmf4x4Transform;
+}
 void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
 	DWORD nCameraMode = (pCamera) ? pCamera->GetMode() : 0x00;
