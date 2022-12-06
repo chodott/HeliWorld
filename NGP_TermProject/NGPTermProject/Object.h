@@ -306,6 +306,7 @@ public:
 	void SetRight(XMFLOAT3 value);
 	virtual void SetPosition(float x, float y, float z);
 	void SetPosition(XMFLOAT3 xmf3Position);
+	void SetRotation(XMFLOAT3X3 xmf3Rotation);
 	void SetScale(float x, float y, float z);
 	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation)
 	{
@@ -414,6 +415,8 @@ public:
 	virtual ~CSkyBox();
 
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
+
+	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CPlayer* cPlayer, CCamera* pCamera);
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

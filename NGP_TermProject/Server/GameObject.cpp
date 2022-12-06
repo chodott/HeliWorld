@@ -74,14 +74,64 @@ void CPlayer::Move(DWORD Direction, float Distance, bool updateVelocity)
 	}
 }
 
+void CPlayer::Rotate(float x, float y, float z)
+{
+
+		if (x != 0.0f)
+		{
+			m_fPitch += x;
+			if (m_fPitch > +89.0f) { x -= (m_fPitch - 89.0f); m_fPitch = +89.0f; }
+			if (m_fPitch < -89.0f) { x -= (m_fPitch + 89.0f); m_fPitch = -89.0f; }
+		}
+		if (y != 0.0f)
+		{
+			m_fYaw += y;
+			if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
+			if (m_fYaw < 0.0f) m_fYaw += 360.0f;
+		}
+		if (z != 0.0f)
+		{
+			m_fRoll += z;
+			if (m_fRoll > +20.0f) { z -= (m_fRoll - 20.0f); m_fRoll = +20.0f; }
+			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
+		}
+
+		if (y != 0.0f)
+		{
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
+			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+		}
+		if (x != 0.0f)
+		{
+
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
+			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
+		}
+
+		
+
+	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
+	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+
+	//cout << m_xmf3Look.x << ", " << m_xmf3Look.y << ", " << m_xmf3Look.z << "\n"
+	//	<< m_xmf3Right.x << ", " << m_xmf3Right.y << ", " << m_xmf3Right.z << "\n"
+	//	<< m_xmf3Up.x << ", " << m_xmf3Up.y << ", " << m_xmf3Up.z << endl;
+
+	
+
+}
+
 void CPlayer::LaunchMissile()
 {
 	for (int i = 0; i < 8; ++i)
 	{
-		if ((activatedMissiles >> i) & 0x01)
+		if (!((activatedMissiles >> i) & 0x01))
 		{
 			activatedMissiles |= (0x01 << i);
 			m_pMissiles[i].m_bActive = true;
+			m_pMissiles[i].SetPosition(m_fxPos, m_fyPos, m_fzPos);
 			m_pMissiles[i].m_xmf3Look = m_xmf3Look;
 			break;
 		}
@@ -104,6 +154,8 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 	RecalculateLook();
 	RecalculateRight();
 
+	Rotate(m_deltaX, m_deltaY, 0.f);
+
 	if (key)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
@@ -112,7 +164,8 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
 		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
 		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
-
+		if (key & option4) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -Distance);
+		if (key & option5) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, Distance);
 		Move(xmf3Shift, updateVelocity);
 
 		//m_xmOOBB.Center = GetCurPos();
@@ -122,6 +175,11 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 		if (key & option6)  LaunchMissile();
 
 		UpdateMissiles();
+
+		m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z;
+		m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
+		m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
+		m_xmf4x4World._41 = m_xmf3Position.x; m_xmf4x4World._42 = m_xmf3Position.y; m_xmf4x4World._43 = m_xmf3Position.z;
 	}
 }
 

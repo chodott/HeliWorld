@@ -82,7 +82,10 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 
 void Client::SendtoServer()
 {
-	if (send(*sock, (char*)&sendKey, 1, 0) == SOCKET_ERROR)
+	PlayerKeyPacket cs_key;
+	cs_key.playerKeyInput = sendKey;
+	cs_key.mousePosition = deltaMouse;
+	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
 		return;
@@ -102,6 +105,10 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 			err_quit("PI Packet");
 		}
 		client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+
+		//cout << piPacket.rotationMatrix._11 << ", "  << piPacket.rotationMatrix._12 << ", " << piPacket.rotationMatrix._13 << "\n"
+		//	<< piPacket.rotationMatrix._21 << ", " << piPacket.rotationMatrix._22 << ", " << piPacket.rotationMatrix._23 << "\n"
+		//	<< piPacket.rotationMatrix._31 << ", " << piPacket.rotationMatrix._32 << ", " << piPacket.rotationMatrix._33 << endl;
 
 		PlayerStatusPacket psPacket;
 		if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)

@@ -481,6 +481,7 @@ void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerI
 	//SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
 	//Move(PlayerPacket->movement);
 	SetPosition(PlayerPacket->movement);
+	SetRotation(PlayerPacket->rotationMatrix);
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }
@@ -609,6 +610,16 @@ void CGameObject::SetPosition(float x, float y, float z)
 void CGameObject::SetPosition(XMFLOAT3 xmf3Position)
 {
 	SetPosition(xmf3Position.x, xmf3Position.y, xmf3Position.z);
+}
+
+void CGameObject::SetRotation(XMFLOAT3X3 xmf3Rotation)
+{
+	m_xmf4x4Transform._11 = xmf3Rotation._11, m_xmf4x4Transform._12 = xmf3Rotation._12, m_xmf4x4Transform._13 = xmf3Rotation._13;
+	//cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
+	m_xmf4x4Transform._21 = xmf3Rotation._21, m_xmf4x4Transform._22 = xmf3Rotation._22, m_xmf4x4Transform._23 = xmf3Rotation._23;
+	m_xmf4x4Transform._31 = xmf3Rotation._31, m_xmf4x4Transform._32 = xmf3Rotation._32, m_xmf4x4Transform._33 = xmf3Rotation._33;
+
+	m_xmf4x4World = m_xmf4x4Transform;
 }
 
 void CGameObject::SetScale(float x, float y, float z)
@@ -1078,6 +1089,15 @@ void CSkyBox::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamer
 
 	CGameObject::Render(pd3dCommandList, pCamera);
 }
+
+void CSkyBox::Render(ID3D12GraphicsCommandList* pd3dCommandList, CPlayer* cPlayer, CCamera* pCamera)
+{
+	XMFLOAT3 xmf3PlayerPos = cPlayer->GetPosition();
+	SetPosition(xmf3PlayerPos.x, xmf3PlayerPos.y, xmf3PlayerPos.z);
+
+	CGameObject::Render(pd3dCommandList, pCamera);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
