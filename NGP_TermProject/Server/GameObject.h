@@ -83,9 +83,10 @@ public:
 class CPlayer : public GameObject
 {
 public:
+	CPlayer();
 	float m_fFriction;
 	int m_nHp = 100;
-	CMissileObject m_pMissiles[8];
+	CMissileObject* m_pMissiles[8];
 	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(DWORD Direction, float Distance, bool updateVelocity);
 	void Rotate(float x, float y, float z);

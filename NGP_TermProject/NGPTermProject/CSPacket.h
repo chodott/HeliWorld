@@ -1,7 +1,20 @@
 #pragma once
-#include"stdafx.h"
-const char CL_PlayerInfo = 0;
-const char CL_PlayerStatus = 1;
+//#include"stdafx.h"
+#include "DirectXMath.h"
+
+namespace PACKET {
+	const char PlayerInfo = 0;
+	const char PlayerStatus = 1;
+	const char PlayerKey = 2;
+	const char ItemInfo = 3;
+	const char MissileInfo = 4;
+};
+
+
+struct FPoint {
+	float x;
+	float y;
+};
 
 
 #pragma pack(1)
@@ -25,7 +38,7 @@ struct PlayerStatusPacket {
 #pragma pack(1)
 struct PlayerKeyPacket {
 	char playerKeyInput;
-	POINT mousePosition;
+	FPoint mousePosition;
 };
 #pragma pack()
 
@@ -40,7 +53,8 @@ struct ItemInfoPacket {
 #pragma pack(1)
 struct MissileInfoPacket {
 	char packetType;
-	int playerNumber;
+	int playerNumber;		// maybe not needed
+	bool active = false;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 };

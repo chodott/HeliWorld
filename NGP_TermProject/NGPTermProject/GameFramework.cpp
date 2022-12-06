@@ -51,6 +51,8 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client->ConnectServer();
+	client->ReceiveDone = CreateEvent(nullptr, true, false, false);
+
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -374,7 +376,6 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 		break;
 	}
 
-	client->SendtoServer();
 
 	return(0);
 }
@@ -495,13 +496,12 @@ void CGameFramework::ProcessInput()
 			{
 				if (pKeysBuffer[VK_RBUTTON] & 0xF0)
 				{
-
 					//m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 				}
 				else
 				{
 
-				//	m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
+					//	m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
 			if (dwDirection) m_pPlayer->Move(dwDirection, 1.21f, true);
@@ -512,32 +512,40 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
+	WaitForSingleObject(client->ReceiveDone, (DWORD)17);
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	for (int i = 0; i < 4; i++)
+	if (m_pScene)
 	{
-		if (client->playerData[i].playerNumber == client->PlayerNum)
+		for (int i = 0; i < 4; i++)
 		{
-			m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
-			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
+			if (client->playerData[i].playerNumber == client->PlayerNum)
+			{
+				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
+				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
+			}
+			else
+			{
+				m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
+			}
+			m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
+
+
+			// Processing Player Status Packet
+			for (int i = 0; i < 8; ++i)
+			{
+				if ((client->playerStatus[i].activatedMissiles >> i) & 0x01)
+				{
+					m_pScene->m_ppShaders[2]->m_ppObjects[(client->playerStatus[i].playerNumber * 8) + i]->GetActive();
+				}
+
+			}
+
 		}
-		else
+
+		for (int i = 0; i < 32; ++i)
 		{
-			if (m_pScene) m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
+			m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->missilePacket[i]);
 		}
-		if (m_pScene) m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
-
-
-		// Processing Player Status Packet
-	}
-
-	for (int i = 0; i < 32; ++i)
-	{
-		MissileInfoPacket miPacket;
-		miPacket.packetType = 4;
-		miPacket.playerNumber = 0;
-		miPacket.movement = XMFLOAT3(0.f, 0.f, 0.f);
-		miPacket.rotation = XMFLOAT3(0.f, 0.f, 0.f);
-		if (m_pScene) m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &miPacket);
 	}
 }
 
@@ -645,5 +653,6 @@ void CGameFramework::FrameAdvance()
 	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
+	client->SendtoServer();
 }
 

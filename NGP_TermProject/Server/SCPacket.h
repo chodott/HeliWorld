@@ -6,6 +6,13 @@
 const char SC_PlayerInfo = 0;
 const char SC_PlayerStatus = 1;
 const char SC_PlayerKey = 2;
+const char SC_MissileInfo = 3;
+
+
+struct FPoint {
+	float x;
+	float y;
+};
 
 
 #pragma pack(1)
@@ -29,7 +36,7 @@ struct PlayerStatusPacket {
 #pragma pack(1)
 struct PlayerKeyPacket {
 	char playerKeyInput;
-	POINT deltaMouse;
+	FPoint deltaMouse;
 };
 #pragma pack()
 

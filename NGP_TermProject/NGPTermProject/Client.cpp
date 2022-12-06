@@ -40,6 +40,7 @@ void Client::ConnectServer()
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 
+
 	DWORD optval = 1;
 	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
@@ -97,25 +98,70 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
+	char buf[sizeof(PlayerInfoPacket)]{};
 	while (true)
 	{
-		PlayerInfoPacket piPacket;
-		if (recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
-		{
-			err_quit("PI Packet");
-		}
-		client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+		ResetEvent(client->ReceiveDone);
 
-		//cout << piPacket.rotationMatrix._11 << ", "  << piPacket.rotationMatrix._12 << ", " << piPacket.rotationMatrix._13 << "\n"
-		//	<< piPacket.rotationMatrix._21 << ", " << piPacket.rotationMatrix._22 << ", " << piPacket.rotationMatrix._23 << "\n"
-		//	<< piPacket.rotationMatrix._31 << ", " << piPacket.rotationMatrix._32 << ", " << piPacket.rotationMatrix._33 << endl;
+		if (recv(*sock, (char*)&buf, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
+			err_quit("recv()");
 
-		PlayerStatusPacket psPacket;
-		if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)
+		static int count;
+		std::cout << count++ << std::endl;
+
+		switch (buf[0])
 		{
-			err_quit("PI Packet");
+		case PACKET::PlayerInfo:
+		{
+			PlayerInfoPacket piPacket;
+			memcpy(&piPacket, buf, sizeof(piPacket));
+			client->playerData[piPacket.playerNumber] = piPacket;
+			break;
 		}
-		client->playerStatus[psPacket.playerNumber] = psPacket;
+		case PACKET::PlayerStatus:
+		{
+			PlayerStatusPacket psPacket;
+			memcpy(&psPacket, buf, sizeof(psPacket));
+			client->playerStatus[psPacket.playerNumber] = psPacket;
+			break;
+		}
+		case PACKET::ItemInfo:
+
+			break;
+		case PACKET::MissileInfo:
+		{
+			MissileInfoPacket miPacket;
+			for (int i = 0; i < 32; ++i)
+			{
+				if (!client->missilePacket[i].active)
+					client->missilePacket[i] = miPacket;
+				// some where need a garbage collector which clean up missile deactivated
+			}
+			break;
+		}
+		default:
+			break;
+		}
+
+		//if (recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
+		//	err_quit("pi packet");
+		//client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
+
+		//PlayerStatusPacket psPacket;
+		//if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)
+		//	err_quit("ps packet");
+		//client->playerStatus[psPacket.playerNumber] = psPacket;
+
+		//MissileInfoPacket miPacket;
+		//for (int i = 0; i < 32; ++i)
+		//{
+		//	if (recv(*sock, (char*)&miPacket, sizeof(MissileInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
+		//		err_quit("mi packet");
+		//	client->missilePacket[i] = miPacket;
+		//}
+
+
+		SetEvent(client->ReceiveDone);
 	}
 }
 

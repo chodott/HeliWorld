@@ -8,9 +8,9 @@
 #include <ws2tcpip.h>
 
 #include <tchar.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <iostream>
 
@@ -18,11 +18,12 @@
 #include "error.h"
 #include "Missileobject.h"
 
-
 #pragma comment(lib, "ws2_32")
 
 #define SERVERPORT 9000
 #define BUFSIZE 512
+
+
 
 class Client {
 public:
@@ -38,11 +39,13 @@ public:
 	void SendtoServer();
 	PlayerInfoPacket playerData[4];
 	PlayerStatusPacket playerStatus[4];
+	MissileInfoPacket missilePacket[32];
 
-	POINT deltaMouse;
+	FPoint deltaMouse;
 
 	int PlayerNum = 0;
 
+	HANDLE ReceiveDone;
 private:
 
 	SOCKET* sock = nullptr;

@@ -87,6 +87,16 @@ void Server::SendAllClient()
 				{
 					send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
 					send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
+					for (int i = 0; i < 8; ++i)
+					{
+						CMissileObject* missile = p->m_pMissiles[i];
+						MissileInfoPacket scMissile;
+						scMissile.packetType = SC_MissileInfo;
+						scMissile.playerNumber = playerNumber;
+						scMissile.movement = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
+						scMissile.rotation = missile->m_xmf3Look;
+						send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
+					}
 				}
 			}
 		}
@@ -98,8 +108,7 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(clients[i]->m_player->playerKey, 0.001f, true);
-
+		clients[i]->m_player->Update(clients[i]->m_player->playerKey, 0.0005f, true);
 	}
 
 	CheckCollision();
@@ -136,12 +145,12 @@ void Server::CheckCollision()
 
 			for (auto& missile : jPlayer->m_pMissiles)
 			{
-				if (!missile.GetActive()) continue;
+				if (!missile->GetActive()) continue;
 				//Collision between Player and Missiles
-				if (iPlayer->GetBoundingBox().Intersects(missile.GetBoundingBox()))
+				if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
 				{
-					iPlayer->m_nHp -= missile.damage;
-					missile.SetActive(false);
+					iPlayer->m_nHp -= missile->damage;
+					missile->SetActive(false);
 					if (iPlayer->m_nHp <= 0)
 					{
 						iPlayer->SetActive(false);
@@ -205,7 +214,6 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 
 	client->ToggleConnected();
 
-	//char buf[1]{};
 	PlayerKeyPacket keyPacket;
 
 	while (true)
@@ -217,10 +225,11 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 				// cut the connection
 				continue;
 			}
-			client->m_player->playerKey = keyPacket.playerKeyInput;
-			
-			client->m_player->m_deltaX = keyPacket.deltaMouse.x;
-			client->m_player->m_deltaY = keyPacket.deltaMouse.y;
+			CPlayer* player = client->m_player;
+			player->playerKey = keyPacket.playerKeyInput;
+
+			player->m_deltaX = keyPacket.deltaMouse.x;
+			player->m_deltaY = keyPacket.deltaMouse.y;
 		}
 	}
 
@@ -238,8 +247,5 @@ int main()
 		g_server->Update();
 	}
 }
-
-
-
 
 
