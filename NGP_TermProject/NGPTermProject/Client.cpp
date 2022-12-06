@@ -106,9 +106,9 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 		}
 		client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
 
-		cout << piPacket.rotationMatrix._11 << ", "  << piPacket.rotationMatrix._12 << ", " << piPacket.rotationMatrix._13 << "\n"
-			<< piPacket.rotationMatrix._21 << ", " << piPacket.rotationMatrix._22 << ", " << piPacket.rotationMatrix._23 << "\n"
-			<< piPacket.rotationMatrix._31 << ", " << piPacket.rotationMatrix._32 << ", " << piPacket.rotationMatrix._33 << endl;
+		//cout << piPacket.rotationMatrix._11 << ", "  << piPacket.rotationMatrix._12 << ", " << piPacket.rotationMatrix._13 << "\n"
+		//	<< piPacket.rotationMatrix._21 << ", " << piPacket.rotationMatrix._22 << ", " << piPacket.rotationMatrix._23 << "\n"
+		//	<< piPacket.rotationMatrix._31 << ", " << piPacket.rotationMatrix._32 << ", " << piPacket.rotationMatrix._33 << endl;
 
 		PlayerStatusPacket psPacket;
 		if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)
