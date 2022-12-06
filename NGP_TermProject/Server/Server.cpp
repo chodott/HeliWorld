@@ -77,15 +77,15 @@ void Server::SendAllClient()
 			scStatus.playerNumber = playerNumber;
 			scStatus.activatedMissiles = p->activatedMissiles;
 			scStatus.playerHP = p->m_nHp;
-		}
 
-		// sending playerinfo packet
-		for (const auto& client : clients)
-		{
-			if (client->IsConnected())
+			// sending playerinfo packet
+			for (const auto& client : clients)
 			{
-				send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
-				send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
+				if (client->IsConnected())
+				{
+					send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
+					send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
+				}
 			}
 		}
 	}
@@ -160,11 +160,12 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	while (true)
 	{
 		addrlen = sizeof(clientaddr);
+		std::cout << "Waiting for accept...\n";
 		// maybe a event need that notify server accepted four player already or not
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
-		if (clientSock == INVALID_SOCKET)
+		if (clientSock == SOCKET_ERROR)
 		{
-			//std::cout << "Invalid Socket detected\n";
+			err_quit("accept()");
 			continue;
 		}
 
