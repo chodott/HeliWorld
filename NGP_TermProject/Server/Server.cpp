@@ -93,6 +93,7 @@ void Server::SendAllClient()
 						MissileInfoPacket scMissile;
 						scMissile.packetType = SC_MissileInfo;
 						scMissile.playerNumber = playerNumber;
+						scMissile.missileNumber = i;
 						scMissile.active = missile->GetActive();
 						scMissile.movement = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
 						scMissile.rotation = missile->m_xmf3Look;
@@ -109,7 +110,7 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(clients[i]->m_player->playerKey, 0.0005f, true);
+		clients[i]->m_player->Update(0.002f, true);
 	}
 
 	CheckCollision();
