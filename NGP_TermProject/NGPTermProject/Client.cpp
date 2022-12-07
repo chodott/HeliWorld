@@ -1,6 +1,79 @@
 #include "stdafx.h"
 #include "Client.h"
 
+int PacketSizeHelper(char packetType)
+{
+	int packetSize;
+	switch (packetType)
+	{
+	case PACKET::PlayerInfo:
+	{
+		packetSize = sizeof(PlayerInfoPacket);
+		break;
+	}
+	case PACKET::PlayerStatus:
+	{
+		packetSize = sizeof(PlayerStatusPacket);
+		break;
+	}
+	case PACKET::ItemInfo:
+		packetSize = sizeof(ItemInfoPacket);
+		break;
+	case PACKET::MissileInfo:
+	{
+		packetSize = sizeof(MissileInfoPacket);
+		break;
+	}
+	default:
+		packetSize = -1;
+		break;
+	}
+	return packetSize;
+}
+
+void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
+{
+	switch (packetType)
+	{
+	case PACKET::PlayerInfo:
+	{
+		PlayerInfoPacket piPacket;
+		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoPacket));
+		client->playerData[piPacket.playerNumber] = piPacket;
+		break;
+	}
+	case PACKET::PlayerStatus:
+	{
+		PlayerStatusPacket psPacket;
+		memcpy(&psPacket, fillTarget, sizeof(PlayerStatusPacket));
+		client->playerStatus[psPacket.playerNumber] = psPacket;
+		break;
+	}
+	case PACKET::ItemInfo:
+
+		break;
+	case PACKET::MissileInfo:
+	{
+		MissileInfoPacket miPacket;
+		memcpy(&miPacket, fillTarget, sizeof(MissileInfoPacket));
+		for (int i = 0; i < 32; ++i)
+		{
+			if (!client->missilePacket[i].active)
+			{
+				client->missilePacket[i] = miPacket;
+				break;
+			}
+			// some where need a garbage collector which clean up missile deactivated
+		}
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+
+
 Client::Client()
 {
 	WSADATA wsa;
@@ -98,68 +171,53 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
-	char buf[sizeof(PlayerInfoPacket)]{};
+
+	const int bufSize = 512;
+	char buf[bufSize]{};
 	while (true)
 	{
 		ResetEvent(client->ReceiveDone);
 
-		if (recv(*sock, (char*)&buf, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
+		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)
 			err_quit("recv()");
 
-		static int count;
-		std::cout << count++ << std::endl;
+		int restBufSize = bufSize;
+		int bufOffset = 0;
 
-		switch (buf[0])
+		// process remain packet
+		if (client->remainSize > 0)
 		{
-		case PACKET::PlayerInfo:
-		{
-			PlayerInfoPacket piPacket;
-			memcpy(&piPacket, buf, sizeof(piPacket));
-			client->playerData[piPacket.playerNumber] = piPacket;
-			break;
-		}
-		case PACKET::PlayerStatus:
-		{
-			PlayerStatusPacket psPacket;
-			memcpy(&psPacket, buf, sizeof(psPacket));
-			client->playerStatus[psPacket.playerNumber] = psPacket;
-			break;
-		}
-		case PACKET::ItemInfo:
+			memcpy(&client->remain[client->remainOffset], buf, client->remainSize);
+			restBufSize -= client->remainSize;
+			PacketProcessHelper(client->remain[0], client->remain, client);
+			bufOffset += client->remainSize;
 
-			break;
-		case PACKET::MissileInfo:
+			// reset remain
+			memset(client->remain, 0, 512);
+			client->remainOffset = 0;
+			client->remainSize = 0;
+		}
+
+		while (restBufSize > 0)
 		{
-			MissileInfoPacket miPacket;
-			for (int i = 0; i < 32; ++i)
+			char packetType = buf[bufOffset];
+			int packetSize = PacketSizeHelper(packetType);
+
+			// save remain packet
+			if (restBufSize < packetSize)
 			{
-				if (!client->missilePacket[i].active)
-					client->missilePacket[i] = miPacket;
-				// some where need a garbage collector which clean up missile deactivated
+				client->remainOffset = restBufSize;
+				client->remainSize = packetSize - client->remainOffset;
+				memcpy(&client->remain, buf + bufOffset, restBufSize);
+				restBufSize -= client->remainSize;
+				break;
 			}
-			break;
+
+			// Packet process
+			PacketProcessHelper(packetType, buf + bufOffset, client);
+			restBufSize -= packetSize;
+			bufOffset += packetSize;
 		}
-		default:
-			break;
-		}
-
-		//if (recv(*sock, (char*)&piPacket, sizeof(PlayerInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
-		//	err_quit("pi packet");
-		//client->playerData[piPacket.playerNumber] = piPacket;   //->Player and otherPlayer render ->goto Scene.cpp render() and Player.cpp render()
-
-		//PlayerStatusPacket psPacket;
-		//if (recv(*sock, (char*)&psPacket, sizeof(PlayerStatusPacket), MSG_WAITALL) == SOCKET_ERROR)
-		//	err_quit("ps packet");
-		//client->playerStatus[psPacket.playerNumber] = psPacket;
-
-		//MissileInfoPacket miPacket;
-		//for (int i = 0; i < 32; ++i)
-		//{
-		//	if (recv(*sock, (char*)&miPacket, sizeof(MissileInfoPacket), MSG_WAITALL) == SOCKET_ERROR)
-		//		err_quit("mi packet");
-		//	client->missilePacket[i] = miPacket;
-		//}
-
 
 		SetEvent(client->ReceiveDone);
 	}

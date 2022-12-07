@@ -93,6 +93,7 @@ void Server::SendAllClient()
 						MissileInfoPacket scMissile;
 						scMissile.packetType = SC_MissileInfo;
 						scMissile.playerNumber = playerNumber;
+						scMissile.active = missile->GetActive();
 						scMissile.movement = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
 						scMissile.rotation = missile->m_xmf3Look;
 						send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);

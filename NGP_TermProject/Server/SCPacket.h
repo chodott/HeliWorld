@@ -6,7 +6,8 @@
 const char SC_PlayerInfo = 0;
 const char SC_PlayerStatus = 1;
 const char SC_PlayerKey = 2;
-const char SC_MissileInfo = 3;
+const char SC_ItemInfo = 3;
+const char SC_MissileInfo = 4;
 
 
 struct FPoint {
@@ -52,6 +53,7 @@ struct ItemInfoPacket {
 struct MissileInfoPacket {
 	char packetType;
 	int playerNumber;
+	bool active = false;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 };

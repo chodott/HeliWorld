@@ -30,7 +30,7 @@ struct PlayerInfoPacket {
 struct PlayerStatusPacket {
 	char packetType;
 	int playerNumber;
-	unsigned char activatedMissiles;
+	unsigned char activatedMissiles = 0;
 	int playerHP;
 };
 #pragma pack()

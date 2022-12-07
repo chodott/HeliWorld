@@ -529,7 +529,6 @@ void CGameFramework::AnimateObjects()
 			}
 			m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
 
-
 			// Processing Player Status Packet
 			for (int i = 0; i < 8; ++i)
 			{
@@ -537,7 +536,6 @@ void CGameFramework::AnimateObjects()
 				{
 					m_pScene->m_ppShaders[2]->m_ppObjects[(client->playerStatus[i].playerNumber * 8) + i]->GetActive();
 				}
-
 			}
 
 		}

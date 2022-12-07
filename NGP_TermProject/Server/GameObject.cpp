@@ -4,6 +4,9 @@ GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
 	SetOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(10, 10, 10), XMFLOAT4(0, 0, 0, 1));
+	m_xmf3Right = XMFLOAT3(0, 0, 0);
+	m_xmf3Up = XMFLOAT3(0, 0, 0);
+	m_xmf3Look = XMFLOAT3(0, 0, 0);
 }
 
 void GameObject::Move(XMFLOAT3& vDirection, float fSpeed)
