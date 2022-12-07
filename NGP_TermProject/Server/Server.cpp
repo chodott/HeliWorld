@@ -11,6 +11,10 @@ Server::Server()
 	for (int i = 0; i < 4; ++i)
 	{
 		clients[i] = new Client;
+
+	}
+	for (int i = 0; i < 10; i++) {
+		m_ItemObject[i].SetPosition(100,100,100+10*i);
 	}
 }
 
@@ -157,6 +161,14 @@ void Server::CheckCollision()
 						iPlayer->SetActive(false);
 					}
 				}
+			}
+		}
+		for (int j = 0; j < 10; j++) 
+		{
+			if(iPlayer->GetBoundingBox().Intersects(m_ItemObject[j].GetBoundingBox()))
+			{
+				iPlayer->m_nHp += 10;
+				m_ItemObject[j].SetActive(false);
 			}
 		}
 	}

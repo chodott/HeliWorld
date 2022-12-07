@@ -79,6 +79,12 @@ public:
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 };
 
+class CItemObject : public GameObject
+{
+public:
+	CItemObject() {};
+
+};
 
 class CPlayer : public GameObject
 {

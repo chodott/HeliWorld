@@ -4,6 +4,7 @@
 #include "Socket.h"
 #include "SCPacket.h"
 #include <array>
+#include"GameObject.h"
 
 
 #define SERVERPORT		9000
@@ -14,7 +15,7 @@ DWORD WINAPI AcceptClient(LPVOID arg);
 
 class Client;
 class CPlayer;
-
+class CItemObject;
 class Server {
 public:
 	Server();
@@ -41,6 +42,7 @@ private:
 	SOCKET listenSock;
 
 	std::array<PlayerInfoPacket, 4> infoPackets;
+	CItemObject m_ItemObject[10];
 
 };
 
@@ -57,6 +59,7 @@ public:
 	bool IsConnected() { return m_connected; }
 
 	CPlayer* m_player = nullptr;
+	
 
 private:
 
