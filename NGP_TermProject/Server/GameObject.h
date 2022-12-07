@@ -45,11 +45,12 @@ public:
 	float						m_fOldYaw = 0.f;
 	float						m_fOldRoll = 0.f;
 
-	bool						m_bActive;//active
+	bool						m_bActive{ false};//active
 	float						m_fSpeed;//speed
 	int							m_nObjects{};
 
 	int Player_id;
+	int cnt{};
 
 	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
 
@@ -98,14 +99,14 @@ public:
 	void Rotate(float x, float y, float z);
 	void LaunchMissile();
 	void UpdateMissiles();
-	void Update(unsigned char key, float Distance, bool updateVelocity);
+	void Update(float Distance, bool updateVelocity);
 
 	float m_deltaX{};
 	float m_deltaY{};
 
-	unsigned char playerKey;
+	unsigned char playerKey{0};
 	char playerMouse;
-	char activatedMissiles;
+	char activatedMissiles{0};
 
 private:
 	unsigned char option0 = 0x01;	// 0000 0001 

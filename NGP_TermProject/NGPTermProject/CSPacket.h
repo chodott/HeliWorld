@@ -53,7 +53,8 @@ struct ItemInfoPacket {
 #pragma pack(1)
 struct MissileInfoPacket {
 	char packetType;
-	int playerNumber;		// maybe not needed
+	int playerNumber;		
+	int missileNumber;
 	bool active = false;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;

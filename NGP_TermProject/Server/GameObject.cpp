@@ -136,11 +136,13 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
 }
 
+
 void CPlayer::LaunchMissile()
 {
 	for (int i = 0; i < 8; ++i)
 	{
-		if (!((activatedMissiles >> i) & 0x01))
+		char temp = activatedMissiles;
+		if (!((temp >> i) & 0x01))
 		{
 			activatedMissiles |= (0x01 << i);
 			m_pMissiles[i]->m_bActive = true;
@@ -162,7 +164,9 @@ void CPlayer::UpdateMissiles()
 	}
 }
 
-void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
+#include <bitset>
+
+void CPlayer::Update(float Distance, bool updateVelocity)
 {
 	RecalculateLook();
 	RecalculateRight();
@@ -170,36 +174,65 @@ void CPlayer::Update(unsigned char key, float Distance, bool updateVelocity)
 
 	Rotate(m_deltaY, m_deltaX, 0.f);
 
-	if (key)
+	if (playerKey)
 	{
+
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
 
-		if (key & option0) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
-		if (key & option1) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
-		if (key & option2) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
-		if (key & option3) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
-		if (key & option4) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -Distance);
-		if (key & option5) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, Distance);
+		if (playerKey & option0)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, Distance);
+			playerKey &= ~option0;
+		}
+		if (playerKey & option1)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -Distance);
+			playerKey &= ~option1;
+		}
+		if (playerKey & option2)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -Distance);
+			playerKey &= ~option2;
+		}
+		if (playerKey & option3)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, Distance);
+			playerKey &= ~option3;
+		}
+		if (playerKey & option4)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -Distance);
+			playerKey &= ~option4;
+		}
+		if (playerKey & option5)
+		{
+			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, Distance);
+			playerKey &= ~option5;
+		}
 		Move(xmf3Shift, updateVelocity);
 
 		//m_xmOOBB.Center = GetCurPos();
 		m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
 
 		//Attack
-		if (key & option6) LaunchMissile();
-
-		UpdateMissiles();
-
+		if (playerKey & option6)
+		{
+			LaunchMissile();
+			playerKey &= ~option6;
+		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
 		m_xmf4x4World._42 = m_xmf3Position.y;
 		m_xmf4x4World._43 = m_xmf3Position.z;
 	}
+
+
+	UpdateMissiles();
 }
 
 
 void CMissileObject::Move()
 {
-	m_fMovingSpeed = 1.f;
+	m_fMovingSpeed = 0.001f;
 	if (m_fMovingSpeed != 0.0f)
 		Move(m_xmf3Look, m_fMovingSpeed);
 	SetOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));

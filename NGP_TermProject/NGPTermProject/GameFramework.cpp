@@ -528,16 +528,6 @@ void CGameFramework::AnimateObjects()
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
 			}
 			m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
-
-			// Processing Player Status Packet
-			for (int i = 0; i < 8; ++i)
-			{
-				if ((client->playerStatus[i].activatedMissiles >> i) & 0x01)
-				{
-					m_pScene->m_ppShaders[2]->m_ppObjects[(client->playerStatus[i].playerNumber * 8) + i]->GetActive();
-				}
-			}
-
 		}
 
 		for (int i = 0; i < 32; ++i)

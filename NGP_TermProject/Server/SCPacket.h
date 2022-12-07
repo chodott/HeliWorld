@@ -53,6 +53,7 @@ struct ItemInfoPacket {
 struct MissileInfoPacket {
 	char packetType;
 	int playerNumber;
+	int missileNumber;
 	bool active = false;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;

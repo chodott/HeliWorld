@@ -66,15 +66,17 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		MissileInfoPacket miPacket;
 		memcpy(&miPacket, fillTarget, sizeof(MissileInfoPacket));
-		for (int i = 0; i < 32; ++i)
-		{
-			if (!client->missilePacket[i].active)
-			{
-				client->missilePacket[i] = miPacket;
-				break;
-			}
-			// some where need a garbage collector which clean up missile deactivated
-		}
+		client->missilePacket[miPacket.playerNumber * 8 + miPacket.missileNumber] = miPacket;
+
+		//for (int i = 0; i < 32; ++i)
+		//{
+		//	if (!client->missilePacket[i].active)
+		//	{
+		//		client->missilePacket[i] = miPacket;
+		//		break;
+		//	}
+		//	// some where need a garbage collector which clean up missile deactivated
+		//}
 		break;
 	}
 	default:
@@ -146,6 +148,7 @@ void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	}
 }
 
+
 void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
 	switch (nMessageID)
@@ -159,7 +162,7 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 		case 'D': sendKey &= (~option3);	break;
 		case 'Q': sendKey &= (~option4);	break;
 		case 'E': sendKey &= (~option5);	break;
-		case ' ': sendKey &= (~option6);	break;
+		case ' ': sendKey &= (~option6);		break;
 		}
 	}
 }
@@ -174,6 +177,7 @@ void Client::SendtoServer()
 		err_display("send()");
 		return;
 	}
+	sendKey &= (~option6);
 	//buf[0] = (char)&ptCursorPos;
 }
 
