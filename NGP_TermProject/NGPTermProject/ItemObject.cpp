@@ -59,6 +59,18 @@ void CItemObject::Move(XMFLOAT3& vDirection, float fSpeed)
 	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
+void CItemObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInfoPacket* ItemPacket)
+{
+
+	SetActive(ItemPacket->active);
+	SetPosition(ItemPacket->Position);
+
+
+
+	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
+	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
+}
+
 void CItemObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)
 {
 	XMFLOAT4X4 mtxRotate = Matrix4x4::RotationAxis(xmf3RotationAxis, fAngle);

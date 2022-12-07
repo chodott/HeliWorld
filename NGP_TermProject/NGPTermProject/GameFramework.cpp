@@ -544,6 +544,10 @@ void CGameFramework::AnimateObjects()
 		{
 			m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->missilePacket[i]);
 		}
+		for (int i = 0; i < 5; ++i)
+		{
+			m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->itemPacket[i]);
+		}
 	}
 }
 

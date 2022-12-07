@@ -40,7 +40,7 @@ public:
 	PlayerInfoPacket playerData[4];
 	PlayerStatusPacket playerStatus[4];
 	MissileInfoPacket missilePacket[32];
-
+	ItemInfoPacket itemPacket[10];
 	FPoint deltaMouse;
 
 	int PlayerNum = 0;

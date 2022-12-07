@@ -18,6 +18,8 @@ public:
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
 
+
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInfoPacket* ItemPacket) ;
 	void SetID(int id) { m_ID = id; }
 	int GetID()	const { return m_ID; }
 

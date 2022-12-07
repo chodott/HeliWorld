@@ -81,7 +81,7 @@ void CMissileObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Graphic
 
 	m_pMissileTexturedMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.5f, 5.f);
 
-	m_nObjects = 32;
+	m_nObjects = 32;//0~32 
 	m_ppObjects = new CGameObject * [m_nObjects];
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 

@@ -80,7 +80,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_pWater = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, _T("Image/HeightMap2.raw"), 257, 257, 257, 257, xmf3Scale, xmf4Color, 150);
 	m_pSkyBox = new CSkyBox(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 
-	m_nShaders = 5;
+	m_nShaders = 6;
 	m_ppShaders = new CShader * [m_nShaders];
 
 	pObjectsShader = new CObjectsShader();
@@ -117,6 +117,12 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pMultiSpriteObjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pMultiSpriteObjectShader->SetActive(false);
 	m_ppShaders[4] = pMultiSpriteObjectShader;
+
+	pHealobjectShader = new CHealObjectsShader();
+	pHealobjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+	pHealobjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+	pHealobjectShader->SetActive(true);
+	m_ppShaders[5] = pHealobjectShader;
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
@@ -518,6 +524,9 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				pMissileobjectShader->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam, &fTimer);
 			}
 			break;
+
+		case VK_F1:
+
 		default:
 			break;
 		}

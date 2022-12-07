@@ -100,6 +100,7 @@ public:
 	CHeightMapTerrain* m_pWater = NULL;
 	CMissileObjectsShader* pMissileobjectShader;
 	CMultiSpriteObjectsShader* pMultiSpriteObjectShader;
+	CHealObjectsShader* pHealobjectShader;
 	//CHealObjectsShader* 
 	LIGHT* m_pLights = NULL;
 	int									m_nLights = 0;
