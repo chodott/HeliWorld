@@ -45,6 +45,7 @@ struct PlayerKeyPacket {
 #pragma pack(1)
 struct ItemInfoPacket {
 	char packetType;
+	int itemNum;
 	XMFLOAT3 Position;
 	bool active;
 };

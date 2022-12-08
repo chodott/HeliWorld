@@ -232,7 +232,7 @@ void CPlayer::Update(float Distance, bool updateVelocity)
 
 void CMissileObject::Move()
 {
-	m_fMovingSpeed = 0.001f;
+	m_fMovingSpeed = 0.1f;
 	if (m_fMovingSpeed != 0.0f)
 		Move(m_xmf3Look, m_fMovingSpeed);
 	SetOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));

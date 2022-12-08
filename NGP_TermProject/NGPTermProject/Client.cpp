@@ -55,11 +55,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		memcpy(&itPacket, fillTarget, sizeof(ItemInfoPacket));
 		for (int i = 0; i < 10; i++)
 		{
-			if (!client->itemPacket[i].active)
-			{
-				client->itemPacket[i] = itPacket;
-				break;
-			}
+			client->itemPacket[itPacket.itemNum] = itPacket;
 		}
 		break;
 	case PACKET::MissileInfo:

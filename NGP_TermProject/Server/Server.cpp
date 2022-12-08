@@ -14,7 +14,7 @@ Server::Server()
 
 	}
 	for (int i = 0; i < 10; i++) {
-		m_ItemObject[i].SetPosition(100,100,100+10*i);
+		m_ItemObject[i].SetPosition(100, 100, 100 + 10 * i);
 	}
 }
 
@@ -103,6 +103,19 @@ void Server::SendAllClient()
 						scMissile.rotation = missile->m_xmf3Look;
 						send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
 					}
+
+					//sending ItemInfo Packet
+					for (int i = 0; i < 10; ++i)
+					{
+						CItemObject* item = &m_ItemObject[i];
+						ItemInfoPacket scItem;
+						scItem.packetType = SC_ItemInfo;
+						scItem.active = item->GetActive();
+						scItem.itemNum = i;
+						scItem.position = item->GetCurPos();
+						send(client->sock, (char*)&scItem, sizeof(ItemInfoPacket), 0);
+					}
+
 				}
 			}
 		}
@@ -112,13 +125,16 @@ void Server::SendAllClient()
 void Server::Update()
 {
 	int n = 0;
+	srand(time(NULL));
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(0.002f, true);
+		clients[i]->m_player->Update(0.1f, true);
 	}
-
 	CheckCollision();
 	SendAllClient();
+
+	timerHandle.stop();
+	if (timerHandle.elapsed_sec() > 10) SpawnItem();
 }
 
 void Server::CheckCollision()
@@ -164,14 +180,30 @@ void Server::CheckCollision()
 				}
 			}
 		}
-		for (int j = 0; j < 10; j++) 
+		for (int j = 0; j < 10; j++)
 		{
-			if(iPlayer->GetBoundingBox().Intersects(m_ItemObject[j].GetBoundingBox()))
+			if (!m_ItemObject[j].GetActive()) return;
+			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j].GetBoundingBox()))
 			{
 				iPlayer->m_nHp += 10;
 				m_ItemObject[j].SetActive(false);
 			}
 		}
+	}
+}
+
+void Server::SpawnItem()
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		if (!m_ItemObject[i].GetActive())
+		{
+			m_ItemObject[i].m_bActive = true;
+			m_ItemObject[i].SetPosition(rand() % 500, rand()%500, rand() % 500);
+			timerHandle.start();
+			break;
+		}
+
 	}
 }
 

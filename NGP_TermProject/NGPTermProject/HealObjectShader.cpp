@@ -97,7 +97,7 @@ void CHealObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 		pHealObject = new CItemObject();
 		pHealObject->SetMesh(0, m_pHealTexturedMesh);
 		pHealObject->SetMaterial(0, m_pHealMaterial);
-		pHealObject->SetActive(true);
+		pHealObject->SetActive(false);
 		pHealObject->SetPosition(100.f, 100.f, 10*i);
 		pHealObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
 		m_ppObjects[nObjects++] = pHealObject;
@@ -151,7 +151,7 @@ void CHealObjectsShader::AnimateObjects(float fTimeElapsed)
 
 bool CHealObjectsShader::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam, float* fTimeelapsed)
 {
-	
+	return 0;
 }
 void CHealObjectsShader::ReleaseObjects()
 {
