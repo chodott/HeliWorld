@@ -478,6 +478,9 @@ void CGameFramework::ProcessInput()
 		float cxDelta = 0.0f, cyDelta = 0.0f;
 		POINT ptCursorPos;
 		(char*)&ptCursorPos;
+
+		client->deltaMouse.x = 0.f;
+		client->deltaMouse.y = 0.f;
 		if (GetCapture() == m_hWnd)
 		{
 			SetCursor(NULL);

@@ -114,7 +114,9 @@ void Server::Update()
 	int n = 0;
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(0.002f, true);
+		clients[i]->m_player->Update(0.01f, true);
+		//clients[i]->m_player->m_deltaX = 0.f;
+		//clients[i]->m_player->m_deltaY = 0.f;
 	}
 
 	CheckCollision();

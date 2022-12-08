@@ -108,21 +108,21 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
 	}
 
-	float sensitivity = 0.1f;
-	float degreeX = x * sensitivity;
-	float radianX = degreeX * (180.0f / DirectX::XM_PI);
-	float degreeY = y * sensitivity;
-	float radianY = degreeY * (180.0f / DirectX::XM_PI);
+	//float sensitivity = 0.1f;
+	//float degreeX = x * sensitivity;
+	//float radianX = degreeX * (180.0f / DirectX::XM_PI);
+	//float degreeY = y * sensitivity;
+	//float radianY = degreeY * (180.0f / DirectX::XM_PI);
 
 	if (y != 0.0f)
 	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(radianY));
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
 		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
 		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
 	}
 	if (x != 0.0f)
 	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(radianX));
+		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
 		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
 		m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
 	}
@@ -164,8 +164,6 @@ void CPlayer::UpdateMissiles()
 	}
 }
 
-#include <bitset>
-
 void CPlayer::Update(float Distance, bool updateVelocity)
 {
 	RecalculateLook();
@@ -173,10 +171,11 @@ void CPlayer::Update(float Distance, bool updateVelocity)
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
 	Rotate(m_deltaY, m_deltaX, 0.f);
+	m_deltaX = 0.f;
+	m_deltaY = 0.f;
 
 	if (playerKey)
 	{
-
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
 
 		if (playerKey & option0)

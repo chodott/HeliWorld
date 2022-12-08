@@ -36,7 +36,7 @@ struct PlayerStatusPacket {
 
 #pragma pack(1)
 struct PlayerKeyPacket {
-	char playerKeyInput;
+	unsigned char playerKeyInput;
 	FPoint deltaMouse;
 };
 #pragma pack()

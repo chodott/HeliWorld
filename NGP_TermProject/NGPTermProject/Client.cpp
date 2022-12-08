@@ -171,7 +171,7 @@ void Client::SendtoServer()
 {
 	PlayerKeyPacket cs_key;
 	cs_key.playerKeyInput = sendKey;
-	cs_key.mousePosition = deltaMouse;
+	cs_key.deltaMouse = deltaMouse;
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
