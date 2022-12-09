@@ -1460,6 +1460,13 @@ void CUiObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCam
 	}
 }
 
+void CHPObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerStatusPacket* PlayerStatus)
+{
+	
+	SetActive(false);
+	
+}
+
 CHPObject::CHPObject() :CGameObject(1, 1)
 {
 }

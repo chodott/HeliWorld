@@ -1111,7 +1111,7 @@ void C2dUIObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 
 	CTexture* ppHPBarTexture[1];
 	ppHPBarTexture[0] = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
-	ppHPBarTexture[0]->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"UIimage/hpBar2.dds", RESOURCE_TEXTURE2D, 0);//미니맵 텍스 쳐생성
+	ppHPBarTexture[0]->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"UIimage/4.dds", RESOURCE_TEXTURE2D, 0);//미니맵 텍스 쳐생성
 
 	CMaterial* ppHPBarMaterials[1]; //->메테리얼 생성 텍스쳐와 쉐이더를 넣어야되는데 쉐이더이므로 안 넣어도 됨
 	ppHPBarMaterials[0] = new CMaterial();
@@ -1121,7 +1121,7 @@ void C2dUIObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 	CTexturedRectMesh* pHPBarMesh = new CTexturedRectMesh(pd3dDevice, pd3dCommandList, 4.0f, 2.0f, 0.0f, 5.0f, 5.0f, 0.0f);
 
 	//CRawFormatImage* pRawFormatImage = new CRawFormatImage(L"BillboardImage/ObjectsMap.raw", 257, 257, true);
-	m_nObjects = 2;
+	m_nObjects = 11;
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
 
 	//CreateShader(pd3dDevice,  pd3dCommandList,pd3dGraphicsRootSignature);
@@ -1135,7 +1135,7 @@ void C2dUIObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 	m_ppObjects = new CGameObject * [m_nObjects];//UI오브젝트의 개수
 
 	CUiObject* pUiObject = NULL;
-	CHPObject* pHpObject = NULL;
+	CHPObject* pHpObject[10]{};
 	CMaterial* pMaterial = NULL;
 	CMesh* pMesh = NULL;
 	int nObjects = 0;
@@ -1151,14 +1151,20 @@ void C2dUIObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 	pUiObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
 	m_ppObjects[nObjects++] = pUiObject;
 
-	pHpObject = new CHPObject();
+	
+	for (int i = 0; i < 10;i++ ) {
+		
+		pHpObject[i] = new CHPObject();
 
-	pHpObject->SetMesh(0, pHPBarMesh);
-	pHpObject->SetMaterial(0, ppHPBarMaterials[0]);
-	pHpObject->SetPosition(0, -15, 20);
-	pHpObject->Rotate(0.0f, 180.0f, 0.0f);
-	pHpObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
-	m_ppObjects[nObjects++] = pHpObject;
+		pHpObject[i]->SetMesh(0, pHPBarMesh);
+		pHpObject[i]->SetMaterial(0, ppHPBarMaterials[0]);
+		pHpObject[i]->SetScale(0.1, 0.1, 0.1);
+		pHpObject[i]->SetPosition(-4+i*1.4, -10, 20);
+		pHpObject[i]->Rotate(0.0f, 180.0f, 0.0f);
+		pHpObject[i]->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
+		m_ppObjects[nObjects++] = pHpObject[i];
+	}
+	
 }
 
 void C2dUIObjectsShader::ReleaseUploadBuffers()
@@ -1177,6 +1183,7 @@ void C2dUIObjectsShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 
 	if (m_d3dPipelineStateDesc.InputLayout.pInputElementDescs) delete[] m_d3dPipelineStateDesc.InputLayout.pInputElementDescs;
 }
+
 D3D12_INPUT_LAYOUT_DESC C2dUIObjectsShader::CreateInputLayout()
 {
 	UINT nInputElementDescs = 2;

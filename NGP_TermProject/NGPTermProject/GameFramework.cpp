@@ -517,6 +517,7 @@ void CGameFramework::AnimateObjects()
 {
 	WaitForSingleObject(client->ReceiveDone, (DWORD)17);
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
+	int playernum = 0;
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)
@@ -525,6 +526,14 @@ void CGameFramework::AnimateObjects()
 			{
 				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
+				cout << client->playerStatus->playerHP << endl;
+			/*	for (int i = 1; i < (client->playerStatus->playerHP)/10; ++i)
+				{
+					if (i <= 10)
+					{
+						m_pScene->m_ppShaders[3]->m_ppObjects[i]->SetActive(false);
+					}
+				}*/
 			}
 			else
 			{
@@ -541,6 +550,7 @@ void CGameFramework::AnimateObjects()
 		{
 			m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->itemPacket[i]);
 		}
+	
 	}
 }
 
