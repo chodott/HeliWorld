@@ -20,27 +20,64 @@ class Client;
 class CPlayer;
 class CItemObject;
 
-typedef std::chrono::steady_clock sclock;
-class Timer {
+//class Clock
+//{
+//public:
+//	using time = std::chrono::high_resolution_clock;
+//	using second = std::chrono::duration<float>;
+//
+//	Clock() noexcept
+//		: timePassed(0), timeStamp(time::now()) {}
+//	void UpdateClock() noexcept
+//	{
+//		timePassed += GetTimeFromLastUpdate();
+//		timeStamp = time::now();
+//	}
+//
+//	float GetTimeFromLastUpdate() const noexcept
+//	{
+//		return std::chrono::duration<float>(time::now() - timeStamp).count();
+//	}
+//public:
+//	float timePassed;
+//private:
+//	time::time_point timeStamp;
+//};
+
+
+class Clock {
 public:
-	virtual ~Timer() { }
-	inline void start() { start_time = sclock::now(); }
-	inline void stop() { end_time = sclock::now(); }
+	using time = std::chrono::high_resolution_clock;
+	using second = std::chrono::duration<float>;
 
-	inline double elapsed_milli() const
+	Clock()
+		: timePassed(0), timeStamp(time::now()) {}
+
+	float TimePassed()
 	{
-		return std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+		timePassed += GetTimePassedFromLastUpdate();
+		timeStamp = time::now();
+
+		return timePassed;
 	}
 
-	inline double elapsed_sec() const
+	void Reset()
 	{
-		return elapsed_milli() / 1000.0;
+		timePassed = 0.f;
+		timeStamp = time::now();
 	}
 
-	sclock::time_point start_time;
-	sclock::time_point end_time;
+private:
+	float GetTimePassedFromLastUpdate() const
+	{
+		return second(time::now() - timeStamp).count();
+	}
+
+	float timePassed;
+	time::time_point timeStamp;
 };
 
+#include <queue>
 class Server {
 public:
 	Server();
@@ -57,18 +94,17 @@ public:
 
 
 	SOCKET* GetSocket() { return &listenSock; }
-	Timer timerHandle;
+	Clock healItemTimer;
 
 	std::array<Client*, 4> clients;
 	XMFLOAT3 initialPos[4]{
 		{100,100,100},{150,100,100},{200,100,100},{250,100,100}
 	};
 
+	CItemObject* m_ItemObject[10];
+	std::queue<GameObject*> trashCan;
 private:
 	SOCKET listenSock;
-
-	std::array<PlayerInfoPacket, 4> infoPackets;
-	CItemObject m_ItemObject[10];
 
 };
 
@@ -85,13 +121,9 @@ public:
 	bool IsConnected() { return m_connected; }
 
 	CPlayer* m_player = nullptr;
-	
 
 private:
-
 	int m_playerNumber;	// maybe client class can have playerID inside
-
-	int hp = 70;
 
 	bool m_connected = false;
 

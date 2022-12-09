@@ -19,8 +19,9 @@ struct FPoint {
 #pragma pack(1)
 struct PlayerInfoPacket {
 	char packetType;
-	int playerNumber;
+	int playerNumber = -1;
 	XMFLOAT3 movement;
+	XMFLOAT3 rotation;
 	XMFLOAT3X3 rotationMatrix;
 };
 #pragma pack()

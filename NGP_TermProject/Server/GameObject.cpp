@@ -44,12 +44,10 @@ void GameObject::SetActive(bool active)
 	m_bActive = active;
 }
 
-bool GameObject::GetActive()
+bool GameObject::IsActive()
 {
 	return m_bActive;
 }
-
-
 
 CPlayer::CPlayer()
 {
@@ -108,24 +106,25 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
 	}
 
-	//float sensitivity = 0.1f;
-	//float degreeX = x * sensitivity;
-	//float radianX = degreeX * (180.0f / DirectX::XM_PI);
-	//float degreeY = y * sensitivity;
-	//float radianY = degreeY * (180.0f / DirectX::XM_PI);
+	//if (y != 0.0f)
+	//{
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
+	//	m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+	//	m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+	//}
+	//if (x != 0.0f)
+	//{
+	//	XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
+	//	m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
+	//	m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
+	//}
 
-	if (y != 0.0f)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
-		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-		m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
-	}
-	if (x != 0.0f)
-	{
-		XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
-		m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-		m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
-	}
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+	m_xmf3Right.x = m_xmf4x4World._11, m_xmf3Right.y = m_xmf4x4World._12, m_xmf3Right.z = m_xmf4x4World._13;
+	m_xmf3Up.x = m_xmf4x4World._21, m_xmf3Up.y = m_xmf4x4World._22, m_xmf3Up.z = m_xmf4x4World._23;
+	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
 
 	//m_xmf3Look = Vector3::Normalize(m_xmf3Look);
 	//m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
@@ -147,6 +146,9 @@ void CPlayer::LaunchMissile()
 			activatedMissiles |= (0x01 << i);
 			m_pMissiles[i]->m_bActive = true;
 			m_pMissiles[i]->SetPosition(m_fxPos, m_fyPos, m_fzPos);
+			m_pMissiles[i]->m_fPitch = m_fPitch;
+			m_pMissiles[i]->m_fYaw = m_fYaw;
+			m_pMissiles[i]->m_fRoll = m_fRoll;
 			m_pMissiles[i]->m_xmf3Look = m_xmf3Look;
 			break;
 		}
@@ -157,7 +159,7 @@ void CPlayer::UpdateMissiles()
 {
 	for (auto& missile : m_pMissiles)
 	{
-		if (missile->GetActive())
+		if (missile->IsActive())
 		{
 			missile->Move();
 		}

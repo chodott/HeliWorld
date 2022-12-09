@@ -526,7 +526,7 @@ void CGameFramework::AnimateObjects()
 			{
 				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);	//player update
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
-				cout << client->playerStatus->playerHP << endl;
+				cout << client->playerStatus[i].playerHP << endl;
 			/*	for (int i = 1; i < (client->playerStatus->playerHP)/10; ++i)
 				{
 					if (i <= 10)

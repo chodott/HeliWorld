@@ -140,7 +140,7 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 		case 'D': sendKey &= (~option3);	break;
 		case 'Q': sendKey &= (~option4);	break;
 		case 'E': sendKey &= (~option5);	break;
-		case ' ': sendKey &= (~option6);		break;
+		case ' ': sendKey &= (~option6);	break;
 		}
 	}
 }
