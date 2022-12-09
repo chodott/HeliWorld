@@ -7,23 +7,17 @@ int PacketSizeHelper(char packetType)
 	switch (packetType)
 	{
 	case PACKET::PlayerInfo:
-	{
 		packetSize = sizeof(PlayerInfoPacket);
 		break;
-	}
 	case PACKET::PlayerStatus:
-	{
 		packetSize = sizeof(PlayerStatusPacket);
 		break;
-	}
 	case PACKET::ItemInfo:
 		packetSize = sizeof(ItemInfoPacket);
 		break;
 	case PACKET::MissileInfo:
-	{
 		packetSize = sizeof(MissileInfoPacket);
 		break;
-	}
 	default:
 		packetSize = -1;
 		break;
@@ -50,29 +44,17 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		break;
 	}
 	case PACKET::ItemInfo:
-
+	{
 		ItemInfoPacket itPacket;
 		memcpy(&itPacket, fillTarget, sizeof(ItemInfoPacket));
-		for (int i = 0; i < 10; i++)
-		{
-			client->itemPacket[itPacket.itemNum] = itPacket;
-		}
+		client->itemPacket[itPacket.itemNum] = itPacket;
 		break;
+	}
 	case PACKET::MissileInfo:
 	{
 		MissileInfoPacket miPacket;
 		memcpy(&miPacket, fillTarget, sizeof(MissileInfoPacket));
 		client->missilePacket[miPacket.playerNumber * 8 + miPacket.missileNumber] = miPacket;
-
-		//for (int i = 0; i < 32; ++i)
-		//{
-		//	if (!client->missilePacket[i].active)
-		//	{
-		//		client->missilePacket[i] = miPacket;
-		//		break;
-		//	}
-		//	// some where need a garbage collector which clean up missile deactivated
-		//}
 		break;
 	}
 	default:
@@ -174,7 +156,6 @@ void Client::SendtoServer()
 		return;
 	}
 	sendKey &= (~option6);
-	//buf[0] = (char)&ptCursorPos;
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)
