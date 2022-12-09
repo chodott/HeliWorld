@@ -3,8 +3,11 @@
 
 #include "Socket.h"
 #include "SCPacket.h"
-#include <array>
 #include"GameObject.h"
+
+#include <array>
+#include <chrono>
+#include <thread>
 
 
 #define SERVERPORT		9000
@@ -16,6 +19,28 @@ DWORD WINAPI AcceptClient(LPVOID arg);
 class Client;
 class CPlayer;
 class CItemObject;
+
+typedef std::chrono::steady_clock sclock;
+class Timer {
+public:
+	virtual ~Timer() { }
+	inline void start() { start_time = sclock::now(); }
+	inline void stop() { end_time = sclock::now(); }
+
+	inline double elapsed_milli() const
+	{
+		return std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+	}
+
+	inline double elapsed_sec() const
+	{
+		return elapsed_milli() / 1000.0;
+	}
+
+	sclock::time_point start_time;
+	sclock::time_point end_time;
+};
+
 class Server {
 public:
 	Server();
@@ -28,10 +53,11 @@ public:
 	// 클라 충돌 및 움직임 송수신
 	void Update();
 	void CheckCollision();
+	void SpawnItem();
 
 
 	SOCKET* GetSocket() { return &listenSock; }
-
+	Timer timerHandle;
 
 	std::array<Client*, 4> clients;
 	XMFLOAT3 initialPos[4]{
