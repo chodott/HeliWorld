@@ -25,6 +25,7 @@ public:
 	int GetID()	const { return m_ID; }
 
 	virtual void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
+	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
 private:

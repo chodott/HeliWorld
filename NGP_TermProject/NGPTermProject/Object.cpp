@@ -443,6 +443,13 @@ void CGameObject::SetMesh(CMesh* pMesh)
 	if (m_pMesh) m_pMesh->AddRef();
 }
 
+void CGameObject::RotatePYR(XMFLOAT3& xmf3RotationAxis)
+{
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+}
+
 void CGameObject::SetMesh(int nIndex, CMesh* pMesh)
 {
 	if (m_ppMeshes)
@@ -1055,7 +1062,7 @@ void CGameObject::DeleteMesh()
 // 
 CSkyBox::CSkyBox(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature) : CGameObject(1)
 {
-	CSkyBoxMesh* pSkyBoxMesh = new CSkyBoxMesh(pd3dDevice, pd3dCommandList, 20.0f, 20.0f, 20.0f);
+	CSkyBoxMesh* pSkyBoxMesh = new CSkyBoxMesh(pd3dDevice, pd3dCommandList, 5000.0f, 5000.0f, 5000.0f);
 	SetMesh(pSkyBoxMesh);
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
@@ -1085,8 +1092,8 @@ CSkyBox::~CSkyBox()
 void CSkyBox::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	XMFLOAT3 xmf3CameraPos = pCamera->GetPosition();
-	SetPosition(xmf3CameraPos.x, xmf3CameraPos.y, xmf3CameraPos.z);
-
+//	SetPosition(xmf3CameraPos.x, xmf3CameraPos.y, xmf3CameraPos.z);
+	SetPosition(0, 0, 0);
 	CGameObject::Render(pd3dCommandList, pCamera);
 }
 

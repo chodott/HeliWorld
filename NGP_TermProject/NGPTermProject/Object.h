@@ -237,7 +237,7 @@ public:
 	}
 	XMFLOAT3 GetMovement() { return m_movement; }
 	XMFLOAT3 GetRotation() { return m_rotation; }
-
+	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	
 
 
