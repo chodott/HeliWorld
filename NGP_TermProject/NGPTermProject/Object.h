@@ -202,7 +202,6 @@ public:
 
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket) {};
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInfoPacket* ItemPacket) {};
-	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerStatusPacket* PlayerStatus) {};
 
 public:
 
@@ -237,7 +236,7 @@ public:
 	}
 	XMFLOAT3 GetMovement() { return m_movement; }
 	XMFLOAT3 GetRotation() { return m_rotation; }
-	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+
 	
 
 
@@ -479,8 +478,6 @@ public:
 class CHPObject : public CGameObject
 {
 public:
-
-	void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerStatusPacket* PlayerStatus);
 	CHPObject();
 	virtual ~CHPObject();
 	virtual void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera);

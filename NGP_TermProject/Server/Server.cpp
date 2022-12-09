@@ -11,11 +11,11 @@ Server::Server()
 	for (int i = 0; i < 4; ++i)
 	{
 		clients[i] = new Client;
+
 	}
 	for (int i = 0; i < 10; i++)
 	{
-		m_ItemObject[i] = new CItemObject();
-		m_ItemObject[i]->SetPosition(100, 100, 100 + 10 * i);
+		m_ItemObject[i].SetPosition(100,100,100+10*i);
 	}
 }
 
@@ -53,77 +53,6 @@ void Server::OpenListenSocket()
 	std::cout << "Listen socket opened\n";
 }
 
-void Server::CheckCollision()
-{
-	for (int i = 0; i < 4; ++i)
-	{
-		if (!clients[i]->IsConnected())
-			continue;
-
-		CPlayer* iPlayer = clients[i]->m_player;
-		if (!iPlayer->IsActive())
-			continue;
-
-		//Collision Bottom
-		//if (iPlayer->GetCurPos().y < 250.f)
-		//	iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
-
-
-		for (int j = 0; j < 4; ++j)
-		{
-			if (i != j)			//Same Player
-			{
-				if (clients[j]->IsConnected())
-				{
-					CPlayer* jPlayer = clients[j]->m_player;
-					if (!jPlayer->IsActive())
-						continue;
-
-					// Check Player to Player
-					if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
-					{
-						iPlayer->m_nHp -= 10;
-						iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
-
-						jPlayer->m_nHp -= 10;
-						jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
-					}
-
-					for (auto& missile : jPlayer->m_pMissiles)
-					{
-						if (missile->IsActive())
-						{
-							// Check Players and Missiles
-							if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
-							{
-								iPlayer->m_nHp -= missile->damage;
-								missile->ShouldDeactive();
-								//missile->SetActive(false);
-								if (iPlayer->m_nHp <= 0)
-								{
-									iPlayer->ShouldDeactive();
-									//iPlayer->SetActive(false);
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-		for (int j = 0; j < 10; j++)
-		{
-			if (!m_ItemObject[j]->IsActive())
-				return;
-			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
-			{
-				iPlayer->m_nHp += 10;
-				m_ItemObject[j]->ShouldDeactive();
-				//m_ItemObject[j]->SetActive(false);
-			}
-		}
-	}
-}
-
 void Server::SendAllClient()
 {
 	for (int i = 0; i < 4; ++i)		// client number
@@ -141,12 +70,13 @@ void Server::SendAllClient()
 			XMFLOAT3X3 rotationMatrix{ p->m_xmf3Right.x,p->m_xmf3Right.y,p->m_xmf3Right.z,
 						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z,
 						   p->m_xmf3Look.x, p->m_xmf3Look.y, p->m_xmf3Look.z };
+			// to Update function, into infopackets
+
 
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
 			scInfo.movement = position;
-			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
 			scInfo.rotationMatrix = rotationMatrix;
 
 			// PlayerStatus
@@ -155,18 +85,17 @@ void Server::SendAllClient()
 			scStatus.activatedMissiles = p->activatedMissiles;
 			scStatus.playerHP = p->m_nHp;
 
-
+			// sending playerinfo packet
 			for (const auto& client : clients)
 			{
 				if (client->IsConnected())
 				{
 					send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
 					send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
-
 					for (int i = 0; i < 8; ++i)
 					{
 						CMissileObject* missile = p->m_pMissiles[i];
-						if (missile->IsActive())
+						if (missile->GetActive())
 						{
 							MissileInfoPacket scMissile;
 							scMissile.packetType = SC_MissileInfo;
@@ -175,39 +104,15 @@ void Server::SendAllClient()
 							if (missile->shouldDeactivated)
 							{
 								trashCan.push(missile);
-								scMissile.active = true;
+								scMissile.active = false;
 							}
 							else
 							{
 								scMissile.active = true;
 							}
-
 							scMissile.movement = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-							scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
+							scMissile.rotation = missile->m_xmf3Look;
 							send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
-						}
-					}
-
-					//sending ItemInfo Packet
-					for (int i = 0; i < 10; ++i)
-					{
-						CItemObject* item = m_ItemObject[i];
-						if (item->IsActive())
-						{
-							ItemInfoPacket scItem;
-							scItem.packetType = SC_ItemInfo;
-							if (item->shouldDeactivated)
-							{
-								trashCan.push(item);
-								scItem.active = true;
-							}
-							else
-							{
-								scItem.active = true;
-							}
-							scItem.itemNum = i;
-							scItem.position = item->GetCurPos();
-							send(client->sock, (char*)&scItem, sizeof(ItemInfoPacket), 0);
 						}
 					}
 				}
@@ -219,36 +124,83 @@ void Server::SendAllClient()
 void Server::Update()
 {
 	int n = 0;
-	srand(time(NULL));
 	for (int i = 0; i < 4; ++i)
 	{
 		clients[i]->m_player->Update(0.5f, true);
 	}
+
 	CheckCollision();
 	SendAllClient();
-
 
 	while (!trashCan.empty())
 	{
 		trashCan.front()->Deactivate();
 		trashCan.pop();
 	}
-
-
-	if (healItemTimer.TimePassed() > 10.f)
-		SpawnItem();
 }
 
-void Server::SpawnItem()
+void Server::CheckCollision()
 {
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
-		if (!m_ItemObject[i]->IsActive())
+		if (!clients[i]->IsConnected())
+			continue;
+
+		CPlayer* iPlayer = clients[i]->m_player;
+		if (!iPlayer->GetActive())
+			continue;
+
+
+		for (int j = 0; j < 4; ++j)
 		{
-			m_ItemObject[i]->SetActive(true);
-			m_ItemObject[i]->SetPosition(rand() % 500, rand() % 500, rand() % 500);
-			healItemTimer.Reset();
-			break;
+			if (i == j)
+				continue;		//Same Player
+			if (!clients[j]->IsConnected())
+				continue;
+
+			CPlayer* jPlayer = clients[j]->m_player;
+
+			//Collision Players
+			if (!jPlayer->GetActive())
+				continue;
+			
+			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
+			{
+				// function will be called
+				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
+				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
+				iPlayer->m_nHp -= 10;
+				jPlayer->m_nHp -= 10;
+			}
+
+			for (auto& missile : jPlayer->m_pMissiles)
+			{
+				if (!missile->GetActive())
+					continue;
+
+				//Collision between Player and Missiles
+				if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
+				{
+					iPlayer->m_nHp -= missile->damage;
+					missile->ShouldDeactive();
+					//missile->SetActive(false);
+					if (iPlayer->m_nHp <= 0)
+					{
+						iPlayer->ShouldDeactive();
+						//iPlayer->SetActive(false);
+					}
+				}
+			}
+		}
+
+		for (int j = 0; j < 10; j++) 
+		{
+			if(iPlayer->GetBoundingBox().Intersects(m_ItemObject[j].GetBoundingBox()))
+			{
+				iPlayer->m_nHp += 10;
+				m_ItemObject[j].ShouldDeactive();
+				//m_ItemObject[j].SetActive(false);
+			}
 		}
 	}
 }

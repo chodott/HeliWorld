@@ -44,12 +44,18 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		break;
 	}
 	case PACKET::ItemInfo:
-	{
+
 		ItemInfoPacket itPacket;
 		memcpy(&itPacket, fillTarget, sizeof(ItemInfoPacket));
-		client->itemPacket[itPacket.itemNum] = itPacket;
+		for (int i = 0; i < 10; i++)
+		{
+			if (!client->itemPacket[i].active)
+			{
+				client->itemPacket[i] = itPacket;
+				break;
+			}
+		}
 		break;
-	}
 	case PACKET::MissileInfo:
 	{
 		MissileInfoPacket miPacket;
@@ -140,7 +146,7 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 		case 'D': sendKey &= (~option3);	break;
 		case 'Q': sendKey &= (~option4);	break;
 		case 'E': sendKey &= (~option5);	break;
-		case ' ': sendKey &= (~option6);	break;
+		case ' ': sendKey &= (~option6);		break;
 		}
 	}
 }
@@ -156,6 +162,7 @@ void Client::SendtoServer()
 		return;
 	}
 	sendKey &= (~option6);
+	//buf[0] = (char)&ptCursorPos;
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)

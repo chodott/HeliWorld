@@ -158,17 +158,6 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 }
 
-void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
-{
-	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
-	m_xmf4x4World = Matrix4x4::Identity();
-	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
-	m_xmf3Right.x = m_xmf4x4World._11, m_xmf3Right.y = m_xmf4x4World._12, m_xmf3Right.z = m_xmf4x4World._13;
-	//cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
-	m_xmf3Up.x = m_xmf4x4World._21, m_xmf3Up.y = m_xmf4x4World._22, m_xmf3Up.z = m_xmf4x4World._23;
-	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
-}
-
 void CPlayer::Update(float fTimeElapsed)
 {
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, m_xmf3Gravity);
@@ -202,9 +191,8 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
-	RotatePYR(PlayerPacket->rotation);
 	SetPosition(PlayerPacket->movement);
-	//SetRotation(PlayerPacket->rotationMatrix);
+	SetRotation(PlayerPacket->rotationMatrix);
 	//Move(PlayerPacket->movement, NULL);
 }
 

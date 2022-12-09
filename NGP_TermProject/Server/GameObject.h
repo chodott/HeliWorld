@@ -45,12 +45,15 @@ public:
 	float						m_fOldYaw = 0.f;
 	float						m_fOldRoll = 0.f;
 
-	bool						m_bActive{ false };//active
+	bool						m_bActive{ false };
 	bool						shouldDeactivated = false;
 	void ShouldDeactive() { shouldDeactivated = true; }
 	void Deactivate() { m_bActive = false; shouldDeactivated = false; }
 
-	float						m_fSpeed;//speed
+
+
+
+	float						m_fSpeed;
 	int							m_nObjects{};
 
 	int Player_id;
@@ -63,7 +66,7 @@ public:
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
 	void SetActive(bool active);
-	bool IsActive();
+	bool GetActive();
 	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation)
 	{
 		m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation);
@@ -87,7 +90,8 @@ public:
 class CItemObject : public GameObject
 {
 public:
-	float spawnTime;
+	CItemObject() {};
+
 };
 
 class CPlayer : public GameObject

@@ -61,12 +61,14 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 		}
 	}
 }
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
+void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket)
 {
-	SetActive(MissilePacket->active);
-	
-	RotatePYR(MissilePacket->rotation);
-	SetPosition(MissilePacket->movement);
+	SetActive(PlayerPacket->active);
+	SetPosition(PlayerPacket->movement);
+
+
+
+	//SetRotation(rotationMatrix);
 	
 
 
@@ -83,12 +85,5 @@ void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 void CMissleObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)
 {
 	XMFLOAT4X4 mtxRotate = Matrix4x4::RotationAxis(xmf3RotationAxis, fAngle);
-	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
-}
-
-void CMissleObject::RotatePYR(XMFLOAT3& xmf3RotationAxis)
-{
-	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
-	m_xmf4x4World = Matrix4x4::Identity();
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
 }

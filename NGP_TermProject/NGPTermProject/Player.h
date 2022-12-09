@@ -72,7 +72,6 @@ public:
 	virtual void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
 	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	virtual void Rotate(float x, float y, float z);
-	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 
 	void Update(float fTimeElapsed);
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
