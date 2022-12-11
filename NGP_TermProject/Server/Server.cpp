@@ -293,7 +293,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		{
 			// maybe a event need that notify server accepted four player already or not
 			std::cout << "Four players already in the server\n";
-			ResetEvent(g_server->fourPlayers);
 			WaitForSingleObject(g_server->fourPlayers, INFINITE);
 		}
 
@@ -318,6 +317,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 				break;
 			}
+			ResetEvent(g_server->fourPlayers);
 			continue;
 		}
 		char addr[INET_ADDRSTRLEN];

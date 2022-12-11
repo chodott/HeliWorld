@@ -108,8 +108,8 @@ void Client::ConnectServer()
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 
 
-	DWORD optval = 1;
-	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
+	//DWORD optval = 1;
+	//setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
