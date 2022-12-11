@@ -60,7 +60,6 @@ void Server::CheckCollision()
 		if (!clients[i]->IsConnected())
 			continue;
 		
-		//cout << clients[i]->GetPlayerNumber() << " " << boolalpha <<clients[i]->m_player->m_bActive <<endl;
 
 		CPlayer* iPlayer = clients[i]->m_player;
 		if (!iPlayer->IsActive())
@@ -100,11 +99,9 @@ void Server::CheckCollision()
 							{
 								iPlayer->m_nHp -= missile->damage;
 								missile->ShouldDeactive();
-								//missile->SetActive(false);
 								if (iPlayer->m_nHp <= 0)
 								{
 									iPlayer->ShouldDeactive();
-									//iPlayer->SetActive(false);
 								}
 							}
 						}
@@ -120,7 +117,6 @@ void Server::CheckCollision()
 			{
 				iPlayer->m_nHp += 10;
 				m_ItemObject[j]->ShouldDeactive();
-				//m_ItemObject[j]->SetActive(false);
 			}
 		}
 	}
