@@ -4,6 +4,7 @@
 #include"Shader.h"
 #include"Missileobject.h"
 #include"Player.h"
+#include"CMeshIlluminated.h"
 
 
 class CMissileObjectsShader : public CObjectsShader

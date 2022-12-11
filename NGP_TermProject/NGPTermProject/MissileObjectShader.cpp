@@ -73,14 +73,14 @@ D3D12_BLEND_DESC CMissileObjectsShader::CreateBlendState()
 void CMissileObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
 	m_pMissileTexture = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
-	m_pMissileTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/stones.dds", RESOURCE_TEXTURE2D, 0);
+	m_pMissileTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/Missile2.dds", RESOURCE_TEXTURE2D, 0);
 
 	//->메테리얼 생성 텍스쳐와 쉐이더를 넣어야되는데 쉐이더이므로 안 넣어도 됨
 	m_pMissileMaterial = new CMaterial();
 	m_pMissileMaterial->SetTexture(m_pMissileTexture);
 
-	m_pMissileTexturedMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.5f, 5.f);
-
+	m_pMissileTexturedMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 2.f, 2.f, 10.f);
+	CMesh* pMeshIlluminated = new CSphereMeshIlluminated(pd3dDevice, pd3dCommandList, 3.0f, 20, 20);
 	m_nObjects = 32;//0~32 
 	m_ppObjects = new CGameObject * [m_nObjects];
 	UINT ncbElementBytes = ((sizeof(CB_GAMEOBJECT_INFO) + 255) & ~255);
@@ -94,9 +94,13 @@ void CMissileObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12Graphic
 	int nObjects = 0;
 	for (int i = 0; i < m_nObjects; i++) {
 		pMissleObject = new CMissleObject();
-		pMissleObject->SetMesh(0, m_pMissileTexturedMesh);
+
+		pMissleObject->SetMesh(0, pMeshIlluminated);
 		pMissleObject->SetMaterial(0, m_pMissileMaterial);
+		pMissleObject->m_xmf4x4World = Matrix4x4::Identity();
 		pMissleObject->SetPosition(0.f, 0.f, i);
+		//pMissleObject->Rotate(0, 270, 0);
+		//pMissleObject->SetRotation();
 		pMissleObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
 		m_ppObjects[nObjects++] = pMissleObject;
 	}

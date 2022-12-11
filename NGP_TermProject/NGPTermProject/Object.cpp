@@ -448,6 +448,7 @@ void CGameObject::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
 	m_xmf4x4World = Matrix4x4::Identity();
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+	m_xmf4x4Transform = m_xmf4x4World;
 }
 
 void CGameObject::SetMesh(int nIndex, CMesh* pMesh)

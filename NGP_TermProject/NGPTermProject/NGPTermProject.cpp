@@ -23,9 +23,48 @@ ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
+void fetchCmdArgs(int* argc, char*** argv) {
+	// init results
+	*argc = 0;
+
+	// prepare extraction
+	char* winCmd = (char*)GetCommandLine();
+	int index = 0;
+	bool newOption = true;
+	// use static so converted command line can be
+	// accessed from outside this function
+	static vector<char*> argVector;
+
+	// walk over the command line and convert it to argv
+	while (winCmd[index] != 0) {
+		if (winCmd[index] == ' ') {
+			// terminate option string
+			winCmd[index] = 0;
+			newOption = true;
+
+		}
+		else {
+			if (newOption) {
+				argVector.push_back(&winCmd[index]);
+				(*argc)++;
+			}
+			newOption = false;
+		}
+		index++;
+	}
+
+	// elements inside the vector are guaranteed to be continous
+	*argv = &argVector[0];
+}
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
+
+	/*int argc = 0;
+	char** argv;
+	fetchCmdArgs(&argc, &argv);*/
+
+	//cout << **argv << endl;
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 

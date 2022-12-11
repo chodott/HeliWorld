@@ -102,8 +102,10 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 
 	pMissileobjectShader = new CMissileObjectsShader();
 	pMissileobjectShader->CreateShader(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+	pMissileobjectShader->SetPlayer(m_pPlayer);
 	pMissileobjectShader->BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
 	pMissileobjectShader->SetActive(false);
+	
 	m_ppShaders[2] = pMissileobjectShader;
 
 
@@ -519,7 +521,7 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		case VK_CONTROL:
 			if (pMissileobjectShader && m_pPlayer)
 			{
-				std::cout << typeid(VK_CONTROL).name();
+				
 				//m_pBulletShader->SetParticleShader(m_pFireParticleShader);
 				pMissileobjectShader->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam, &fTimer);
 			}

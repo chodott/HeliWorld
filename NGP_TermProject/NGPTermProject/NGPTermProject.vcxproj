@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="CMeshIlluminated.h" />
     <ClInclude Include="CMultiSpriteObject.h" />
     <ClInclude Include="CSPacket.h" />
     <ClInclude Include="d3dx12.h" />
@@ -176,6 +177,7 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Client.cpp" />
+    <ClCompile Include="CMeshIlluminated.cpp" />
     <ClCompile Include="CMultiSpriteObject.cpp" />
     <ClCompile Include="DDSTextureLoader12.cpp" />
     <ClCompile Include="error.cpp" />

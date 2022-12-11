@@ -12,6 +12,15 @@ CItemObject::~CItemObject()
 {
 }
 
+void CItemObject::RotatePYR(XMFLOAT3& xmf3RotationAxis)
+{
+	
+		XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
+		m_xmf4x4World = Matrix4x4::Identity();
+		m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+	
+}
+
 void CItemObject::AnimateObject(float fElapsedTime)
 {
 	if (GetActive()) {
@@ -64,8 +73,6 @@ void CItemObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInf
 
 	SetActive(ItemPacket->active);
 	SetPosition(ItemPacket->Position);
-
-
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
