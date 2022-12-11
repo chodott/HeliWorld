@@ -17,7 +17,6 @@ public:
 	XMFLOAT4X4 m_xmf4x4World;
 	BoundingOrientedBox m_xmOOBB;
 	XMFLOAT3 m_xmf3MovingDirection;
-	XMFLOAT3 m_xmf3RotationAxis;
 
 	XMFLOAT3					m_xmf3Position;
 	XMFLOAT3					m_xmf3Right;
@@ -41,20 +40,11 @@ public:
 	float						m_fyPos = 0.f;
 	float						m_fzPos = 0.f;
 
-	float						m_fOldPitch = 0.f;
-	float						m_fOldYaw = 0.f;
-	float						m_fOldRoll = 0.f;
 
-	bool						m_bActive{ false };//active
+	bool						m_bActive = false;//active
 	bool						shouldDeactivated = false;
 	void ShouldDeactive() { shouldDeactivated = true; }
 	void Deactivate() { m_bActive = false; shouldDeactivated = false; }
-
-	float						m_fSpeed;//speed
-	int							m_nObjects{};
-
-	int Player_id;
-	int cnt{};
 
 	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
 
@@ -62,12 +52,13 @@ public:
 	void Move(XMFLOAT3& vDirection, float fSpeed);
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
-	void SetActive(bool active);
-	bool IsActive();
-	void SetOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation)
-	{
-		m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation);
-	}
+	void SetActive(bool active) { m_bActive = active; }
+	bool IsActive() { return m_bActive; }
+
+
+	void MoveOOBB(XMFLOAT3& position) { m_xmOOBB.Center = position; }
+	void InitOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
+
 	BoundingOrientedBox GetBoundingBox() { return m_xmOOBB; }
 
 };
@@ -76,24 +67,25 @@ public:
 class CMissileObject : public GameObject
 {
 public:
-	int m_cPlayerNumber;
-	int damage = 5;
-	float m_fMovingSpeed;
+	int m_playerNumber = 0;
+	int damage = 10;
+	float m_fMovingSpeed = 0.1f;
 
 	void Move();
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
+	void Reset();
 };
 
 class CItemObject : public GameObject
 {
 public:
-	float spawnTime;
 };
 
 class CPlayer : public GameObject
 {
 public:
 	CPlayer();
+	~CPlayer();
 	float m_fFriction;
 	int m_nHp = 100;
 	CMissileObject* m_pMissiles[8];
@@ -102,14 +94,13 @@ public:
 	void Rotate(float x, float y, float z);
 	void LaunchMissile();
 	void UpdateMissiles();
-	void Update(float Distance, bool updateVelocity);
+	void Update(float Distance, bool updateVelocity, int connectedClients);
+	void Reset();
 
-	float m_deltaX{};
-	float m_deltaY{};
+	float m_deltaX = 0.f;
+	float m_deltaY = 0.f;
 
-	unsigned char playerKey{0};
-	char playerMouse;
-	char activatedMissiles{0};
+	unsigned char playerKey = 0;
 
 private:
 	unsigned char option0 = 0x01;	// 0000 0001 
@@ -120,5 +111,6 @@ private:
 	unsigned char option5 = 0x20;	// 0010 0000
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
+
 };
 

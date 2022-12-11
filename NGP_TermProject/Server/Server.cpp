@@ -17,11 +17,11 @@ Server::Server()
 		m_ItemObject[i] = new CItemObject();
 		m_ItemObject[i]->SetPosition(100, 100, 100 + 10 * i);
 	}
-}
 
-Client::Client()
-{
-	m_player = new CPlayer();
+	fourPlayers = CreateEvent(nullptr, true, false, nullptr);
+	updateDone = CreateEvent(nullptr, true, false, nullptr);
+
+
 }
 
 Server::~Server()
@@ -30,8 +30,25 @@ Server::~Server()
 	for (int i = 0; i < 4; ++i)
 	{
 		if (clients[i] != nullptr)
-			delete(clients[i]);
+			delete clients[i];
 	}
+	for (int i = 0; i < 10; i++)
+	{
+		if (m_ItemObject[i] != nullptr)
+		{
+			delete m_ItemObject[i];
+		}
+	}
+}
+
+Client::Client()
+{
+	m_player = new CPlayer();
+}
+
+Client::~Client()
+{
+	delete m_player;
 }
 
 void Server::OpenListenSocket()
@@ -59,7 +76,7 @@ void Server::CheckCollision()
 	{
 		if (!clients[i]->IsConnected())
 			continue;
-		
+
 
 		CPlayer* iPlayer = clients[i]->m_player;
 		if (!iPlayer->IsActive())
@@ -72,47 +89,51 @@ void Server::CheckCollision()
 
 		for (int j = 0; j < 4; ++j)
 		{
-			if (i != j)			//Same Player
+			//Same Player
+			if (i == j)
+				continue;
+			if (!clients[j]->IsConnected())
+				continue;
+
+
+			CPlayer* jPlayer = clients[j]->m_player;
+			if (!jPlayer->IsActive())
+				continue;
+
+			// Check Player to Player
+			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
 			{
-				if (clients[j]->IsConnected())
+				iPlayer->m_nHp -= 10;
+				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
+
+				jPlayer->m_nHp -= 10;
+				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
+			}
+
+			for (auto& missile : jPlayer->m_pMissiles)
+			{
+				if (!missile->IsActive())
+					continue;
+
+				// Check Players and Missiles
+				if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
 				{
-					CPlayer* jPlayer = clients[j]->m_player;
-					if (!jPlayer->IsActive())
-						continue;
-
-					// Check Player to Player
-					if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
+					iPlayer->m_nHp -= missile->damage;
+					missile->ShouldDeactive();
+					if (iPlayer->m_nHp <= 0)
 					{
-						iPlayer->m_nHp -= 10;
-						iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
-
-						jPlayer->m_nHp -= 10;
-						jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
-					}
-
-					for (auto& missile : jPlayer->m_pMissiles)
-					{
-						if (missile->IsActive())
-						{
-							// Check Players and Missiles
-							if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
-							{
-								iPlayer->m_nHp -= missile->damage;
-								missile->ShouldDeactive();
-								if (iPlayer->m_nHp <= 0)
-								{
-									iPlayer->ShouldDeactive();
-								}
-							}
-						}
+						iPlayer->Reset();
+						iPlayer->ShouldDeactive();
 					}
 				}
 			}
 		}
+
 		for (int j = 0; j < 10; j++)
 		{
 			if (!m_ItemObject[j]->IsActive())
-				return;
+				continue;
+
 			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
 			{
 				iPlayer->m_nHp += 10;
@@ -128,31 +149,30 @@ void Server::SendAllClient()
 	{
 		PlayerInfoPacket scInfo;
 		PlayerStatusPacket scStatus;
+
+
 		if (clients[i]->IsConnected())
 		{
-			Client* c = clients.at(i);
+			Client* c = clients[i];
 			CPlayer* p = c->m_player;
 			int playerNumber = c->GetPlayerNumber();
 
 			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
-			XMFLOAT4X4 worldMatrix = p->m_xmf4x4World;
-			/*XMFLOAT3X3 rotationMatrix{ p->m_xmf3Right.x,p->m_xmf3Right.y,p->m_xmf3Right.z,
-						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z,
-						   p->m_xmf3Look.x, p->m_xmf3Look.y, p->m_xmf3Look.z };*/
 
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
 			scInfo.movement = position;
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
-			//scInfo.rotationMatrix = rotationMatrix;
+			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
+				c->Disconnect();			// disconnect
 
 			// PlayerStatus
 			scStatus.packetType = SC_PlayerStatus;
 			scStatus.playerNumber = playerNumber;
-			scStatus.activatedMissiles = p->activatedMissiles;
 			scStatus.playerHP = p->m_nHp;
 
+			
 
 			for (const auto& client : clients)
 			{
@@ -216,12 +236,16 @@ void Server::SendAllClient()
 
 void Server::Update()
 {
-	int n = 0;
-	srand(time(NULL));
+	ResetEvent(updateDone);
+
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(0.5f, true);
+		clients[i]->m_player->Update(0.5f, true, g_server->connectedClients);
 	}
+
+	SetEvent(updateDone);
+
+
 	CheckCollision();
 	SendAllClient();
 
@@ -232,9 +256,11 @@ void Server::Update()
 		trashCan.pop();
 	}
 
-
-	if (healItemTimer.TimePassed() > 10.f)
-		SpawnItem();
+	if (healItemTimer.TimePassed() > itemSpawnTime)
+	{
+		if (connectedClients >= 2)
+			SpawnItem();
+	}
 }
 
 void Server::SpawnItem()
@@ -261,8 +287,17 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	while (true)
 	{
 		addrlen = sizeof(clientaddr);
-		std::cout << "Waiting for accept...\n";
-		// maybe a event need that notify server accepted four player already or not
+		if (g_server->connectedClients < 4)
+			std::cout << "Waiting for accept...\n";
+		else
+		{
+			// maybe a event need that notify server accepted four player already or not
+			std::cout << "Four players already in the server\n";
+			ResetEvent(g_server->fourPlayers);
+			WaitForSingleObject(g_server->fourPlayers, INFINITE);
+		}
+
+
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
 		if (clientSock == SOCKET_ERROR)
 		{
@@ -279,10 +314,11 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 				client->SetPlayerNumber(i);
 
 				std::cout << "Client accepted in " << client->GetPlayerNumber() << std::endl;
-				HANDLE receiver = CreateThread(NULL, 0, ReceiveAllClient, client, 0, NULL);
+				HANDLE receiver = CreateThread(NULL, 0, ReceiveFromClient, client, 0, NULL);
 
 				break;
 			}
+			continue;
 		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
@@ -292,7 +328,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	return 0;
 }
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg)
+DWORD WINAPI ReceiveFromClient(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 
@@ -303,27 +339,42 @@ DWORD WINAPI ReceiveAllClient(LPVOID arg)
 	client->m_player->SetPosition(g_server->initialPos[playerNumber].x, g_server->initialPos[playerNumber].y, g_server->initialPos[playerNumber].z);
 
 	client->ToggleConnected();
+	++g_server->connectedClients;
 
 	PlayerKeyPacket keyPacket;
 
 	while (true)
 	{
-		if (client->IsConnected())
+		WaitForSingleObject(g_server->updateDone, INFINITE);
+		if (recv(client->sock, (char*)&keyPacket, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
-			if (recv(client->sock, (char*)&keyPacket, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
-			{
-				// cut the connection
-				continue;
-			}
-			CPlayer* player = client->m_player;
-			player->playerKey = keyPacket.playerKeyInput;
-
-			player->m_deltaX = keyPacket.deltaMouse.x;
-			player->m_deltaY = keyPacket.deltaMouse.y;
+			// cut the connection
+			client->Reset();
+			g_server->connectedClients--;
+			
+			SetEvent(g_server->fourPlayers);
+			break;
 		}
+		CPlayer* player = client->m_player;
+		player->playerKey = keyPacket.playerKeyInput;
+
+		player->m_deltaX = keyPacket.deltaMouse.x;
+		player->m_deltaY = keyPacket.deltaMouse.y;
 	}
 
 	return 0;
+}
+
+void Client::Reset()
+{
+	closesocket(sock);
+	sock = NULL;
+
+	shouldDisconnected = true;
+	
+
+	//m_playerNumber = -1;
+	m_player->Reset();
 }
 
 int main()
@@ -331,11 +382,16 @@ int main()
 	//Create Object Mgr
 	g_server = new Server();
 	g_server->OpenListenSocket();
-	HANDLE AcceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
+
+
+
+	srand(time(NULL));
+
+
+	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	while (true)
 	{
 		g_server->Update();
 	}
 }
-
 

@@ -3,46 +3,22 @@
 
 #include "Socket.h"
 #include "SCPacket.h"
-#include"GameObject.h"
+#include "GameObject.h"
 
 #include <array>
 #include <chrono>
-#include <thread>
+#include <queue>
 
 
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
-DWORD WINAPI ReceiveAllClient(LPVOID arg);
+DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 
 class Client;
 class CPlayer;
 class CItemObject;
-
-//class Clock
-//{
-//public:
-//	using time = std::chrono::high_resolution_clock;
-//	using second = std::chrono::duration<float>;
-//
-//	Clock() noexcept
-//		: timePassed(0), timeStamp(time::now()) {}
-//	void UpdateClock() noexcept
-//	{
-//		timePassed += GetTimeFromLastUpdate();
-//		timeStamp = time::now();
-//	}
-//
-//	float GetTimeFromLastUpdate() const noexcept
-//	{
-//		return std::chrono::duration<float>(time::now() - timeStamp).count();
-//	}
-//public:
-//	float timePassed;
-//private:
-//	time::time_point timeStamp;
-//};
 
 
 class Clock {
@@ -77,7 +53,6 @@ private:
 	time::time_point timeStamp;
 };
 
-#include <queue>
 class Server {
 public:
 	Server();
@@ -95,11 +70,16 @@ public:
 
 	SOCKET* GetSocket() { return &listenSock; }
 	Clock healItemTimer;
+	float itemSpawnTime = 10.f;
 
 	std::array<Client*, 4> clients;
 	XMFLOAT3 initialPos[4]{
 		{100,100,100},{150,100,100},{200,100,100},{250,100,100}
 	};
+
+	int connectedClients = 0;
+	HANDLE fourPlayers;
+	HANDLE updateDone;
 
 	CItemObject* m_ItemObject[10];
 	std::queue<GameObject*> trashCan;
@@ -112,20 +92,27 @@ private:
 class Client {
 public:
 	Client();
+	~Client();
 	SOCKET sock;
 
 	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
 	int GetPlayerNumber() { return m_playerNumber; }
 
-	void ToggleConnected() { m_connected = true; }
+	void ToggleConnected() { m_connected = true; shouldDisconnected = false; }
 	bool IsConnected() { return m_connected; }
+
+	bool ShouldDisconnected() { return shouldDisconnected; }
+	void Disconnect() { m_connected = false; shouldDisconnected = false; }
+
+	void Reset();
 
 	CPlayer* m_player = nullptr;
 
 private:
-	int m_playerNumber{-1};	// maybe client class can have playerID inside
+	int m_playerNumber = -1;	// maybe client class can have playerID inside
 
 	bool m_connected = false;
+	bool shouldDisconnected = false;
 
 };
 

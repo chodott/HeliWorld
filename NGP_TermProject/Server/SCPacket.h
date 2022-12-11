@@ -22,6 +22,7 @@ struct PlayerInfoPacket {
 	int playerNumber = -1;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
+	bool playerActive;
 };
 #pragma pack()
 
@@ -29,7 +30,6 @@ struct PlayerInfoPacket {
 struct PlayerStatusPacket {
 	char packetType;
 	int playerNumber;
-	unsigned char activatedMissiles;
 	int playerHP;
 };
 #pragma pack()

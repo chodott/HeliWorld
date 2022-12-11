@@ -487,6 +487,7 @@ void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerI
 {
 	//SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
 	//Move(PlayerPacket->movement);
+	SetActive(PlayerPacket->playerActive);
 	RotatePYR(PlayerPacket->rotation);
 	SetPosition(PlayerPacket->movement);
 	//SetRotation(PlayerPacket->rotationMatrix);

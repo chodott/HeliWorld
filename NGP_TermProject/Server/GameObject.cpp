@@ -3,10 +3,26 @@
 GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
-	SetOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(10, 10, 10), XMFLOAT4(0, 0, 0, 1));
+	InitOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(10, 10, 10), XMFLOAT4(0, 0, 0, 1));
 	m_xmf3Right = XMFLOAT3(0, 0, 0);
 	m_xmf3Up = XMFLOAT3(0, 0, 0);
 	m_xmf3Look = XMFLOAT3(0, 0, 0);
+}
+
+CPlayer::CPlayer()
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		m_pMissiles[i] = new CMissileObject();
+	}
+}
+
+CPlayer::~CPlayer()
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		delete m_pMissiles[i];
+	}
 }
 
 void GameObject::Move(XMFLOAT3& vDirection, float fSpeed)
@@ -20,7 +36,6 @@ void GameObject::Rotate(float Pitch, float Yaw, float Roll)
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
 
 	//UpdateTransform(NULL);
-
 }
 
 void GameObject::SetPosition(float x, float y, float z)
@@ -35,27 +50,20 @@ void GameObject::SetPosition(float x, float y, float z)
 
 	m_xmf3Position = XMFLOAT3{ x,y,z };
 
-	//m_xmOOBB.Center = { x,y,z };
-	m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
+	MoveOOBB(m_xmf3Position);
 }
 
-void GameObject::SetActive(bool active)
-{
-	m_bActive = active;
-}
+//void GameObject::SetActive(bool active)
+//{
+//	m_bActive = active;
+//}
 
-bool GameObject::IsActive()
-{
-	return m_bActive;
-}
+//bool GameObject::IsActive()
+//{
+//	return m_bActive;
+//}
 
-CPlayer::CPlayer()
-{
-	for (int i = 0; i < 8; ++i)
-	{
-		m_pMissiles[i] = new CMissileObject();
-	}
-}
+
 
 void CPlayer::Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity)
 {
@@ -140,10 +148,8 @@ void CPlayer::LaunchMissile()
 {
 	for (int i = 0; i < 8; ++i)
 	{
-		char temp = activatedMissiles;
-		if (!((temp >> i) & 0x01))
+		if(!m_pMissiles[i]->IsActive())
 		{
-			activatedMissiles |= (0x01 << i);
 			m_pMissiles[i]->m_bActive = true;
 			m_pMissiles[i]->SetPosition(m_fxPos, m_fyPos, m_fzPos);
 			m_pMissiles[i]->m_fPitch = m_fPitch;
@@ -160,13 +166,11 @@ void CPlayer::UpdateMissiles()
 	for (auto& missile : m_pMissiles)
 	{
 		if (missile->IsActive())
-		{
 			missile->Move();
-		}
 	}
 }
 
-void CPlayer::Update(float Distance, bool updateVelocity)
+void CPlayer::Update(float Distance, bool updateVelocity, int connectedClients)
 {
 	RecalculateLook();
 	RecalculateRight();
@@ -212,13 +216,14 @@ void CPlayer::Update(float Distance, bool updateVelocity)
 		}
 		Move(xmf3Shift, updateVelocity);
 
-		//m_xmOOBB.Center = GetCurPos();
-		m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
+		MoveOOBB(m_xmf3Position);
+		//m_xmOOBB = BoundingOrientedBox{ m_xmf3Position, XMFLOAT3(10,10,10), XMFLOAT4(0,0,0,1) };
 
 		//Attack
 		if (playerKey & option6)
 		{
-			LaunchMissile();
+			if (connectedClients >= 2)
+				LaunchMissile();
 			playerKey &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
@@ -230,13 +235,41 @@ void CPlayer::Update(float Distance, bool updateVelocity)
 	UpdateMissiles();
 }
 
+void CPlayer::Reset()
+{
+	m_xmf3Right = XMFLOAT3(0, 0, 0);
+	m_xmf3Up = XMFLOAT3(0, 0, 0);
+	m_xmf3Look = XMFLOAT3(0, 0, 0);
+
+	m_fPitch = 0.f;
+	m_fYaw = 0.f;
+	m_fRoll = 0.f;
+
+	m_fOldxPos = 0.f;
+	m_fOldyPos = 0.f;
+	m_fOldzPos = 0.f;
+
+	SetPosition(0, 0, 0);
+
+	m_bActive = false;
+
+	m_nHp = 100;
+	m_deltaX = 0.f;
+	m_deltaY = 0.f;
+	playerKey = 0;
+
+	for (auto& missile : m_pMissiles)
+	{
+		missile->Reset();
+	}
+}
+
 
 void CMissileObject::Move()
 {
-	m_fMovingSpeed = 0.1f;
 	if (m_fMovingSpeed != 0.0f)
 		Move(m_xmf3Look, m_fMovingSpeed);
-	SetOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));
+	InitOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));
 	//cout << m_xmf3Position.x <<" " << m_xmf3Position.y << " " << m_xmf3Position.z << endl;
 }
 
@@ -244,4 +277,27 @@ void CMissileObject::Move()
 void CMissileObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
 	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
+}
+
+void CMissileObject::Reset()
+{
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_xmf3MovingDirection = XMFLOAT3(0, 0, 0);
+	SetPosition(0, 0, 0);
+	m_xmf3Right = XMFLOAT3(0, 0, 0);
+	m_xmf3Up = XMFLOAT3(0, 0, 0);
+	m_xmf3Look = XMFLOAT3(0, 0, 0);
+
+	m_fPitch = 0.f;
+	m_fYaw = 0.f;
+	m_fRoll = 0.f;
+
+	m_fOldxPos = 0.f;
+	m_fOldyPos = 0.f;
+	m_fOldzPos = 0.f;
+
+	m_bActive = false;
+	shouldDeactivated = false;
+	m_playerNumber = -1;
+
 }
