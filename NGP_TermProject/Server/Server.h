@@ -123,7 +123,7 @@ public:
 	CPlayer* m_player = nullptr;
 
 private:
-	int m_playerNumber;	// maybe client class can have playerID inside
+	int m_playerNumber{-1};	// maybe client class can have playerID inside
 
 	bool m_connected = false;
 

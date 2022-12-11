@@ -205,7 +205,6 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	RotatePYR(PlayerPacket->rotation);
 	SetPosition(PlayerPacket->movement);
 	//SetRotation(PlayerPacket->rotationMatrix);
-	//Move(PlayerPacket->movement, NULL);
 }
 
 CCamera *CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)

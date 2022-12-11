@@ -487,8 +487,9 @@ void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerI
 {
 	//SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
 	//Move(PlayerPacket->movement);
+	RotatePYR(PlayerPacket->rotation);
 	SetPosition(PlayerPacket->movement);
-	SetRotation(PlayerPacket->rotationMatrix);
+	//SetRotation(PlayerPacket->rotationMatrix);
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }
@@ -1557,6 +1558,7 @@ void CBullet::Animate(float fElapsedTime)
 
 void CBullet::OnPrepareRender()
 {
+	return;
 }
 
 void CBullet::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)

@@ -59,6 +59,8 @@ void Server::CheckCollision()
 	{
 		if (!clients[i]->IsConnected())
 			continue;
+		
+		//cout << clients[i]->GetPlayerNumber() << " " << boolalpha <<clients[i]->m_player->m_bActive <<endl;
 
 		CPlayer* iPlayer = clients[i]->m_player;
 		if (!iPlayer->IsActive())
@@ -138,16 +140,16 @@ void Server::SendAllClient()
 
 			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
 			XMFLOAT4X4 worldMatrix = p->m_xmf4x4World;
-			XMFLOAT3X3 rotationMatrix{ p->m_xmf3Right.x,p->m_xmf3Right.y,p->m_xmf3Right.z,
+			/*XMFLOAT3X3 rotationMatrix{ p->m_xmf3Right.x,p->m_xmf3Right.y,p->m_xmf3Right.z,
 						   p->m_xmf3Up.x, p->m_xmf3Up.y, p->m_xmf3Up.z,
-						   p->m_xmf3Look.x, p->m_xmf3Look.y, p->m_xmf3Look.z };
+						   p->m_xmf3Look.x, p->m_xmf3Look.y, p->m_xmf3Look.z };*/
 
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
 			scInfo.movement = position;
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
-			scInfo.rotationMatrix = rotationMatrix;
+			//scInfo.rotationMatrix = rotationMatrix;
 
 			// PlayerStatus
 			scStatus.packetType = SC_PlayerStatus;
@@ -175,7 +177,7 @@ void Server::SendAllClient()
 							if (missile->shouldDeactivated)
 							{
 								trashCan.push(missile);
-								scMissile.active = true;
+								scMissile.active = false;
 							}
 							else
 							{
@@ -199,7 +201,7 @@ void Server::SendAllClient()
 							if (item->shouldDeactivated)
 							{
 								trashCan.push(item);
-								scItem.active = true;
+								scItem.active = false;
 							}
 							else
 							{
