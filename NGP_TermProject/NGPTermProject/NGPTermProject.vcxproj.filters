@@ -159,6 +159,9 @@
     <ClInclude Include="ItemObject.h">
       <Filter>Object\Item</Filter>
     </ClInclude>
+    <ClInclude Include="CMeshIlluminated.h">
+      <Filter>Mesh</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">
@@ -226,6 +229,9 @@
     </ClCompile>
     <ClCompile Include="ItemObject.cpp">
       <Filter>Object\Item</Filter>
+    </ClCompile>
+    <ClCompile Include="CMeshIlluminated.cpp">
+      <Filter>Mesh</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

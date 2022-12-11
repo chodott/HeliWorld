@@ -19,12 +19,14 @@ public:
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* MissilePacket);
 
 
 	void SetID(int id) { m_ID = id; }
 	int GetID()	const { return m_ID; }
 
 	virtual void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
+	void Rotate(float fPitch, float fYaw, float fRoll);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 

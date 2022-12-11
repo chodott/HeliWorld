@@ -86,7 +86,11 @@ void Client::ConnectServer()
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, SERVERIP, &serverAddr.sin_addr);
+	cout << "IP주소를 입력하세요: " ;
+	std::string IP;
+	cin >> IP;
+	//SERVERIP=IP.c_str();
+	inet_pton(AF_INET, IP.c_str(), &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVERPORT);
 
 	std::cout << "Socket initalize successful\n";

@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "Client.h"
 #include <WS2tcpip.h>
+#include<stdlib.h>
 
 class CGameFramework
 {

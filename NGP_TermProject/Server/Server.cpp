@@ -112,7 +112,7 @@ void Server::CheckCollision()
 		for (int j = 0; j < 10; j++)
 		{
 			if (!m_ItemObject[j]->IsActive())
-				return;
+				continue;
 			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
 			{
 				iPlayer->m_nHp += 10;
@@ -337,5 +337,6 @@ int main()
 		g_server->Update();
 	}
 }
+
 
 

@@ -9,6 +9,8 @@ public:
 
 	//virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 	//void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
+	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+	
 
 	virtual void AnimateObject(float fElapsedTime);
 
