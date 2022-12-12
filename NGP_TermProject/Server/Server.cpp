@@ -79,6 +79,18 @@ void Server::CheckCollision()
 		if (!iPlayer->IsActive())
 			continue;
 
+		//Collision Map
+		if (clients[i]->m_player->m_fyPos < 300 || clients[i]->m_player->m_fyPos > 1000 ||
+			clients[i]->m_player->m_fzPos < 0 || clients[i]->m_player->m_fzPos > 1000 ||
+			clients[i]->m_player->m_fxPos < 0 || clients[i]->m_player->m_fxPos > 1000)
+		{
+			clients[i]->m_player->SetPosition(clients[i]->m_player->m_fOldxPos,
+				clients[i]->m_player->m_fOldyPos,
+				clients[i]->m_player->m_fOldzPos);
+		}
+
+
+
 		//Collision Bottom
 		//if (iPlayer->GetCurPos().y < 250.f)
 		//	iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
@@ -119,7 +131,7 @@ void Server::CheckCollision()
 					missile->ShouldDeactive();
 					if (iPlayer->m_nHp <= 0)
 					{
-						iPlayer->Reset();
+						iPlayer->Reset(i);
 						iPlayer->ShouldDeactive();
 					}
 				}
@@ -161,7 +173,7 @@ void Server::SendAllClient()
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
 			scInfo.playerHP = p->m_nHp;
-			scInfo.movement = position;
+			scInfo.position = position;
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
 
 			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
@@ -194,7 +206,7 @@ void Server::SendAllClient()
 								scMissile.active = true;
 							}
 
-							scMissile.movement = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
+							scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
 							scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
 							send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
 						}
@@ -281,11 +293,12 @@ void Server::SpawnItem()
 		{
 			m_ItemObject[i]->SetActive(true);
 			m_ItemObject[i]->healAmount = ((rand() % 3) + 1) * 10;
-			m_ItemObject[i]->SetPosition(rand() % 500, rand() % 500, rand() % 500);
+			m_ItemObject[i]->SetPosition(rand() % 500 + 200, rand() % 500 + 300, rand() % 500 + 200);
 			break;
 		}
 	}
 }
+
 
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
@@ -337,8 +350,11 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	int playerNumber = client->GetPlayerNumber();
 	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
 
-	client->m_player->SetActive(true);
-	client->m_player->SetPosition(g_server->initialPos[playerNumber].x, g_server->initialPos[playerNumber].y, g_server->initialPos[playerNumber].z);
+	CPlayer* p = client->m_player;
+	p->SetActive(true);
+	p->SetPosition(p->initialPos[playerNumber].x, p->initialPos[playerNumber].y, p->initialPos[playerNumber].z);
+	p->m_fPitch = p->initialRot[playerNumber].x; p->m_fYaw = p->initialRot[playerNumber].y; p->m_fRoll = p->initialRot[playerNumber].z;
+
 
 	client->ToggleConnected();
 	++g_server->connectedClients;
@@ -376,7 +392,7 @@ void Client::Reset()
 
 
 	//m_playerNumber = -1;
-	m_player->Reset();
+	m_player->Reset(GetPlayerNumber());
 }
 
 int main()

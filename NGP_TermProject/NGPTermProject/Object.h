@@ -230,9 +230,9 @@ protected:
     XMFLOAT3 m_rotation = { 0,0,0 };
 
 public:
-    void SetShifts(const XMFLOAT3& movement, const XMFLOAT3& rotation)
+    void SetShifts(const XMFLOAT3& position, const XMFLOAT3& rotation)
     {
-        m_movement = movement;
+        m_movement = position;
         m_rotation = rotation;
     }
     XMFLOAT3 GetMovement() { return m_movement; }

@@ -58,7 +58,7 @@ private:
 	SOCKET* sock = nullptr;
 
 	//char* SERVERIP = (char*)"192.168.203.20";
-	char* SERVERIP = (char*)"127.0.0.1";
+	char* SERVERIP = (char*)"58.225.176.81";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

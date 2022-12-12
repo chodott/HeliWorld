@@ -67,7 +67,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	
 	RotatePYR(XMFLOAT3(MissilePacket->rotation.x, MissilePacket->rotation.y, MissilePacket->rotation.z));
 
-	SetPosition(MissilePacket->movement);
+	SetPosition(MissilePacket->position);
 	
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
@@ -77,7 +77,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Playe
 {
 	//SetActive(MissilePacket->active);
 
-	SetPosition(MissilePacket->movement);
+	SetPosition(MissilePacket->position);
 	//rotate
 
 

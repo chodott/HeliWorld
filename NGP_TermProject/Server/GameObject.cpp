@@ -195,21 +195,26 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 	UpdateMissiles(elapsedTime);
 }
 
-void CPlayer::Reset()
+void CPlayer::Reset(int playerNum)
 {
 	m_xmf3Right = XMFLOAT3(0, 0, 0);
 	m_xmf3Up = XMFLOAT3(0, 0, 0);
 	m_xmf3Look = XMFLOAT3(0, 0, 0);
 
-	m_fPitch = 0.f;
-	m_fYaw = 0.f;
-	m_fRoll = 0.f;
+	//m_fPitch = 0.f;
+	//m_fYaw = 0.f;
+	//m_fRoll = 0.f;
+
+	m_fPitch = initialRot[playerNum].x;
+	m_fYaw = initialRot[playerNum].y;
+	m_fRoll = initialRot[playerNum].z;
 
 	m_fOldxPos = 0.f;
 	m_fOldyPos = 0.f;
 	m_fOldzPos = 0.f;
 
-	SetPosition(0, 0, 0);
+	
+	SetPosition(initialPos[playerNum].x, initialPos[playerNum].y, initialPos[playerNum].z);
 
 	m_bActive = false;
 

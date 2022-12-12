@@ -67,9 +67,6 @@ public:
 
 
 	std::array<Client*, 4> clients;
-	XMFLOAT3 initialPos[4]{
-		{100,100,100},{150,100,100},{200,100,100},{250,100,100}
-	};
 
 	int connectedClients = 0;
 	HANDLE updateDone;

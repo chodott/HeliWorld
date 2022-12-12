@@ -76,17 +76,12 @@ void Client::ConnectServer()
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	cout << "IP�ּҸ� �Է��ϼ���: ";
-	std::string IP;
-	cin >> IP;
-	//SERVERIP=IP.c_str();
-	inet_pton(AF_INET, IP.c_str(), &serverAddr.sin_addr);
+	inet_pton(AF_INET, SERVERIP, &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVERPORT);
-	//
+
 	DWORD recvTimeout = 5000;
 	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
-	//
 	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{
 		err_quit("socket()");
@@ -98,7 +93,7 @@ void Client::ConnectServer()
 	{
 		if (WSAGetLastError() == 10060)
 		{
-			cout << "���� �� á���ϴ�" << endl;
+			cout << "The room is full" << endl;
 			system("pause");
 			exit(1);
 		}
@@ -168,11 +163,11 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-    const int bufSize = 512;
-    char buf[bufSize]{};
-    while (true)
-    {
-        WaitForSingleObject(client->FrameAdvanced, (DWORD)17);
+	const int bufSize = 512;
+	char buf[bufSize]{};
+	while (true)
+	{
+		WaitForSingleObject(client->FrameAdvanced, (DWORD)17);
 
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)
 			err_quit("recv()");
@@ -209,10 +204,10 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 				break;
 			}
 
-            // Packet process
-            PacketProcessHelper(packetType, buf + bufOffset, client);
-            restBufSize -= packetSize;
-            bufOffset += packetSize;
-        }
-    }
+			// Packet process
+			PacketProcessHelper(packetType, buf + bufOffset, client);
+			restBufSize -= packetSize;
+			bufOffset += packetSize;
+		}
+	}
 }

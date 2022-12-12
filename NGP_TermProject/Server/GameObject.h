@@ -76,7 +76,7 @@ public:
 	void LaunchMissile();
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime, int connectedClients);
-	void Reset();
+	void Reset(int playerNum);
 
 	const float movingSpeed = 1000.f;
 
@@ -84,6 +84,14 @@ public:
 	float m_deltaY = 0.f;
 
 	unsigned char playerKey = 0;
+
+	XMFLOAT3 initialPos[4]{
+{100,400,500},{500,400,100},{900,400,500},{500,400,900}
+	};
+
+	XMFLOAT3 initialRot[4]{
+	{0,90,0},{0,0,0},{0,-90,0},{0,180,0}
+	};
 
 private:
 	unsigned char option0 = 0x01;	// 0000 0001 
