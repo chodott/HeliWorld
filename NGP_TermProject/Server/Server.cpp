@@ -112,10 +112,10 @@ void Server::CheckCollision()
 			// Check Player to Player
 			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
 			{
-				iPlayer->m_nHp -= 10;
+				//iPlayer->m_nHp -= 10;
 				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 
-				jPlayer->m_nHp -= 10;
+				//jPlayer->m_nHp -= 10;
 				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
 			}
 
