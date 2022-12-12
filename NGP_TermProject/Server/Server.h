@@ -1,5 +1,4 @@
 #pragma once
-#pragma warning(disable : 26495)
 
 #include "Socket.h"
 #include "SCPacket.h"
@@ -73,7 +72,6 @@ public:
 	};
 
 	int connectedClients = 0;
-	HANDLE fourPlayers;
 	HANDLE updateDone;
 
 	CItemObject* m_ItemObject[10];

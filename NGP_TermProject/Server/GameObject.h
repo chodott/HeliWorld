@@ -78,7 +78,7 @@ public:
 	void Update(float elapsedTime, int connectedClients);
 	void Reset();
 
-	const float movingSpeed = 0.3f;
+	const float movingSpeed = 1000.f;
 
 	float m_deltaX = 0.f;
 	float m_deltaY = 0.f;

@@ -153,7 +153,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
     char buf[bufSize]{};
     while (true)
     {
-        ResetEvent(client->ReceiveDone);
+        WaitForSingleObject(client->FrameAdvanced, (DWORD)17);
 
         if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)
             err_quit("recv()");
@@ -195,7 +195,5 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
             restBufSize -= packetSize;
             bufOffset += packetSize;
         }
-
-        SetEvent(client->ReceiveDone);
     }
 }

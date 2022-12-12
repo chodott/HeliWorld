@@ -51,7 +51,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
     client->ConnectServer();
-    client->ReceiveDone = CreateEvent(nullptr, true, false, false);
+    client->FrameAdvanced = CreateEvent(nullptr, true, false, false);
 
 
     CreateDirect3DDevice();
@@ -515,7 +515,6 @@ void CGameFramework::ProcessInput()
 
 void CGameFramework::AnimateObjects()
 {
-    WaitForSingleObject(client->ReceiveDone, (DWORD)17);
     float fTimeElapsed = m_GameTimer.GetTimeElapsed();
     int playernum = 0;
     if (m_pScene)
@@ -588,11 +587,16 @@ void CGameFramework::MoveToNextFrame()
 
 void CGameFramework::FrameAdvance()
 {
+    ResetEvent(client->FrameAdvanced);
     m_GameTimer.Tick(0.0f);
 
     ProcessInput();
 
     AnimateObjects();
+    client->SendtoServer();
+
+    SetEvent(client->FrameAdvanced);
+
 
     HRESULT hResult = m_pd3dCommandAllocator->Reset();
     hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
@@ -660,6 +664,4 @@ void CGameFramework::FrameAdvance()
     XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
     _stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
     ::SetWindowText(m_hWnd, m_pszFrameRate);
-
-    client->SendtoServer();
 }

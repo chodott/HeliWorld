@@ -144,7 +144,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
 
-		float distance = movingSpeed;
+		float distance = movingSpeed * elapsedTime;
 
 		if (playerKey & option0)
 		{

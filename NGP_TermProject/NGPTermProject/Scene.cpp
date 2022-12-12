@@ -505,37 +505,6 @@ bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam,
 
 bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	switch (nMessageID)
-	{
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-	/*	case 'W': m_ppGameObjects[0]->MoveForward(+1.0f); break;
-		case 'S': m_ppGameObjects[0]->MoveForward(-1.0f); break;
-		case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
-		case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
-		case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
-		case 'R': m_ppGameObjects[0]->MoveUp(-1.0f); break;*/
-
-			// ÃÑ¾Ë ¹ß»ç Å°
-		case VK_CONTROL:
-			if (pMissileobjectShader && m_pPlayer)
-			{
-				
-				//m_pBulletShader->SetParticleShader(m_pFireParticleShader);
-				pMissileobjectShader->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam, &fTimer);
-			}
-			break;
-
-		case VK_F1:
-
-		default:
-			break;
-		}
-		break;
-	default:
-		break;
-	}
 	return(false);
 }
 
