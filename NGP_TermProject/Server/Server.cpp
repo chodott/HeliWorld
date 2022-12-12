@@ -148,7 +148,6 @@ void Server::SendAllClient()
 	for (int i = 0; i < 4; ++i)		// client number
 	{
 		PlayerInfoPacket scInfo;
-		PlayerStatusPacket scStatus;
 
 
 		if (clients[i]->IsConnected())
@@ -162,24 +161,18 @@ void Server::SendAllClient()
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
+			scInfo.playerHP = p->m_nHp;
 			scInfo.movement = position;
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
+		
 			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
-				c->Disconnect();			// disconnect
-
-			// PlayerStatus
-			scStatus.packetType = SC_PlayerStatus;
-			scStatus.playerNumber = playerNumber;
-			scStatus.playerHP = p->m_nHp;
-
-			
+				c->Disconnect();			// disconnect			
 
 			for (const auto& client : clients)
 			{
 				if (client->IsConnected())
 				{
 					send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
-					send(client->sock, (char*)&scStatus, sizeof(PlayerStatusPacket), 0);
 
 					for (int i = 0; i < 8; ++i)
 					{

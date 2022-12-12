@@ -4,10 +4,9 @@
 
 namespace PACKET {
 	const char PlayerInfo = 0;
-	const char PlayerStatus = 1;
-	const char PlayerKey = 2;
-	const char ItemInfo = 3;
-	const char MissileInfo = 4;
+	//const char PlayerKey = 1;
+	const char ItemInfo = 1;
+	const char MissileInfo = 2;
 };
 
 
@@ -21,17 +20,10 @@ struct FPoint {
 struct PlayerInfoPacket {
 	char packetType;
 	int playerNumber = -1;
+	int playerHP;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 	bool playerActive;
-};
-#pragma pack()
-
-#pragma pack(1)
-struct PlayerStatusPacket {
-	char packetType;
-	int playerNumber;
-	int playerHP;
 };
 #pragma pack()
 

@@ -70,6 +70,7 @@ public:
 	int m_playerNumber = 0;
 	int damage = 10;
 	float m_fMovingSpeed = 0.1f;
+	float m_fLifeSpan = 6.0f;
 
 	void Move();
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);

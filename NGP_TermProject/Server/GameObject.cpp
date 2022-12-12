@@ -270,7 +270,8 @@ void CMissileObject::Move()
 	if (m_fMovingSpeed != 0.0f)
 		Move(m_xmf3Look, m_fMovingSpeed);
 	InitOOBB(m_xmf3Position, XMFLOAT3(1, 1, 1), XMFLOAT4(0., 0., 0., 1.));
-	//cout << m_xmf3Position.x <<" " << m_xmf3Position.y << " " << m_xmf3Position.z << endl;
+	
+	//Check LifeSpan and Delete
 }
 
 

@@ -4,33 +4,25 @@
 #include "stdafx.h"
 
 const char SC_PlayerInfo = 0;
-const char SC_PlayerStatus = 1;
-const char SC_PlayerKey = 2;
-const char SC_ItemInfo = 3;
-const char SC_MissileInfo = 4;
+//const char SC_PlayerKey = 1;
+const char SC_ItemInfo = 1;
+const char SC_MissileInfo = 2;
 
 
 struct FPoint {
 	float x;
 	float y;
-};
+}; 
 
 
 #pragma pack(1)
 struct PlayerInfoPacket {
 	char packetType;
 	int playerNumber = -1;
+	int playerHP;
 	XMFLOAT3 movement;
 	XMFLOAT3 rotation;
 	bool playerActive;
-};
-#pragma pack()
-
-#pragma pack(1)
-struct PlayerStatusPacket {
-	char packetType;
-	int playerNumber;
-	int playerHP;
 };
 #pragma pack()
 
