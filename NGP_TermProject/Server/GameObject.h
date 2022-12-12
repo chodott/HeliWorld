@@ -48,8 +48,6 @@ public:
 
 	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
 
-	void Move(float fElapsedTime);
-	void Move(XMFLOAT3& vDirection, float fSpeed);
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
 	void SetActive(bool active) { m_bActive = active; }
@@ -63,24 +61,7 @@ public:
 
 };
 
-
-class CMissileObject : public GameObject
-{
-public:
-	int m_playerNumber = 0;
-	int damage = 10;
-	float m_fMovingSpeed = 0.1f;
-	float m_fLifeSpan = 6.0f;
-
-	void Move();
-	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
-	void Reset();
-};
-
-class CItemObject : public GameObject
-{
-public:
-};
+class CMissileObject;
 
 class CPlayer : public GameObject
 {
@@ -90,13 +71,14 @@ public:
 	float m_fFriction;
 	int m_nHp = 100;
 	CMissileObject* m_pMissiles[8];
-	void Move(const XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
-	void Move(DWORD Direction, float Distance, bool updateVelocity);
+	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void LaunchMissile();
-	void UpdateMissiles();
-	void Update(float Distance, bool updateVelocity, int connectedClients);
+	void UpdateMissiles(float elapsedTime);
+	void Update(float elapsedTime, int connectedClients);
 	void Reset();
+
+	const float movingSpeed = 0.3f;
 
 	float m_deltaX = 0.f;
 	float m_deltaY = 0.f;
@@ -113,5 +95,24 @@ private:
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
 
+};
+
+class CMissileObject : public GameObject
+{
+public:
+	int m_playerNumber = 0;
+	int damage = 10;
+	const float movingSpeed = 800.f;
+
+	float m_fLifeSpan = 6.f;
+
+	void Move(float elapsedTime);
+	void Reset();
+};
+
+class CItemObject : public GameObject
+{
+public:
+	int healAmount = 0;
 };
 

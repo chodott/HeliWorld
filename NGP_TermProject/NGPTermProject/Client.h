@@ -46,13 +46,10 @@ public:
 
 	HANDLE ReceiveDone;
 
-	// JJam Tong
+
 	char remain[512]{};
 	int remainOffset = 0;
 	int remainSize = 0;
-
-
-
 
 
 private:

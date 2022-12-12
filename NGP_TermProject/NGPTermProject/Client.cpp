@@ -76,11 +76,7 @@ void Client::ConnectServer()
     sockaddr_in serverAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
-    cout << "IP주소를 입력하세요: ";
-    std::string IP;
-    cin >> IP;
-    //SERVERIP=IP.c_str();
-    inet_pton(AF_INET, IP.c_str(), &serverAddr.sin_addr);
+    inet_pton(AF_INET, SERVERIP, &serverAddr.sin_addr);
     serverAddr.sin_port = htons(SERVERPORT);
 
     std::cout << "Socket initalize successful\n";
@@ -89,9 +85,8 @@ void Client::ConnectServer()
         err_quit("socket()");
 
     if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
-    {
         err_quit("socket()");
-    }
+
     playerData[PlayerNum].playerNumber = PlayerNum;
 
 
@@ -117,7 +112,6 @@ void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
         }
     }
 }
-
 
 void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
