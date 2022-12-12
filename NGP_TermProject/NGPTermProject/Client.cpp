@@ -76,7 +76,7 @@ void Client::ConnectServer()
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	cout << "IPÁÖ¼Ò¸¦ ÀÔ·ÂÇÏ¼¼¿ä: ";
+	cout << "IPï¿½Ö¼Ò¸ï¿½ ï¿½Ô·ï¿½ï¿½Ï¼ï¿½ï¿½ï¿½: ";
 	std::string IP;
 	cin >> IP;
 	//SERVERIP=IP.c_str();
@@ -98,7 +98,7 @@ void Client::ConnectServer()
 	{
 		if (WSAGetLastError() == 10060)
 		{
-			cout << "¹æÀÌ ²Ë Ã¡½À´Ï´Ù" << endl;
+			cout << "ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã¡ï¿½ï¿½ï¿½Ï´ï¿½" << endl;
 			system("pause");
 			exit(1);
 		}
@@ -131,7 +131,6 @@ void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 		}
 	}
 }
-
 
 void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {

@@ -21,7 +21,6 @@ Server::Server()
 	fourPlayers = CreateEvent(nullptr, true, false, nullptr);
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
 
-
 }
 
 Server::~Server()
@@ -136,7 +135,10 @@ void Server::CheckCollision()
 
 			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
 			{
-				iPlayer->m_nHp += 10;
+				iPlayer->m_nHp += m_ItemObject[j]->healAmount;
+				if (iPlayer->m_nHp > 100)
+					iPlayer->m_nHp = 100;
+
 				m_ItemObject[j]->ShouldDeactive();
 			}
 		}
@@ -234,26 +236,38 @@ void Server::Update()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		clients[i]->m_player->Update(0.5f, true, g_server->connectedClients);
+		
+		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
+		{
+			clients[i]->deadTime += elapsedTime;
+			if (clients[i]->deadTime > 5.f)
+			{
+				clients[i]->m_player->SetActive(true);
+				clients[i]->deadTime = 0.f;
+			}
+		}
+		clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
 	}
 
 	SetEvent(updateDone);
 
-
 	CheckCollision();
 	SendAllClient();
+
+
+	itemSpawnTime += elapsedTime;
+	if (itemSpawnTime > 8.f)
+	{
+		itemSpawnTime -= 8.f;
+		if (connectedClients >= 2)
+			SpawnItem();
+	}
 
 
 	while (!trashCan.empty())
 	{
 		trashCan.front()->Deactivate();
 		trashCan.pop();
-	}
-
-	if (healItemTimer.TimePassed() > itemSpawnTime)
-	{
-		if (connectedClients >= 2)
-			SpawnItem();
 	}
 }
 
@@ -264,8 +278,8 @@ void Server::SpawnItem()
 		if (!m_ItemObject[i]->IsActive())
 		{
 			m_ItemObject[i]->SetActive(true);
+			m_ItemObject[i]->healAmount = ((rand() % 3) + 1) * 10;
 			m_ItemObject[i]->SetPosition(rand() % 500, rand() % 500, rand() % 500);
-			healItemTimer.Reset();
 			break;
 		}
 	}
@@ -385,6 +399,8 @@ int main()
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	while (true)
 	{
+		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
+		g_server->timer.Record();
 		g_server->Update();
 	}
 }

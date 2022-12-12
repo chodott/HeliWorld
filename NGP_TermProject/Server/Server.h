@@ -27,30 +27,22 @@ public:
 	using second = std::chrono::duration<float>;
 
 	Clock()
-		: timePassed(0), timeStamp(time::now()) {}
+		: timePassed(0.f), timeStamp(time::now()) {}
 
-	float TimePassed()
+	void Record()
 	{
-		timePassed += GetTimePassedFromLastUpdate();
-		timeStamp = time::now();
-
-		return timePassed;
-	}
-
-	void Reset()
-	{
-		timePassed = 0.f;
 		timeStamp = time::now();
 	}
 
-private:
-	float GetTimePassedFromLastUpdate() const
+	float GetTimePassedFromLastUpdate()
 	{
 		return second(time::now() - timeStamp).count();
 	}
 
+private:
 	float timePassed;
 	time::time_point timeStamp;
+
 };
 
 class Server {
@@ -67,10 +59,13 @@ public:
 	void CheckCollision();
 	void SpawnItem();
 
-
 	SOCKET* GetSocket() { return &listenSock; }
-	Clock healItemTimer;
-	float itemSpawnTime = 10.f;
+
+
+	Clock timer;
+	float itemSpawnTime = 0.f;
+	float elapsedTime = 0.f;
+
 
 	std::array<Client*, 4> clients;
 	XMFLOAT3 initialPos[4]{
@@ -107,6 +102,8 @@ public:
 	void Reset();
 
 	CPlayer* m_player = nullptr;
+
+	float deadTime = 0.f;
 
 private:
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
