@@ -168,11 +168,11 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	const int bufSize = 512;
-	char buf[bufSize]{};
-	while (true)
-	{
-		ResetEvent(client->ReceiveDone);
+    const int bufSize = 512;
+    char buf[bufSize]{};
+    while (true)
+    {
+        WaitForSingleObject(client->FrameAdvanced, (DWORD)17);
 
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)
 			err_quit("recv()");
@@ -209,12 +209,10 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 				break;
 			}
 
-			// Packet process
-			PacketProcessHelper(packetType, buf + bufOffset, client);
-			restBufSize -= packetSize;
-			bufOffset += packetSize;
-		}
-
-		SetEvent(client->ReceiveDone);
-	}
+            // Packet process
+            PacketProcessHelper(packetType, buf + bufOffset, client);
+            restBufSize -= packetSize;
+            bufOffset += packetSize;
+        }
+    }
 }

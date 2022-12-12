@@ -18,9 +18,7 @@ Server::Server()
 		m_ItemObject[i]->SetPosition(100, 100, 100 + 10 * i);
 	}
 
-	fourPlayers = CreateEvent(nullptr, true, false, nullptr);
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
-
 }
 
 Server::~Server()
@@ -165,7 +163,7 @@ void Server::SendAllClient()
 			scInfo.playerHP = p->m_nHp;
 			scInfo.movement = position;
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
-		
+
 			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
 			{
 				c->Disconnect();			// disconnect
@@ -236,7 +234,7 @@ void Server::Update()
 
 	for (int i = 0; i < 4; ++i)
 	{
-		
+		// connected, but dead
 		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
 		{
 			clients[i]->deadTime += elapsedTime;
@@ -246,10 +244,14 @@ void Server::Update()
 				clients[i]->deadTime = 0.f;
 			}
 		}
-		clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
+		else
+		{
+			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
+		}
 	}
 
 	SetEvent(updateDone);
+
 
 	CheckCollision();
 	SendAllClient();
@@ -297,14 +299,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		addrlen = sizeof(clientaddr);
 		if (g_server->connectedClients < 4)
 			std::cout << "Waiting for accept...\n";
-		else
-		{
-			// maybe a event need that notify server accepted four player already or not
-			std::cout << "Four players already in the server\n";
-			ResetEvent(g_server->fourPlayers);
-			WaitForSingleObject(g_server->fourPlayers, INFINITE);
-		}
-
 
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
 		if (clientSock == SOCKET_ERROR)
@@ -360,7 +354,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			client->Reset();
 
 			g_server->connectedClients--;
-			SetEvent(g_server->fourPlayers);
+
 			break;
 		}
 		CPlayer* player = client->m_player;
@@ -379,7 +373,7 @@ void Client::Reset()
 	sock = NULL;
 
 	shouldDisconnected = true;
-	
+
 
 	//m_playerNumber = -1;
 	m_player->Reset();
@@ -387,7 +381,6 @@ void Client::Reset()
 
 int main()
 {
-	//Create Object Mgr
 	g_server = new Server();
 	g_server->OpenListenSocket();
 

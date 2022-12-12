@@ -45,7 +45,7 @@ public:
 
 	int PlayerNum = 0;
 
-	HANDLE ReceiveDone;
+	HANDLE FrameAdvanced;
 
 
 	char remain[512]{};
