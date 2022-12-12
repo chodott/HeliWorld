@@ -11,6 +11,7 @@ void err_quit(const char* msg)
 		(char*)&lpMsgBuf, 0, NULL);
 	MessageBoxA(NULL, (const char*)lpMsgBuf, msg, MB_ICONERROR);
 	LocalFree(lpMsgBuf);
+
 	exit(1);
 }
 

@@ -149,7 +149,6 @@ void Server::SendAllClient()
 	{
 		PlayerInfoPacket scInfo;
 
-
 		if (clients[i]->IsConnected())
 		{
 			Client* c = clients[i];
@@ -166,7 +165,9 @@ void Server::SendAllClient()
 			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
 		
 			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
-				c->Disconnect();			// disconnect			
+			{
+				c->Disconnect();			// disconnect
+			}
 
 			for (const auto& client : clients)
 			{
@@ -286,6 +287,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		{
 			// maybe a event need that notify server accepted four player already or not
 			std::cout << "Four players already in the server\n";
+			ResetEvent(g_server->fourPlayers);
 			WaitForSingleObject(g_server->fourPlayers, INFINITE);
 		}
 
@@ -310,7 +312,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 				break;
 			}
-			ResetEvent(g_server->fourPlayers);
 			continue;
 		}
 		char addr[INET_ADDRSTRLEN];
@@ -343,8 +344,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 		{
 			// cut the connection
 			client->Reset();
+
 			g_server->connectedClients--;
-			
 			SetEvent(g_server->fourPlayers);
 			break;
 		}

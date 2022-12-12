@@ -13,6 +13,7 @@
 #include <cstring>
 #include <string>
 #include <iostream>
+#include <fcntl.h>
 
 #include "CSPacket.h"
 #include "error.h"
