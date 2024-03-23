@@ -3,7 +3,7 @@
 GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
-	InitOOBB(XMFLOAT3(0, 0, 0), XMFLOAT3(10, 10, 10), XMFLOAT4(0, 0, 0, 1));
+	InitOOBB();
 	m_xmf3Right = XMFLOAT3(0, 0, 0);
 	m_xmf3Up = XMFLOAT3(0, 0, 0);
 	m_xmf3Look = XMFLOAT3(0, 0, 0);
@@ -11,7 +11,8 @@ GameObject::GameObject()
 
 CPlayer::CPlayer()
 {
-	for (int i = 0; i < 8; ++i)
+	// Init Missiles
+	for (int i = 0; i < maxMissileNum; ++i)
 	{
 		m_pMissiles[i] = new CMissileObject();
 	}
@@ -19,7 +20,8 @@ CPlayer::CPlayer()
 
 CPlayer::~CPlayer()
 {
-	for (int i = 0; i < 8; ++i)
+	// Delete Missiles
+	for (int i = 0; i < maxMissileNum; ++i)
 	{
 		delete m_pMissiles[i];
 	}
@@ -64,20 +66,20 @@ void CPlayer::Rotate(float x, float y, float z)
 	if (x != 0.0f)
 	{
 		m_fPitch += x;
-		if (m_fPitch > +89.0f) { x -= (m_fPitch - 89.0f); m_fPitch = +89.0f; }
-		if (m_fPitch < -89.0f) { x -= (m_fPitch + 89.0f); m_fPitch = -89.0f; }
+		if (m_fPitch > +maxPitch) { x -= (m_fPitch - maxPitch); m_fPitch = +maxPitch; }
+		if (m_fPitch < -maxPitch) { x -= (m_fPitch + maxPitch); m_fPitch = -maxPitch; }
 	}
 	if (y != 0.0f)
 	{
 		m_fYaw += y;
-		if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
-		if (m_fYaw < 0.0f) m_fYaw += 360.0f;
+		if (m_fYaw > 360.f) m_fYaw -= 360.f;
+		if (m_fYaw < 0.f) m_fYaw += 360.f;
 	}
 	if (z != 0.0f)
 	{
 		m_fRoll += z;
-		if (m_fRoll > +20.0f) { z -= (m_fRoll - 20.0f); m_fRoll = +20.0f; }
-		if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
+		if (m_fRoll > +maxRoll) { z -= (m_fRoll - maxRoll); m_fRoll = +maxRoll; }
+		if (m_fRoll < -maxRoll) { z -= (m_fRoll + maxRoll); m_fRoll = -maxRoll; }
 	}
 
 
@@ -99,7 +101,7 @@ void CPlayer::Rotate(float x, float y, float z)
 
 void CPlayer::LaunchMissile()
 {
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < maxMissileNum; ++i)
 	{
 		if(!m_pMissiles[i]->IsActive())
 		{
@@ -126,7 +128,7 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 			if (missile->m_fLifeSpan < 0.f)
 			{
 				missile->m_bActive = false;
-				missile->m_fLifeSpan = 6.0f;
+				missile->m_fLifeSpan = missileLifeSpan;
 			}
 		}
 	}
@@ -180,11 +182,10 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 
 		MoveOOBB(m_xmf3Position);
 
-		//Attack
+		// Attack
 		if (playerKey & option6)
 		{
-			if (connectedClients >= 2)
-				LaunchMissile();
+			if (connectedClients >= 2) LaunchMissile();			// if not alone in the server
 			playerKey &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
@@ -201,10 +202,6 @@ void CPlayer::Reset(int playerNum)
 	m_xmf3Up = XMFLOAT3(0, 0, 0);
 	m_xmf3Look = XMFLOAT3(0, 0, 0);
 
-	//m_fPitch = 0.f;
-	//m_fYaw = 0.f;
-	//m_fRoll = 0.f;
-
 	m_fPitch = initialRot[playerNum].x;
 	m_fYaw = initialRot[playerNum].y;
 	m_fRoll = initialRot[playerNum].z;
@@ -213,7 +210,6 @@ void CPlayer::Reset(int playerNum)
 	m_fOldyPos = 0.f;
 	m_fOldzPos = 0.f;
 
-	
 	SetPosition(initialPos[playerNum].x, initialPos[playerNum].y, initialPos[playerNum].z);
 
 	m_bActive = false;

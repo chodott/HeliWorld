@@ -55,6 +55,7 @@ public:
 
 
 	void MoveOOBB(XMFLOAT3& position) { m_xmOOBB.Center = position; }
+	void InitOOBB() { m_xmOOBB = BoundingOrientedBox{ XMFLOAT3(0.f, 0.f, 0.f), XMFLOAT3(10.f, 10.f, 10.f), XMFLOAT4(0.f, 0.f, 0.f, 1.f) }; }
 	void InitOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
 
 	BoundingOrientedBox GetBoundingBox() { return m_xmOOBB; }
@@ -68,9 +69,14 @@ class CPlayer : public GameObject
 public:
 	CPlayer();
 	~CPlayer();
+
 	float m_fFriction;
-	int m_nHp = 100;
+	const int maxHp = 100;
+	int m_nHp = maxHp;
+
+	const int maxMissileNum = 8;
 	CMissileObject* m_pMissiles[8];
+
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void LaunchMissile();
@@ -85,15 +91,12 @@ public:
 
 	unsigned char playerKey = 0;
 
-	XMFLOAT3 initialPos[4]{
-{100,400,500},{500,400,100},{900,400,500},{500,400,900}
-	};
+	XMFLOAT3 initialPos[4]{ {100,400,500},{500,400,100},{900,400,500},{500,400,900} };
 
-	XMFLOAT3 initialRot[4]{
-	{0,90,0},{0,0,0},{0,-90,0},{0,180,0}
-	};
+	XMFLOAT3 initialRot[4]{ {0,90,0},{0,0,0},{0,-90,0},{0,180,0} };
 
 private:
+	// Key bindings
 	unsigned char option0 = 0x01;	// 0000 0001 
 	unsigned char option1 = 0x02;	// 0000 0010
 	unsigned char option2 = 0x04;	// 0000 0100
@@ -102,6 +105,10 @@ private:
 	unsigned char option5 = 0x20;	// 0010 0000
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
+
+	const float maxPitch = 89.f;
+	const float maxRoll = 20.f;
+	const float missileLifeSpan = 6.f;
 
 };
 

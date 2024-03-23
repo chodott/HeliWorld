@@ -12,6 +12,11 @@
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
+#define MAX_CLIENT_NUM		4
+#define MAX_ITEM_NUM		10
+
+#define RESPAWN_TIME		5.f
+
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 
@@ -60,18 +65,16 @@ public:
 
 	SOCKET* GetSocket() { return &listenSock; }
 
-
 	Clock timer;
 	float itemSpawnTime = 0.f;
 	float elapsedTime = 0.f;
 
-
-	std::array<Client*, 4> clients;
+	std::array<Client*, MAX_CLIENT_NUM> clients;
 
 	int connectedClients = 0;
 	HANDLE updateDone;
 
-	CItemObject* m_ItemObject[10];
+	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
 private:
 	SOCKET listenSock;

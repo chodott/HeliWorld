@@ -79,7 +79,7 @@ void Client::ConnectServer()
 	inet_pton(AF_INET, SERVERIP, &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVERPORT);
 
-	DWORD recvTimeout = 5000;
+	DWORD recvTimeout = 5000;		// 5000ms
 	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
 
 	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
@@ -91,7 +91,7 @@ void Client::ConnectServer()
 
 	if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
 	{
-		if (WSAGetLastError() == 10060)
+		if (WSAGetLastError() == WSAETIMEDOUT)
 		{
 			cout << "The room is full" << endl;
 			system("pause");

@@ -8,14 +8,14 @@ Server::Server()
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		clients[i] = new Client;
 	}
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_ITEM_NUM; i++)
 	{
 		m_ItemObject[i] = new CItemObject();
-		m_ItemObject[i]->SetPosition(100, 100, 100 + 10 * i);
+		m_ItemObject[i]->SetPosition(100.f, 100.f, 100.f + 10.f * i);
 	}
 
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
@@ -24,12 +24,12 @@ Server::Server()
 Server::~Server()
 {
 	WSACleanup();
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		if (clients[i] != nullptr)
 			delete clients[i];
 	}
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < MAX_ITEM_NUM; i++)
 	{
 		if (m_ItemObject[i] != nullptr)
 		{
@@ -69,7 +69,7 @@ void Server::OpenListenSocket()
 
 void Server::CheckCollision()
 {
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		if (!clients[i]->IsConnected())
 			continue;
@@ -89,14 +89,7 @@ void Server::CheckCollision()
 				clients[i]->m_player->m_fOldzPos);
 		}
 
-
-
-		//Collision Bottom
-		//if (iPlayer->GetCurPos().y < 250.f)
-		//	iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
-
-
-		for (int j = 0; j < 4; ++j)
+		for (int j = 0; j < MAX_CLIENT_NUM; ++j)
 		{
 			//Same Player
 			if (i == j)
@@ -138,16 +131,14 @@ void Server::CheckCollision()
 			}
 		}
 
-		for (int j = 0; j < 10; j++)
+		for (int j = 0; j < MAX_ITEM_NUM; j++)
 		{
-			if (!m_ItemObject[j]->IsActive())
-				continue;
+			if (!m_ItemObject[j]->IsActive())		continue;
 
 			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
 			{
 				iPlayer->m_nHp += m_ItemObject[j]->healAmount;
-				if (iPlayer->m_nHp > 100)
-					iPlayer->m_nHp = 100;
+				if (iPlayer->m_nHp > iPlayer->maxHp)			iPlayer->m_nHp = iPlayer->maxHp;
 
 				m_ItemObject[j]->ShouldDeactive();
 			}
@@ -157,28 +148,28 @@ void Server::CheckCollision()
 
 void Server::SendAllClient()
 {
-	for (int i = 0; i < 4; ++i)		// client number
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
 	{
 		PlayerInfoPacket scInfo;
 
 		if (clients[i]->IsConnected())
 		{
-			Client* c = clients[i];
-			CPlayer* p = c->m_player;
-			int playerNumber = c->GetPlayerNumber();
+			Client* client = clients[i];
+			CPlayer* player = client->m_player;
+			int playerNumber = client->GetPlayerNumber();
 
-			XMFLOAT3 position{ p->m_fxPos, p->m_fyPos, p->m_fzPos };
+			XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
 
 			// PlayerInfo
 			scInfo.packetType = SC_PlayerInfo;
 			scInfo.playerNumber = playerNumber;
-			scInfo.playerHP = p->m_nHp;
+			scInfo.playerHP = player->m_nHp;
 			scInfo.position = position;
-			scInfo.rotation = XMFLOAT3(p->m_fPitch, p->m_fYaw, p->m_fRoll);
+			scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
 
-			if ((scInfo.playerActive = !c->ShouldDisconnected()) == false)
+			if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
 			{
-				c->Disconnect();			// disconnect
+				client->Disconnect();			// disconnect
 			}
 
 			for (const auto& client : clients)
@@ -187,9 +178,9 @@ void Server::SendAllClient()
 				{
 					send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
 
-					for (int i = 0; i < 8; ++i)
+					for (int i = 0; i < player->maxMissileNum; ++i)
 					{
-						CMissileObject* missile = p->m_pMissiles[i];
+						CMissileObject* missile = player->m_pMissiles[i];
 						if (missile->IsActive())
 						{
 							MissileInfoPacket scMissile;
@@ -213,7 +204,7 @@ void Server::SendAllClient()
 					}
 
 					//sending ItemInfo Packet
-					for (int i = 0; i < 10; ++i)
+					for (int i = 0; i < MAX_ITEM_NUM; ++i)
 					{
 						CItemObject* item = m_ItemObject[i];
 						if (item->IsActive())
@@ -244,13 +235,13 @@ void Server::Update()
 {
 	ResetEvent(updateDone);
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		// connected, but dead
 		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
 		{
 			clients[i]->deadTime += elapsedTime;
-			if (clients[i]->deadTime > 5.f)
+			if (clients[i]->deadTime > RESPAWN_TIME)
 			{
 				clients[i]->m_player->SetActive(true);
 				clients[i]->deadTime = 0.f;
@@ -268,7 +259,6 @@ void Server::Update()
 	CheckCollision();
 	SendAllClient();
 
-
 	itemSpawnTime += elapsedTime;
 	if (itemSpawnTime > 8.f)
 	{
@@ -276,7 +266,6 @@ void Server::Update()
 		if (connectedClients >= 2)
 			SpawnItem();
 	}
-
 
 	while (!trashCan.empty())
 	{
@@ -310,7 +299,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	while (true)
 	{
 		addrlen = sizeof(clientaddr);
-		if (g_server->connectedClients < 4)
+		if (g_server->connectedClients < MAX_CLIENT_NUM)
 			std::cout << "Waiting for accept...\n";
 
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
