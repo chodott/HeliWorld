@@ -74,7 +74,6 @@ void Server::CheckCollision()
 		if (!clients[i]->IsConnected())
 			continue;
 
-
 		CPlayer* iPlayer = clients[i]->m_player;
 		if (!iPlayer->IsActive())
 			continue;
@@ -96,7 +95,6 @@ void Server::CheckCollision()
 				continue;
 			if (!clients[j]->IsConnected())
 				continue;
-
 
 			CPlayer* jPlayer = clients[j]->m_player;
 			if (!jPlayer->IsActive())

@@ -52,8 +52,6 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	}
 }
 
-
-
 Client::Client()
 {
 	WSADATA wsa;
@@ -70,13 +68,24 @@ Client::~Client()
 
 void Client::ConnectServer()
 {
-	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-		err_quit("socket()");
+	std::ifstream in{ "ip.ini" };
+	if (!in.is_open())
+	{
+		std::ofstream out{ "ip.ini" };
+		out << "127.0.0.1";
+		out.close();
+	}
+
+	std::string ip;
+	in >> ip;
+	strcpy(serverIp, ip.c_str());
+
+	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
 
 	sockaddr_in serverAddr;
 	memset(&serverAddr, 0, sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, SERVERIP, &serverAddr.sin_addr);
+	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
 	serverAddr.sin_port = htons(SERVERPORT);
 
 	DWORD recvTimeout = 5000;		// 5000ms
@@ -88,7 +97,6 @@ void Client::ConnectServer()
 	}
 	std::cout << "Socket initalize successful\n";
 
-
 	if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
 	{
 		if (WSAGetLastError() == WSAETIMEDOUT)
@@ -97,16 +105,15 @@ void Client::ConnectServer()
 			system("pause");
 			exit(1);
 		}
-		else err_quit("socket()");
+		else
+		{
+			err_quit("socket()");
+		}
 	}
-
 
 	playerData[PlayerNum].playerNumber = PlayerNum;
 
-
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
-	//DWORD optval = 1;
-	//setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (const char*)&optval, sizeof(optval));
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)

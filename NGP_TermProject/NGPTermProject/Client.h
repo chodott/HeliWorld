@@ -24,21 +24,19 @@
 #define SERVERPORT 9000
 #define BUFSIZE 512
 
-
-
 class Client {
 public:
 	Client();
 	~Client();
 
-	SOCKET* GetClientsock() { return sock; };
+	SOCKET* GetClientsock() { return sock; }
 	void ConnectServer();
-	char* GetSERVERIP() { return SERVERIP; };
+	char* GetServerIp() { return serverIp; }
 	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void SendtoServer();
+
 	PlayerInfoPacket playerData[4];
-	//PlayerStatusPacket playerStatus[4];
 	MissileInfoPacket missilePacket[32];
 	ItemInfoPacket itemPacket[10];
 	FPoint deltaMouse;
@@ -52,11 +50,9 @@ public:
 	int remainSize = 0;
 
 private:
-
 	SOCKET* sock = nullptr;
 
-	//char* SERVERIP = (char*)"192.168.203.20";
-	char* SERVERIP = (char*)"58.225.176.81";
+	char* serverIp = (char*)"127.0.0.1";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 
