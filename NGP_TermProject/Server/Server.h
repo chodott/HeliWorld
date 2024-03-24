@@ -8,7 +8,6 @@
 #include <chrono>
 #include <queue>
 
-
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
@@ -23,7 +22,6 @@ DWORD WINAPI AcceptClient(LPVOID arg);
 class Client;
 class CPlayer;
 class CItemObject;
-
 
 class Clock {
 public:
@@ -42,11 +40,9 @@ public:
 	{
 		return second(time::now() - timeStamp).count();
 	}
-
 private:
 	float timePassed;
 	time::time_point timeStamp;
-
 };
 
 class Server {
@@ -66,6 +62,7 @@ public:
 	SOCKET* GetSocket() { return &listenSock; }
 
 	Clock timer;
+	const float itemRespawnTime = 8.f;
 	float itemSpawnTime = 0.f;
 	float elapsedTime = 0.f;
 
@@ -78,7 +75,6 @@ public:
 	std::queue<GameObject*> trashCan;
 private:
 	SOCKET listenSock;
-
 };
 
 
@@ -91,7 +87,7 @@ public:
 	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
 	int GetPlayerNumber() { return m_playerNumber; }
 
-	void ToggleConnected() { m_connected = true; shouldDisconnected = false; }
+	void Connected() { m_connected = true; shouldDisconnected = false; }
 	bool IsConnected() { return m_connected; }
 
 	bool ShouldDisconnected() { return shouldDisconnected; }
@@ -102,12 +98,10 @@ public:
 	CPlayer* m_player = nullptr;
 
 	float deadTime = 0.f;
-
 private:
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
 
 	bool m_connected = false;
 	bool shouldDisconnected = false;
-
 };
 

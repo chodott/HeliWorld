@@ -167,10 +167,10 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	char buf[bufSize]{};
 	while (true)
 	{
-		WaitForSingleObject(client->FrameAdvanced, (DWORD)17);
+		const int frameTime = 17;		// 1000ms / 60frame	+ 1
+		WaitForSingleObject(client->FrameAdvanced, (DWORD)frameTime);
 
-		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)
-			err_quit("recv()");
+		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
 
 		int restBufSize = bufSize;
 		int bufOffset = 0;
