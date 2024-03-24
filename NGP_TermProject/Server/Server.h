@@ -16,6 +16,13 @@
 
 #define RESPAWN_TIME		5.f
 
+#define MAX_BOUNDARY_X		1000
+#define MIN_BOUNDARY_X		0
+#define MAX_BOUNDARY_Y		1000
+#define MIN_BOUNDARY_Y		300
+#define MAX_BOUNDARY_Z		1000
+#define MIN_BOUNDARY_Z		0
+
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 

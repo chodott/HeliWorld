@@ -80,9 +80,9 @@ void Server::CheckCollision()
 			continue;
 
 		//Collision Map
-		if (clients[i]->m_player->m_fyPos < 300 || clients[i]->m_player->m_fyPos > 1000 ||
-			clients[i]->m_player->m_fzPos < 0 || clients[i]->m_player->m_fzPos > 1000 ||
-			clients[i]->m_player->m_fxPos < 0 || clients[i]->m_player->m_fxPos > 1000)
+		if (clients[i]->m_player->m_fyPos < MIN_BOUNDARY_Y || clients[i]->m_player->m_fyPos > MAX_BOUNDARY_Y ||
+			clients[i]->m_player->m_fzPos < MIN_BOUNDARY_Z || clients[i]->m_player->m_fzPos > MAX_BOUNDARY_Z ||
+			clients[i]->m_player->m_fxPos < MIN_BOUNDARY_X || clients[i]->m_player->m_fxPos > MAX_BOUNDARY_X)
 		{
 			clients[i]->m_player->SetPosition(clients[i]->m_player->m_fOldxPos,
 				clients[i]->m_player->m_fOldyPos,
@@ -289,7 +289,9 @@ void Server::SpawnItem()
 		{
 			m_ItemObject[i]->SetActive(true);
 			m_ItemObject[i]->healAmount = ((rand() % 3) + 1) * 10;
-			m_ItemObject[i]->SetPosition(rand() % 500 + 200, rand() % 500 + 300, rand() % 500 + 200);
+			m_ItemObject[i]->SetPosition(rand() % MAX_BOUNDARY_X, 
+															rand() % (MAX_BOUNDARY_Y - MIN_BOUNDARY_Y) + MIN_BOUNDARY_Y, 
+															rand() % MAX_BOUNDARY_Z);
 			break;
 		}
 	}
