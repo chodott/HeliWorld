@@ -171,7 +171,7 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 void CPlayer::Update(float fTimeElapsed)
 {
-	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, m_xmf3Gravity);
+	/*m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, m_xmf3Gravity);
 	float fLength = sqrtf(m_xmf3Velocity.x * m_xmf3Velocity.x + m_xmf3Velocity.z * m_xmf3Velocity.z);
 	float fMaxVelocityXZ = m_fMaxVelocityXZ;
 	if (fLength > m_fMaxVelocityXZ)
@@ -184,7 +184,18 @@ void CPlayer::Update(float fTimeElapsed)
 	if (fLength > m_fMaxVelocityY) m_xmf3Velocity.y *= (fMaxVelocityY / fLength);
 
 	XMFLOAT3 xmf3Velocity = Vector3::ScalarProduct(m_xmf3Velocity, fTimeElapsed, false);
-	Move(xmf3Velocity, false);
+	Move(xmf3Velocity, false);*/
+
+	/*fLength = Vector3::Length(m_xmf3Velocity);
+	float fDeceleration = (m_fFriction * fTimeElapsed);
+	if (fDeceleration > fLength) fDeceleration = fLength;
+	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
+}
+
+void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
+{
+	RotatePYR(PlayerPacket->rotation);
+	SetPosition(PlayerPacket->position);
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
@@ -193,17 +204,6 @@ void CPlayer::Update(float fTimeElapsed)
 	if (m_pCameraUpdatedContext) OnCameraUpdateCallback(fTimeElapsed);
 	if (nCurrentCameraMode == THIRD_PERSON_CAMERA) m_pCamera->SetLookAt(m_xmf3Position);
 	m_pCamera->RegenerateViewMatrix();
-
-	fLength = Vector3::Length(m_xmf3Velocity);
-	float fDeceleration = (m_fFriction * fTimeElapsed);
-	if (fDeceleration > fLength) fDeceleration = fLength;
-	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));
-}
-
-void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
-{
-	RotatePYR(PlayerPacket->rotation);
-	SetPosition(PlayerPacket->position);
 	//SetRotation(PlayerPacket->rotationMatrix);
 }
 
@@ -278,6 +278,8 @@ void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamer
 		if (m_pShader) m_pShader->Render(pd3dCommandList, pCamera, 0);
 		//if(m_pMissileShader) m_pMissileShader->Render(pd3dCommandList, pCamera, 0);
 		CGameObject::Render(pd3dCommandList, pCamera);
+
+
 	}
 }
 
@@ -294,6 +296,26 @@ CAirplanePlayer::CAirplanePlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommand
 
 	
 	CGameObject *pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "Model/Mi24.bin", m_pShader);
+	SetChild(pGameObject);
+
+	//m_pMissileShader = new CMissileObjectsShader();
+	//m_pMissileShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+	//m_pMissileShader->BuildObjects(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+
+	PrepareAnimate();
+
+	CreateShaderVariables(pd3dDevice, pd3dCommandList);
+}
+
+CAirplanePlayer::CAirplanePlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, bool bWire)
+{
+	m_pCamera = ChangeCamera(/*SPACESHIP_CAMERA*/THIRD_PERSON_CAMERA, 0.0f);
+	this->bWire = bWire;
+	m_pShader = new CPlayerShader();
+	m_pShader->CreateCbvSrvDescriptorHeaps(pd3dDevice, 0, 1); //Mi24(1)
+
+	
+	CGameObject* pGameObject = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, "Model/Mi24.bin", m_pShader);
 	SetChild(pGameObject);
 
 	//m_pMissileShader = new CMissileObjectsShader();

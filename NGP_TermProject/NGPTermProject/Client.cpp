@@ -76,9 +76,9 @@ void Client::ConnectServer()
 		out.close();
 	}
 
-	std::string ip;
-	in >> ip;
-	strcpy(serverIp, ip.c_str());
+	//std::string ip;
+	//in >> ip;
+	//strcpy(serverIp, ip.c_str());
 
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
 
@@ -123,10 +123,10 @@ void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lP
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'W': sendKey |= option0;   break;      //0000 0001 
-		case 'S': sendKey |= option1;   break;      //0000 0010
-		case 'A': sendKey |= option2;   break;      //0000 0100
-		case 'D': sendKey |= option3;   break;      //0000 1000
+		case VK_UP: sendKey |= option0;   break;      //0000 0001 
+		case VK_DOWN: sendKey |= option1;   break;      //0000 0010
+		case VK_LEFT: sendKey |= option2;   break;      //0000 0100
+		case VK_RIGHT: sendKey |= option3;   break;      //0000 1000
 		case 'Q': sendKey |= option4;   break;      //0001 0000
 		case 'E': sendKey |= option5;   break;      //0010 0000
 		case ' ': sendKey |= option6;   break;
@@ -141,10 +141,10 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	case WM_KEYUP:
 		switch (wParam)
 		{
-		case 'W': sendKey &= (~option0);   break;
-		case 'S': sendKey &= (~option1);   break;
-		case 'A': sendKey &= (~option2);   break;
-		case 'D': sendKey &= (~option3);   break;
+		case VK_UP: sendKey &= (~option0);   break;
+		case VK_DOWN: sendKey &= (~option1);   break;
+		case VK_LEFT: sendKey &= (~option2);   break;
+		case VK_RIGHT: sendKey &= (~option3);   break;
 		case 'Q': sendKey &= (~option4);   break;
 		case 'E': sendKey &= (~option5);   break;
 		case ' ': sendKey &= (~option6);   break;

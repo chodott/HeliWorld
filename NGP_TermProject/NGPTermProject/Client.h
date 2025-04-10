@@ -14,6 +14,7 @@
 #include <string>
 #include <iostream>
 #include <fcntl.h>
+#include <chrono>
 
 #include "CSPacket.h"
 #include "error.h"
@@ -52,7 +53,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"127.0.0.1";
+	char* serverIp = (char*)"172.30.1.7";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

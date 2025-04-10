@@ -39,7 +39,10 @@ protected:
 	CShader						*m_pShader = NULL;
 
 	CShader   *m_pMissileShader = NULL;
-	
+
+	//Debug
+	bool						bWire = false;
+
 
 // Client update part
 
@@ -98,7 +101,8 @@ public:
 class CAirplanePlayer : public CPlayer
 {
 public:
-	CAirplanePlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature);
+	CAirplanePlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature);
+	CAirplanePlayer(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, bool bWire);
 	virtual ~CAirplanePlayer();
 
 	CGameObject					*m_pMainRotorFrame = NULL;
