@@ -195,7 +195,13 @@ void CPlayer::Update(float fTimeElapsed)
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
 	RotatePYR(PlayerPacket->rotation);
-	SetPosition(PlayerPacket->position);
+	XMVECTOR prevPos = XMLoadFloat3(&GetPosition());
+	XMVECTOR nextPos = XMLoadFloat3(&PlayerPacket->position);
+	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, fTimeElapsed);
+
+	XMFLOAT3 pos;
+	XMStoreFloat3(&pos, curPos);
+	SetPosition(pos);
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
