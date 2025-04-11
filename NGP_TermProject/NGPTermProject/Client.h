@@ -31,7 +31,7 @@ public:
 
 	SOCKET* GetClientsock() { return sock; }
 	void ConnectServer();
-	char* GetServerIp() { return serverIp; }
+	const char* GetServerIp() { return serverIp; }
 	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void SendtoServer();
@@ -52,7 +52,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"127.0.0.1";
+	const char* serverIp = (char*)"127.0.0.1";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

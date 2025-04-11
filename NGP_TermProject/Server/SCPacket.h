@@ -7,15 +7,15 @@ const char SC_PlayerInfo = 0;
 const char SC_ItemInfo = 1;
 const char SC_MissileInfo = 2;
 
-
-struct FPoint {
+struct FPoint
+{
 	float x;
 	float y;
 }; 
 
-
 #pragma pack(1)
-struct PlayerInfoPacket {
+struct PlayerInfoPacket
+{
 	char packetType;
 	int playerNumber = -1;
 	int playerHP;
@@ -24,19 +24,22 @@ struct PlayerInfoPacket {
 	bool playerActive;
 };
 
-struct PlayerKeyPacket {
+struct PlayerKeyPacket
+{
 	unsigned char playerKeyInput;
 	FPoint deltaMouse;
 };
 
-struct ItemInfoPacket {
+struct ItemInfoPacket
+{
 	char packetType;
 	int itemNum;
 	XMFLOAT3 position;
 	bool active;
 };
 
-struct MissileInfoPacket {
+struct MissileInfoPacket
+{
 	char packetType;
 	int playerNumber;
 	int missileNumber;

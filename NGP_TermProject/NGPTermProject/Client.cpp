@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Client.h"
+#include <fstream>
+#include <filesystem>
 
 int PacketSizeHelper(char packetType)
 {
@@ -68,7 +70,8 @@ Client::~Client()
 
 void Client::ConnectServer()
 {
-	std::ifstream in{ "ip.ini" };
+	std::cout << "ConnectServer\n";
+	std::ifstream in{ "ip.ini", std::ios::binary};
 	if (!in.is_open())
 	{
 		std::ofstream out{ "ip.ini" };
@@ -76,9 +79,11 @@ void Client::ConnectServer()
 		out.close();
 	}
 
-	std::string ip;
+	std::string ip{};
 	in >> ip;
-	strcpy(serverIp, ip.c_str());
+	in.close();
+	std::cout << ip << std::endl;
+	serverIp = ip.c_str();
 
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
 
