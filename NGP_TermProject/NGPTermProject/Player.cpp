@@ -197,10 +197,17 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	RotatePYR(PlayerPacket->rotation);
 	XMVECTOR prevPos = XMLoadFloat3(&GetPosition());
 	XMVECTOR nextPos = XMLoadFloat3(&PlayerPacket->position);
-	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, fTimeElapsed);
+
+	float totalTime = std::chrono::duration<float>(Client::receiveTimeCur - Client::receiveTimePrev).count();
+	float elapsedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - Client::receiveTimePrev).count();
+	float t = totalTime > 0.0f ? elapsedTime / totalTime : 1.0f;
+
+	t = Clamp(t, 0.0f, 1.0f); // 안정성 확보
+	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, t);
 
 	XMFLOAT3 pos;
 	XMStoreFloat3(&pos, curPos);
+
 	SetPosition(pos);
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);

@@ -531,7 +531,7 @@ void CGameFramework::AnimateObjects()
 			{
 				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);   //player update
 				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);
-				cout << "server:" << m_pWirePlayer->GetPosition().x << "," << m_pWirePlayer->GetPosition().y << "," << m_pWirePlayer->GetPosition().z << "\n";
+				//cout << "server:" << m_pWirePlayer->GetPosition().x << "," << m_pWirePlayer->GetPosition().y << "," << m_pWirePlayer->GetPosition().z << "\n";
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 				for (int j = 1; j < 11; ++j)
 				{

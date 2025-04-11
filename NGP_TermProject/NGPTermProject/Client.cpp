@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Client.h"
 
+std::chrono::steady_clock::time_point Client::receiveTimeCur = {};
+std::chrono::steady_clock::time_point Client::receiveTimePrev = {};
+
 int PacketSizeHelper(char packetType)
 {
 	int packetSize;
@@ -31,6 +34,9 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		PlayerInfoPacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoPacket));
 		client->playerData[piPacket.playerNumber] = piPacket;
+
+		client->receiveTimePrev = client->receiveTimeCur;
+		client->receiveTimeCur = std::chrono::steady_clock::now();
 		break;
 	}
 	case PACKET::ItemInfo:

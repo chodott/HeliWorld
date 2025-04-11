@@ -15,6 +15,7 @@
 #include <iostream>
 #include <fcntl.h>
 #include <chrono>
+#include <algorithm>
 
 #include "CSPacket.h"
 #include "error.h"
@@ -49,6 +50,10 @@ public:
 	char remain[512]{};
 	int remainOffset = 0;
 	int remainSize = 0;
+
+	//Interpolation
+	static std::chrono::steady_clock::time_point receiveTimePrev;
+	static std::chrono::steady_clock::time_point receiveTimeCur;
 
 private:
 	SOCKET* sock = nullptr;
