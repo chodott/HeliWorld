@@ -16,12 +16,17 @@ struct FPoint {
 
 #pragma pack(1)
 struct PlayerInfoPacket {
-	char packetType;
 	int playerNumber = -1;
 	int playerHP;
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	bool playerActive;
+};
+
+struct PlaterInfoBundlePacket
+{
+	char packetType;
+	PlayerInfoPacket playerInfos[4];
 };
 
 struct PlayerKeyPacket {

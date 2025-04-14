@@ -10,7 +10,7 @@ int PacketSizeHelper(char packetType)
 	switch (packetType)
 	{
 	case PACKET::PlayerInfo:
-		packetSize = sizeof(PlayerInfoPacket);
+		packetSize = sizeof(PlayerInfoBundlePacket);
 		break;
 	case PACKET::ItemInfo:
 		packetSize = sizeof(ItemInfoPacket);
@@ -31,9 +31,11 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 	case PACKET::PlayerInfo:
 	{
-		PlayerInfoPacket piPacket;
-		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoPacket));
-		client->playerData[piPacket.playerNumber] = piPacket;
+		PlayerInfoBundlePacket piPacket;
+		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
+		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		client->receiveTimePrev = client->receiveTimeCur;
+		client->receiveTimeCur = std::chrono::steady_clock::now();
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -184,8 +186,6 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 
 		int restBufSize = bufSize;
 		int bufOffset = 0;
-		client->receiveTimePrev = client->receiveTimeCur;
-		client->receiveTimeCur = std::chrono::steady_clock::now();
 		// process remain packet
 		if (client->remainSize > 0)
 		{

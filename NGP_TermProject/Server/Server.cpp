@@ -153,7 +153,7 @@ void Server::SendAllClient()
 			continue;
 		}
 
-		PlayerInfoPacket scInfo;
+		PlayerInfoBundlePacket scInfo;
 
 		Client* client = clients[i];
 		CPlayer* player = client->m_player;
@@ -163,12 +163,12 @@ void Server::SendAllClient()
 
 		// PlayerInfo
 		scInfo.packetType = SC_PlayerInfo;
-		scInfo.playerNumber = playerNumber;
-		scInfo.playerHP = player->m_nHp;
-		scInfo.position = position;
-		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
+		scInfo[i].playerNumber = playerNumber;
+		scInfo[i].playerHP = player->m_nHp;
+		scInfo[i].position = position;
+		scInfo[i].rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
 
-		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
+		if ((scInfo[i].playerActive = !client->ShouldDisconnected()) == false)
 		{
 			client->Disconnect();			// disconnect
 		}
@@ -180,7 +180,7 @@ void Server::SendAllClient()
 			{
 				continue;
 			}
-			send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
+			send(client->sock, (char*)&scInfo, sizeof(PlayerInfoBundlePacket), 0);
 
 			for (int i = 0; i < player->maxMissileNum; ++i)
 			{
