@@ -241,6 +241,7 @@ void Server::Update()
 {
 	ResetEvent(updateDone);
 
+	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		// connected, but dead

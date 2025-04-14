@@ -202,7 +202,8 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	float elapsedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - Client::receiveTimePrev).count();
 	float t = totalTime > 0.0f ? elapsedTime / totalTime : 1.0f;
 
-	t = Clamp(t, 0.0f, 1.0f); // 안정성 확보
+	t = Clamp(t, 0.0f, 1.0f); 
+	//cout << t << "\n";
 	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, t);
 
 	XMFLOAT3 pos;

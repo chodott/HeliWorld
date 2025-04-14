@@ -51,7 +51,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client->ConnectServer();
-	client->FrameAdvanced = CreateEvent(nullptr, true, false, false);
+	//client->FrameAdvanced = CreateEvent(nullptr, true, false, false);
 
 
 	CreateDirect3DDevice();
@@ -595,7 +595,8 @@ void CGameFramework::MoveToNextFrame()
 
 void CGameFramework::FrameAdvance()
 {
-	ResetEvent(client->FrameAdvanced);
+	//ResetEvent(client->FrameAdvanced);
+	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
 	ProcessInput();
@@ -603,7 +604,7 @@ void CGameFramework::FrameAdvance()
 	AnimateObjects();
 	client->SendtoServer();
 
-	SetEvent(client->FrameAdvanced);
+	//SetEvent(client->FrameAdvanced);
 
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
@@ -673,4 +674,6 @@ void CGameFramework::FrameAdvance()
 	XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
 	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
+
+	cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
 }
