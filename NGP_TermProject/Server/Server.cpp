@@ -158,7 +158,7 @@ void Server::SendAllClient()
 		Client* client = clients[i];
 		CPlayer* player = client->m_player;
 		int playerNumber = client->GetPlayerNumber();
-
+		scInfo.serverTimestampMs = GetTimestampMs();
 		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
 
 		// PlayerInfo
@@ -294,6 +294,13 @@ void Server::SpawnItem()
 			break;
 		}
 	}
+}
+
+uint32_t Server::GetTimestampMs()
+{
+	using namespace std::chrono;
+	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+		(steady_clock::now().time_since_epoch()).count();
 }
 
 

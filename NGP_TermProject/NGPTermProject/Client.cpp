@@ -33,9 +33,8 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-		client->receiveTimePrev = client->receiveTimeCur;
-		client->receiveTimeCur = std::chrono::steady_clock::now();
+		//memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		client->recvPacketQueue.push(piPacket);
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -181,7 +180,6 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	{
 		const int frameTime = 17;		// 1000ms / 60frame	+ 1
 		//WaitForSingleObject(client->FrameAdvanced, (DWORD)frameTime);
-
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
 
 		int restBufSize = bufSize;

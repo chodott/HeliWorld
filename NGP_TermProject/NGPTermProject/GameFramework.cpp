@@ -523,6 +523,9 @@ void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
 	int playernum = 0;
+	memcpy(&client->playerData, client->recvPacketQueue.front().playerInfos, sizeof(PlayerInfoPacket) * 4);
+	cout << client->recvPacketQueue.front().serverTimestampMs << "\n";
+	client->recvPacketQueue.pop();
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)
@@ -675,5 +678,5 @@ void CGameFramework::FrameAdvance()
 	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
-	cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
+	//cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
 }

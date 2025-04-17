@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <chrono>
 #include <algorithm>
+#include <queue>
 
 #include "CSPacket.h"
 #include "error.h"
@@ -54,6 +55,8 @@ public:
 	//Interpolation
 	static std::chrono::steady_clock::time_point receiveTimePrev;
 	static std::chrono::steady_clock::time_point receiveTimeCur;
+
+	queue<PlayerInfoBundlePacket> recvPacketQueue;
 
 private:
 	SOCKET* sock = nullptr;
