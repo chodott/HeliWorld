@@ -513,7 +513,8 @@ void CGameFramework::ProcessInput()
 					//   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, 1000.f, true);
+			if (dwDirection) m_pPlayer->Move(dwDirection, 2000.f * m_GameTimer.GetTimeElapsed(), false);
+			cout << m_GameTimer.GetTimeElapsed();
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
@@ -523,6 +524,14 @@ void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
 	int playernum = 0;
+
+	while (1)
+	{
+		if (client->lastServerTimestamp <= client->recvPacketQueue.front().serverTimestampMs) break;
+		client->recvPacketQueue.pop_front();
+	}
+	client->lastServerTimestamp = client->recvPacketQueue.back().serverTimestampMs;
+	memcpy(&client->playerData, client->recvPacketQueue.back().playerInfos, sizeof(PlayerInfoPacket) * 4);
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)
@@ -531,7 +540,6 @@ void CGameFramework::AnimateObjects()
 			{
 				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);   //player update
 				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);
-				//cout << "server:" << m_pWirePlayer->GetPosition().x << "," << m_pWirePlayer->GetPosition().y << "," << m_pWirePlayer->GetPosition().z << "\n";
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 				for (int j = 1; j < 11; ++j)
 				{
@@ -675,5 +683,5 @@ void CGameFramework::FrameAdvance()
 	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
-	cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
+	//cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
 }

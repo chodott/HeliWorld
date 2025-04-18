@@ -198,18 +198,15 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	XMVECTOR prevPos = XMLoadFloat3(&GetPosition());
 	XMVECTOR nextPos = XMLoadFloat3(&PlayerPacket->position);
 
-	float totalTime = std::chrono::duration<float>(Client::receiveTimeCur - Client::receiveTimePrev).count();
-	float elapsedTime = std::chrono::duration<float>(std::chrono::steady_clock::now() - Client::receiveTimePrev).count();
-	float t = totalTime > 0.0f ? elapsedTime / totalTime : 1.0f;
+	//Move From ServerPosition
 
-	t = Clamp(t, 0.0f, 1.0f); 
-	//cout << t << "\n";
-	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, t);
-
+	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, 0.1f);
 	XMFLOAT3 pos;
 	XMStoreFloat3(&pos, curPos);
 
 	SetPosition(pos);
+
+	//cout << "Local:  " << GetPosition().x << " " << GetPosition().y << " " << GetPosition().z << "|  Packet:  " << PlayerPacket->position.x << " " << PlayerPacket->position.y << " " << PlayerPacket->position.z << "\n";
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
@@ -218,7 +215,6 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	if (m_pCameraUpdatedContext) OnCameraUpdateCallback(fTimeElapsed);
 	if (nCurrentCameraMode == THIRD_PERSON_CAMERA) m_pCamera->SetLookAt(m_xmf3Position);
 	m_pCamera->RegenerateViewMatrix();
-	//SetRotation(PlayerPacket->rotationMatrix);
 }
 
 CCamera *CPlayer::OnChangeCamera(DWORD nNewCameraMode, DWORD nCurrentCameraMode)

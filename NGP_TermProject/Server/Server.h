@@ -57,6 +57,8 @@ public:
 	void CheckCollision();
 	void SpawnItem();
 
+	uint32_t GetTimestampMs();
+
 	SOCKET* GetSocket() { return &listenSock; }
 
 	Clock timer;

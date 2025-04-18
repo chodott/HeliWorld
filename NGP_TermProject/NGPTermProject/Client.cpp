@@ -33,9 +33,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-		client->receiveTimePrev = client->receiveTimeCur;
-		client->receiveTimeCur = std::chrono::steady_clock::now();
+		client->recvPacketQueue.push_back(piPacket);
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -170,6 +168,13 @@ void Client::SendtoServer()
 	sendKey &= (~option6);
 }
 
+uint32_t Client::GetTimestampMs()
+{
+	using namespace std::chrono;
+	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+		(steady_clock::now().time_since_epoch()).count();
+}
+
 DWORD WINAPI ReceiveFromServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
@@ -181,7 +186,6 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	{
 		const int frameTime = 17;		// 1000ms / 60frame	+ 1
 		//WaitForSingleObject(client->FrameAdvanced, (DWORD)frameTime);
-
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
 
 		int restBufSize = bufSize;
