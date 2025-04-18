@@ -725,20 +725,21 @@ void CGameObject::MoveForward(float fDistance)
     CGameObject::SetPosition(xmf3Position);
 }
 
-void CGameObject::Move(ULONG nDirection, float fDistance, bool bVelocity)
-{
-    /*if (dwDirection)
-    {
-       XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-       if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
-       if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
-       if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
-       if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
-       if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
-       if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
-       Move(xmf3Shift, bUpdateVelocity);
-    }*/
+void CGameObject::Move(ULONG dwDirection, float fDistance, bool bVelocity)
+{
+    if (dwDirection)
+    {
+        XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
+        if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
+        if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
+        if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
+        if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
+        if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
+        if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
+
+        Move(xmf3Shift, bVelocity);
+    }
 }
 
 void CGameObject::Move(const XMFLOAT3& xmf3Shift, bool bVelocity)

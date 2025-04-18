@@ -33,8 +33,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		//memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-		client->recvPacketQueue.push(piPacket);
+		client->recvPacketQueue.push_back(piPacket);
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -167,6 +166,13 @@ void Client::SendtoServer()
 		return;
 	}
 	sendKey &= (~option6);
+}
+
+uint32_t Client::GetTimestampMs()
+{
+	using namespace std::chrono;
+	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+		(steady_clock::now().time_since_epoch()).count();
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)

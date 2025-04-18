@@ -17,6 +17,7 @@
 #include <chrono>
 #include <algorithm>
 #include <queue>
+#include <deque>
 
 #include "CSPacket.h"
 #include "error.h"
@@ -53,10 +54,15 @@ public:
 	int remainSize = 0;
 
 	//Interpolation
+
+	uint32_t GetTimestampMs();
+
 	static std::chrono::steady_clock::time_point receiveTimePrev;
 	static std::chrono::steady_clock::time_point receiveTimeCur;
+	uint32_t lastServerTimestamp = 0;
+	const int delay = 200;
 
-	queue<PlayerInfoBundlePacket> recvPacketQueue;
+	deque<PlayerInfoBundlePacket> recvPacketQueue;
 
 private:
 	SOCKET* sock = nullptr;
