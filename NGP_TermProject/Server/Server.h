@@ -73,6 +73,15 @@ public:
 
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
+
+	//Send Packet Delay
+	const int packetSendInterval = 17;
+	chrono::steady_clock::time_point lastSendTime;
+
+	//Fixed Frametime
+	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
+	chrono::high_resolution_clock::time_point lastUpdateTimePoint;
+
 private:
 	SOCKET listenSock;
 };

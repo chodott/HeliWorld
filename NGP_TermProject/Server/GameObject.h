@@ -84,7 +84,7 @@ public:
 	void Update(float elapsedTime, int connectedClients);
 	void Reset(int playerNum);
 
-	const float movingSpeed = 2000.f;
+	const float movingSpeed = 200.f;
 
 	float m_deltaX = 0.f;
 	float m_deltaY = 0.f;

@@ -146,6 +146,13 @@ void Server::CheckCollision()
 
 void Server::SendAllClient()
 {
+	auto now = chrono::steady_clock::now();
+	if (chrono::duration_cast<chrono::milliseconds>(now - lastSendTime).count() < packetSendInterval) return;
+
+	lastSendTime = now;
+
+	PlayerInfoBundlePacket scInfoBundle;
+	scInfoBundle.serverTimestampMs = GetTimestampMs();
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
 	{
 		if (!clients[i]->IsConnected())
@@ -153,22 +160,21 @@ void Server::SendAllClient()
 			continue;
 		}
 
-		PlayerInfoBundlePacket scInfo;
 
 		Client* client = clients[i];
 		CPlayer* player = client->m_player;
 		int playerNumber = client->GetPlayerNumber();
-		scInfo.serverTimestampMs = GetTimestampMs();
 		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
 
 		// PlayerInfo
-		scInfo.packetType = SC_PlayerInfo;
-		scInfo[i].playerNumber = playerNumber;
-		scInfo[i].playerHP = player->m_nHp;
-		scInfo[i].position = position;
-		scInfo[i].rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
+		PlayerInfoPacket& scInfo = scInfoBundle.playerInfos[i];
+		scInfoBundle.packetType = SC_PlayerInfo;
+		scInfo.playerNumber = playerNumber;
+		scInfo.playerHP = player->m_nHp;
+		scInfo.position = position;
+		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
 
-		if ((scInfo[i].playerActive = !client->ShouldDisconnected()) == false)
+		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
 		{
 			client->Disconnect();			// disconnect
 		}
@@ -180,7 +186,7 @@ void Server::SendAllClient()
 			{
 				continue;
 			}
-			send(client->sock, (char*)&scInfo, sizeof(PlayerInfoBundlePacket), 0);
+			send(client->sock, (char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
 
 			for (int i = 0; i < player->maxMissileNum; ++i)
 			{
@@ -401,11 +407,17 @@ int main()
 	srand(time(NULL));
 
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
+	g_server->lastUpdateTimePoint = chrono::high_resolution_clock::now();
 	while (true)
 	{
-		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
-		g_server->timer.Record();
-		g_server->Update();
+		g_server->elapsedTime += g_server->timer.GetTimePassedFromLastUpdate();
+		if (g_server->elapsedTime >= g_server->FIXED_DELTA_TIME)
+		{
+			g_server->timer.Record();
+			g_server->Update();
+			g_server->elapsedTime -= g_server->FIXED_DELTA_TIME;
+		}
+	
 	}
 }
 
