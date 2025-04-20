@@ -505,16 +505,15 @@ void CGameFramework::ProcessInput()
 			{
 				if (pKeysBuffer[VK_RBUTTON] & 0xF0)
 				{
-					//m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
+					m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 				}
 				else
 				{
 
-					//   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
+					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, 2000.f * m_GameTimer.GetTimeElapsed(), false);
-			cout << m_GameTimer.GetTimeElapsed();
+			if (dwDirection) m_pPlayer->Move(dwDirection, 200.f * m_GameTimer.GetTimeElapsed(), false);
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
@@ -523,15 +522,7 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	int playernum = 0;
 
-	while (1)
-	{
-		if (client->lastServerTimestamp <= client->recvPacketQueue.front().serverTimestampMs) break;
-		client->recvPacketQueue.pop_front();
-	}
-	client->lastServerTimestamp = client->recvPacketQueue.back().serverTimestampMs;
-	memcpy(&client->playerData, client->recvPacketQueue.back().playerInfos, sizeof(PlayerInfoPacket) * 4);
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)

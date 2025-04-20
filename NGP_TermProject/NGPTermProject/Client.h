@@ -53,17 +53,6 @@ public:
 	int remainOffset = 0;
 	int remainSize = 0;
 
-	//Interpolation
-
-	uint32_t GetTimestampMs();
-
-	static std::chrono::steady_clock::time_point receiveTimePrev;
-	static std::chrono::steady_clock::time_point receiveTimeCur;
-	uint32_t lastServerTimestamp = 0;
-	const int delay = 200;
-
-	deque<PlayerInfoBundlePacket> recvPacketQueue;
-
 private:
 	SOCKET* sock = nullptr;
 

@@ -26,8 +26,8 @@ CPlayer::CPlayer()
 	m_fFriction = 0.0f;
 
 	m_fPitch = 0.0f;
-	m_fRoll = 0.0f;
-	m_fYaw = 0.0f;
+	m_fRoll = 0.00f;
+	m_fYaw = 90.0f;
 
 	m_pPlayerUpdatedContext = NULL;
 	m_pCameraUpdatedContext = NULL;
@@ -152,7 +152,7 @@ void CPlayer::Rotate(float x, float y, float z)
 			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
 		}
 	}
-
+	m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
 	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
 	m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
@@ -164,7 +164,6 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 	m_xmf4x4World = Matrix4x4::Identity();
 	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
 	m_xmf3Right.x = m_xmf4x4World._11, m_xmf3Right.y = m_xmf4x4World._12, m_xmf3Right.z = m_xmf4x4World._13;
-	//cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
 	m_xmf3Up.x = m_xmf4x4World._21, m_xmf3Up.y = m_xmf4x4World._22, m_xmf3Up.z = m_xmf4x4World._23;
 	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
 }
@@ -194,18 +193,22 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
-	RotatePYR(PlayerPacket->rotation);
-	XMVECTOR prevPos = XMLoadFloat3(&GetPosition());
-	XMVECTOR nextPos = XMLoadFloat3(&PlayerPacket->position);
+	XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
+	XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
 
-	//Move From ServerPosition
+	XMFLOAT3 curRotation  = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
+	RotatePYR(curRotation);
 
-	XMVECTOR curPos = XMVectorLerp(prevPos, nextPos, 0.1f);
-	XMFLOAT3 pos;
-	XMStoreFloat3(&pos, curPos);
+	XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
+	XMVECTOR nextPosition = XMLoadFloat3(&PlayerPacket->position);
 
-	SetPosition(pos);
+	XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
+	XMFLOAT3 resultPosition;
+	XMStoreFloat3(&resultPosition, curPosition);
+	SetPosition(resultPosition);
+
+	//Compare Position Code between server client
 	//cout << "Local:  " << GetPosition().x << " " << GetPosition().y << " " << GetPosition().z << "|  Packet:  " << PlayerPacket->position.x << " " << PlayerPacket->position.y << " " << PlayerPacket->position.z << "\n";
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
@@ -280,6 +283,23 @@ void CPlayer::SetRotation(XMFLOAT3X3 xmf3Rotation)
 
 	m_xmf4x4World = m_xmf4x4Transform;
 }
+
+XMFLOAT3 CPlayer::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t)
+{
+	auto LerpAngle = [](float a, float b, float t) -> float
+	{
+		// b - a의 차이를 -180 ~ 180도로 만들어서 가장 짧은 방향으로 회전
+		float delta = fmodf(b - a + 540.0f, 360.0f) - 180.0f;
+		return a + delta * t;
+	};
+
+	XMFLOAT3 result;
+	result.x = LerpAngle(prevRotation.x, nextRotation.x, t); // Pitch
+	result.y = LerpAngle(prevRotation.y, nextRotation.y, t); // Yaw
+	result.z = LerpAngle(prevRotation.z, nextRotation.z, t); // Roll
+	return result;
+}
+
 void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
 	DWORD nCameraMode = (pCamera) ? pCamera->GetMode() : 0x00;

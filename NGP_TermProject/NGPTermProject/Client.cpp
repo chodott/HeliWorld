@@ -1,9 +1,6 @@
 #include "stdafx.h"
 #include "Client.h"
 
-std::chrono::steady_clock::time_point Client::receiveTimeCur = {};
-std::chrono::steady_clock::time_point Client::receiveTimePrev = {};
-
 int PacketSizeHelper(char packetType)
 {
 	int packetSize;
@@ -33,7 +30,8 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		client->recvPacketQueue.push_back(piPacket);
+		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -166,13 +164,6 @@ void Client::SendtoServer()
 		return;
 	}
 	sendKey &= (~option6);
-}
-
-uint32_t Client::GetTimestampMs()
-{
-	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
-		(steady_clock::now().time_since_epoch()).count();
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)
