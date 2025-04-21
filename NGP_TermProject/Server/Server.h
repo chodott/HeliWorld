@@ -51,6 +51,8 @@ public:
 	void OpenListenSocket();
 
 	void SendAllClient();
+	void SendPacketAllClient(char* packet, int size, int flag);
+
 
 	// 클라 충돌 및 움직임 송수신
 	void Update();
@@ -114,3 +116,15 @@ private:
 	bool shouldDisconnected = false;
 };
 
+void Server::SendPacketAllClient(char* packet, int size, int flag)
+{
+	// send client[i] info to all clients
+	for (const auto& client : clients)
+	{
+		if (!client->IsConnected())
+		{
+			continue;
+		}
+		send(client->sock, packet, size, flag);
+	}
+}

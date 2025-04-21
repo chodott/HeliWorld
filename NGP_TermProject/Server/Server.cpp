@@ -148,19 +148,16 @@ void Server::SendAllClient()
 {
 	auto now = chrono::steady_clock::now();
 	if (chrono::duration_cast<chrono::milliseconds>(now - lastSendTime).count() < packetSendInterval) return;
-
 	lastSendTime = now;
 
 	PlayerInfoBundlePacket scInfoBundle;
-	scInfoBundle.serverTimestampMs = GetTimestampMs();
+	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
 	{
 		if (!clients[i]->IsConnected())
 		{
 			continue;
 		}
-
-
 		Client* client = clients[i];
 		CPlayer* player = client->m_player;
 		int playerNumber = client->GetPlayerNumber();
@@ -178,68 +175,58 @@ void Server::SendAllClient()
 		{
 			client->Disconnect();			// disconnect
 		}
-
-		// send client[i] info to all clients
-		for (const auto& client : clients)
+		for (int i = 0; i < player->maxMissileNum; ++i)
 		{
-			if (!client->IsConnected())
+			CMissileObject* missile = player->m_pMissiles[i];
+			if (!missile->IsActive())
 			{
 				continue;
 			}
-			send(client->sock, (char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
 
-			for (int i = 0; i < player->maxMissileNum; ++i)
+			MissileInfoPacket scMissile;
+			scMissile.packetType = SC_MissileInfo;
+			scMissile.playerNumber = playerNumber;
+			scMissile.missileNumber = i;
+			if (missile->shouldDeactivated)
 			{
-				CMissileObject* missile = player->m_pMissiles[i];
-				if (!missile->IsActive())
-				{
-					continue;
-				}
-
-				MissileInfoPacket scMissile;
-				scMissile.packetType = SC_MissileInfo;
-				scMissile.playerNumber = playerNumber;
-				scMissile.missileNumber = i;
-				if (missile->shouldDeactivated)
-				{
-					trashCan.push(missile);
-					scMissile.active = false;
-				}
-				else
-				{
-					scMissile.active = true;
-				}
-
-				scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-				scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
-				send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
+				trashCan.push(missile);
+				scMissile.active = false;
+			}
+			else
+			{
+				scMissile.active = true;
 			}
 
-			//sending ItemInfo Packet
-			for (int i = 0; i < MAX_ITEM_NUM; ++i)
-			{
-				CItemObject* item = m_ItemObject[i];
-				if (!item->IsActive())
-				{
-					continue;
-				}
-
-				ItemInfoPacket scItem;
-				scItem.packetType = SC_ItemInfo;
-				if (item->shouldDeactivated)
-				{
-					trashCan.push(item);
-					scItem.active = false;
-				}
-				else
-				{
-					scItem.active = true;
-				}
-				scItem.itemNum = i;
-				scItem.position = item->GetCurPos();
-				send(client->sock, (char*)&scItem, sizeof(ItemInfoPacket), 0);
-			}
+			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
+			scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
+			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
 		}
+	}
+	SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
+
+	//sending ItemInfo Packet
+	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	{
+		CItemObject* item = m_ItemObject[i];
+		if (!item->IsActive())
+		{
+			continue;
+		}
+
+		ItemInfoPacket scItem;
+		scItem.packetType = SC_ItemInfo;
+		if (item->shouldDeactivated)
+		{
+			trashCan.push(item);
+			scItem.active = false;
+		}
+		else
+		{
+			scItem.active = true;
+		}
+		scItem.itemNum = i;
+		scItem.position = item->GetCurPos();
+		SendPacketAllClient((char*)&scItem, sizeof(ItemInfoPacket), 0);
 	}
 }
 
