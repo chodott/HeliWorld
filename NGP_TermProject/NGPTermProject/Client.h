@@ -53,10 +53,13 @@ public:
 	int remainOffset = 0;
 	int remainSize = 0;
 
+	//
+	uint32_t lastRecvPacketTime = -1;
+
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.7";
+	char* serverIp = (char*)"172.29.27.115";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

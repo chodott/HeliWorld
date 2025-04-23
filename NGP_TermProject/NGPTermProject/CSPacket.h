@@ -49,7 +49,6 @@ struct MissileInfoPacket {
 	int missileNumber;
 	bool active = false;
 	XMFLOAT3 position;
-	XMFLOAT3 rotation;
 };
 #pragma pack()
 

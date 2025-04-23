@@ -30,8 +30,10 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
+		uint32_t timestamp = ntohl(piPacket.serverTimestampMs);
+		if (piPacket.serverTimestampMs <= timestamp) return;
+		client->lastRecvPacketTime = timestamp;
 		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-
 		break;
 	}
 	case PACKET::ItemInfo:

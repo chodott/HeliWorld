@@ -41,6 +41,7 @@ protected:
 	CShader   *m_pMissileShader = NULL;
 
 	//Debug
+	int							playerNum = 0;
 	bool						bWire = false;
 
 public:
@@ -72,6 +73,7 @@ public:
 	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	virtual void Rotate(float x, float y, float z);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+	void LaunchMissiles(CGameObject** missiles, int num);
 
 	void Update(float fTimeElapsed);
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);

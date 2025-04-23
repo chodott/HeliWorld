@@ -65,10 +65,22 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 {
 	SetActive(MissilePacket->active);
 	
-	RotatePYR(XMFLOAT3(MissilePacket->rotation.x, MissilePacket->rotation.y, MissilePacket->rotation.z));
+	//RotatePYR(XMFLOAT3(MissilePacket->rotation.x, MissilePacket->rotation.y, MissilePacket->rotation.z));
+	
+	Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
+	XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
+	XMVECTOR nextPosition = XMLoadFloat3(&MissilePacket->position);
+
+	XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
+
+	XMFLOAT3 resultPosition;
+	XMStoreFloat3(&resultPosition, curPosition);
+	SetPosition(resultPosition);
 
 	SetPosition(MissilePacket->position);
-	
+	if(MissilePacket->active)
+	cout << MissilePacket->position.x << ", " << MissilePacket->position.y << "," << MissilePacket->position.z << "\n";
+
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);

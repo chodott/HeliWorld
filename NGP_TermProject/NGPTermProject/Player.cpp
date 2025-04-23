@@ -168,6 +168,18 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
 }
 
+void CPlayer::LaunchMissiles(CGameObject** missiles, int num)
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		auto& missile = missiles[i + num];
+		if (missile->GetActive()) continue;
+		missile->SetActive(true);
+		missile->SetPosition(GetPosition());
+		missile->SetMovingDirection(GetLookVector());
+	}
+}
+
 void CPlayer::Update(float fTimeElapsed)
 {
 	/*m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, m_xmf3Gravity);
@@ -208,8 +220,6 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	XMStoreFloat3(&resultPosition, curPosition);
 	SetPosition(resultPosition);
 
-	//Compare Position Code between server client
-	//cout << "Local:  " << GetPosition().x << " " << GetPosition().y << " " << GetPosition().z << "|  Packet:  " << PlayerPacket->position.x << " " << PlayerPacket->position.y << " " << PlayerPacket->position.z << "\n";
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

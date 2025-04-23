@@ -30,6 +30,8 @@ public:
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
+	const int movingSpeed = 300.f;
+
 private:
 	bool m_Collision = false;
 	int m_ID;
