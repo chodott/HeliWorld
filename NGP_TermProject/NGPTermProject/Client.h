@@ -1,6 +1,5 @@
 #pragma once
 
-
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -40,6 +39,8 @@ public:
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void SendtoServer();
 
+	uint32_t GetTimestampMs();
+
 	PlayerInfoPacket playerData[4];
 	MissileInfoPacket missilePacket[32];
 	ItemInfoPacket itemPacket[10];
@@ -59,7 +60,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.29.27.115";
+	char* serverIp = (char*)"192.168.0.11";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

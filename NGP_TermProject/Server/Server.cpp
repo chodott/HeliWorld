@@ -146,9 +146,9 @@ void Server::CheckCollision()
 
 void Server::SendAllClient()
 {
-	auto now = chrono::steady_clock::now();
+	/*auto now = chrono::steady_clock::now();
 	if (chrono::duration_cast<chrono::milliseconds>(now - lastSendTime).count() < packetSendInterval) return;
-	lastSendTime = now;
+	lastSendTime = now;*/
 
 	PlayerInfoBundlePacket scInfoBundle;
 	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
@@ -162,7 +162,6 @@ void Server::SendAllClient()
 		CPlayer* player = client->m_player;
 		int playerNumber = client->GetPlayerNumber();
 		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
-
 		// PlayerInfo
 		PlayerInfoPacket& scInfo = scInfoBundle.playerInfos[i];
 		scInfoBundle.packetType = SC_PlayerInfo;
@@ -170,11 +169,12 @@ void Server::SendAllClient()
 		scInfo.playerHP = player->m_nHp;
 		scInfo.position = position;
 		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
-
 		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
 		{
 			client->Disconnect();			// disconnect
 		}
+		send(client->sock, (char*)&keyPackets[playerNumber], sizeof(PlayerKeyPacket), 0);
+
 		for (int i = 0; i < player->maxMissileNum; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
@@ -198,7 +198,6 @@ void Server::SendAllClient()
 			}
 
 			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-			scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
 			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
 		}
 	}
@@ -354,8 +353,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 	client->Connected();
 	++g_server->connectedClients;
-
-	PlayerKeyPacket keyPacket;
+	PlayerKeyPacket& keyPacket = g_server->keyPackets[playerNumber];
 	while (true)
 	{
 		WaitForSingleObject(g_server->updateDone, INFINITE);
@@ -404,7 +402,6 @@ int main()
 			g_server->Update();
 			g_server->elapsedTime -= g_server->FIXED_DELTA_TIME;
 		}
-	
 	}
 }
 

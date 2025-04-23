@@ -6,6 +6,7 @@
 const char SC_PlayerInfo = 0;
 const char SC_ItemInfo = 1;
 const char SC_MissileInfo = 2;
+const char SC_KeyInfo = 3;
 
 
 struct FPoint {
@@ -30,9 +31,12 @@ struct PlayerInfoBundlePacket
 	uint32_t serverTimestampMs;
 };
 
+
 struct PlayerKeyPacket {
+	char packetType;
 	unsigned char playerKeyInput;
 	FPoint deltaMouse;
+	uint32_t timestampMs;
 };
 
 struct ItemInfoPacket {
@@ -48,7 +52,7 @@ struct MissileInfoPacket {
 	int missileNumber;
 	bool active = false;
 	XMFLOAT3 position;
-	XMFLOAT3 rotation;
 };
+
 #pragma pack()
 

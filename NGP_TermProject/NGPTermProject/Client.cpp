@@ -15,6 +15,9 @@ int PacketSizeHelper(char packetType)
 	case PACKET::MissileInfo:
 		packetSize = sizeof(MissileInfoPacket);
 		break;
+	case PACKET::KeyInfo:
+		packetSize = sizeof(PlayerKeyPacket);
+		break;
 	default:
 		packetSize = -1;
 		break;
@@ -48,6 +51,13 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		MissileInfoPacket miPacket;
 		memcpy(&miPacket, fillTarget, sizeof(MissileInfoPacket));
 		client->missilePacket[miPacket.playerNumber * 8 + miPacket.missileNumber] = miPacket;
+		break;
+	}
+	{
+	case PACKET::KeyInfo:
+		PlayerKeyPacket pkPacket;
+		memcpy(&pkPacket, fillTarget, sizeof(PlayerKeyPacket));
+		cout << client->GetTimestampMs() - pkPacket.timestampMs << "\n";
 		break;
 	}
 	default:
@@ -158,14 +168,23 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::SendtoServer()
 {
 	PlayerKeyPacket cs_key;
+	cs_key.packetType = PACKET::KeyInfo;
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
+	cs_key.timestampMs = GetTimestampMs();
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
 		return;
 	}
 	sendKey &= (~option6);
+}
+
+uint32_t Client::GetTimestampMs()
+{
+	using namespace std::chrono;
+	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+		(steady_clock::now().time_since_epoch()).count();
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)

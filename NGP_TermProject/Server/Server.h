@@ -53,6 +53,7 @@ public:
 	void SendAllClient();
 	void SendPacketAllClient(char* packet, int size, int flag);
 
+	PlayerKeyPacket keyPackets[4];
 
 	// 클라 충돌 및 움직임 송수신
 	void Update();
