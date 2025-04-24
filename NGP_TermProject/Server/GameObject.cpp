@@ -185,7 +185,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		// Attack
 		if (playerKey & option6)
 		{
-			if (connectedClients >= 2) LaunchMissile();			// if not alone in the server
+			if (connectedClients >= 1) LaunchMissile();			// if not alone in the server
 			playerKey &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;

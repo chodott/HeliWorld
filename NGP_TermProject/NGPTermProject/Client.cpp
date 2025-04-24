@@ -53,11 +53,10 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		client->missilePacket[miPacket.playerNumber * 8 + miPacket.missileNumber] = miPacket;
 		break;
 	}
-	{
 	case PACKET::KeyInfo:
+	{
 		PlayerKeyPacket pkPacket;
 		memcpy(&pkPacket, fillTarget, sizeof(PlayerKeyPacket));
-		cout << client->GetTimestampMs() - pkPacket.timestampMs << "\n";
 		break;
 	}
 	default:

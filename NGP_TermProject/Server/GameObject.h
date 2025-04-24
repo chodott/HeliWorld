@@ -91,9 +91,9 @@ public:
 
 	unsigned char playerKey = 0;
 
-	XMFLOAT3 initialPos[4]{ {100,400,500},{500,400,100},{900,400,500},{500,400,900} };
+	XMFLOAT3 initialPos[4]{ {100,400,500},{100,400,500},{100,400,500},{100,400,500} };
 
-	XMFLOAT3 initialRot[4]{ {0,90,0},{0,0,0},{0,-90,0},{0,180,0} };
+	XMFLOAT3 initialRot[4]{ {0,90,0},{0,90,0},{0,90,0},{0,90,0} };
 
 private:
 	// Key bindings
@@ -117,7 +117,7 @@ class CMissileObject : public GameObject
 public:
 	int m_playerNumber = 0;
 	int damage = 10;
-	const float movingSpeed = 800.f;
+	const float movingSpeed = 300.f;
 
 	float m_fLifeSpan = 6.f;
 

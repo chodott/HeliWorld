@@ -60,7 +60,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"192.168.0.11";
+	char* serverIp = (char*)"192.168.0.55";
 
 	unsigned char sendKey = NULL;
 	unsigned char option0 = 0x01;   // 0000 0001 

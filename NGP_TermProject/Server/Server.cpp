@@ -198,6 +198,7 @@ void Server::SendAllClient()
 			}
 
 			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
+			//cout << missile->m_fxPos << ", " << missile->m_fyPos << ", " << missile->m_fzPos << "\n";
 			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
 		}
 	}
