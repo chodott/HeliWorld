@@ -18,7 +18,7 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket);
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* MissilePacket);
 
 
@@ -31,6 +31,7 @@ public:
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
 	const int movingSpeed = 300.f;
+	bool bServerLife = false;
 
 private:
 	bool m_Collision = false;

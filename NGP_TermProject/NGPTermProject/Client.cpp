@@ -80,17 +80,7 @@ Client::~Client()
 
 void Client::ConnectServer()
 {
-	std::ifstream in{ "ip.ini" };
-	if (!in.is_open())
-	{
-		std::ofstream out{ "ip.ini" };
-		out << "127.0.0.1";
-		out.close();
-	}
 
-	//std::string ip;
-	//in >> ip;
-	//strcpy(serverIp, ip.c_str());
 
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
 
@@ -196,7 +186,6 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	while (true)
 	{
 		const int frameTime = 17;		// 1000ms / 60frame	+ 1
-		//WaitForSingleObject(client->FrameAdvanced, (DWORD)frameTime);
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
 
 		int restBufSize = bufSize;

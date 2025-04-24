@@ -146,10 +146,6 @@ void Server::CheckCollision()
 
 void Server::SendAllClient()
 {
-	/*auto now = chrono::steady_clock::now();
-	if (chrono::duration_cast<chrono::milliseconds>(now - lastSendTime).count() < packetSendInterval) return;
-	lastSendTime = now;*/
-
 	PlayerInfoBundlePacket scInfoBundle;
 	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
@@ -198,7 +194,6 @@ void Server::SendAllClient()
 			}
 
 			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-			//cout << missile->m_fxPos << ", " << missile->m_fyPos << ", " << missile->m_fzPos << "\n";
 			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
 		}
 	}
@@ -256,7 +251,6 @@ void Server::Update()
 	SetEvent(updateDone);
 
 	CheckCollision();
-	SendAllClient();
 
 	itemSpawnTime += elapsedTime;
 	if (itemSpawnTime > itemRespawnTime)
@@ -368,8 +362,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 		CPlayer* player = client->m_player;
 		player->playerKey = keyPacket.playerKeyInput;
 
-		player->m_deltaX = keyPacket.deltaMouse.x;
-		player->m_deltaY = keyPacket.deltaMouse.y;
+		player->m_deltaX += keyPacket.deltaMouse.x;
+		player->m_deltaY += keyPacket.deltaMouse.y;
 	}
 
 	return 0;
@@ -393,15 +387,15 @@ int main()
 	srand(time(NULL));
 
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
-	g_server->lastUpdateTimePoint = chrono::high_resolution_clock::now();
 	while (true)
 	{
-		g_server->elapsedTime += g_server->timer.GetTimePassedFromLastUpdate();
+		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
 		if (g_server->elapsedTime >= g_server->FIXED_DELTA_TIME)
 		{
 			g_server->timer.Record();
 			g_server->Update();
-			g_server->elapsedTime -= g_server->FIXED_DELTA_TIME;
+			g_server->SendAllClient();
+			g_server->elapsedTime = g_server->FIXED_DELTA_TIME;
 		}
 	}
 }

@@ -220,6 +220,11 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 	XMStoreFloat3(&resultPosition, curPosition);
 	SetPosition(resultPosition);
 
+	if (bWire)
+	{
+		RotatePYR(PlayerPacket->rotation);
+		SetPosition(PlayerPacket->position);
+	}
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

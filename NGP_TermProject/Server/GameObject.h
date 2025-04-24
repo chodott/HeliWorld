@@ -120,7 +120,7 @@ public:
 	const float movingSpeed = 300.f;
 
 	float m_fLifeSpan = 6.f;
-
+	
 	void Move(float elapsedTime);
 	void Reset();
 };

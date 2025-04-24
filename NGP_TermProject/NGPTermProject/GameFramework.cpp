@@ -419,31 +419,31 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
-	//CAirplanePlayer* pWirePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), true);
-	pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 500.0f));
+	CAirplanePlayer* pWirePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), true);
+	pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
 	switch (client->PlayerNum)
 	{
 	case 0:
-		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 500.0f));
-		//pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 500.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
+		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 500));
 		break;
 	case 1:
-		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 600.0f));
-		//pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 600.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
+		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 500));
 		break;
 	case 2:
 		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
-		//pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
+		pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
 		break;
 	case 3:
 		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
-		//pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
+		pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
 		break;
 	default:
 		break;
 	}
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
-	//m_pWirePlayer = pWirePlayer;
+	m_pWirePlayer = pWirePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
 	m_pd3dCommandList->Close();
@@ -518,7 +518,7 @@ void CGameFramework::ProcessInput()
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 
-	if (pKeysBuffer[VK_SPACE] & 0xF0) m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client->PlayerNum);
+	//if (pKeysBuffer[VK_SPACE] & 0xF0) m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client->PlayerNum);
 
 }
 
@@ -532,7 +532,7 @@ void CGameFramework::AnimateObjects()
 			if (client->playerData[i].playerNumber == client->PlayerNum)
 			{
 				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);   //player update
-				//m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);
+				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 				for (int j = 1; j < 11; ++j)
 				{
@@ -638,7 +638,7 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 #endif
 	if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
-	//if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
+	if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
 
 	d3dResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	d3dResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

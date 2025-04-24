@@ -34,7 +34,7 @@ struct PlayerInfoBundlePacket
 
 struct PlayerKeyPacket {
 	char packetType;
-	char playerKeyInput;
+	unsigned char playerKeyInput;
 	FPoint deltaMouse;
 	uint32_t timestampMs;
 };

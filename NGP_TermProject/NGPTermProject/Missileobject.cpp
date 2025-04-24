@@ -63,24 +63,31 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
 {
-	SetActive(MissilePacket->active);
-	
-	//RotatePYR(XMFLOAT3(MissilePacket->rotation.x, MissilePacket->rotation.y, MissilePacket->rotation.z));
-	
+	/*bool bServerActive = MissilePacket->active;
+	if (bServerActive) bServerLife = true;
+	if (bServerLife == true && bServerActive == false)
+	{
+		bServerLife = false;
+		SetActive(false);
+	}
+	if (!GetActive()) return;
+
 	Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-	XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
-	XMVECTOR nextPosition = XMLoadFloat3(&MissilePacket->position);
 
-	XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
+	if (bServerActive)
+	{
+		XMFLOAT3 resultPosition;
 
-	XMFLOAT3 resultPosition;
-	XMStoreFloat3(&resultPosition, curPosition);
-	SetPosition(resultPosition);
+		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
+		XMVECTOR nextPosition = XMLoadFloat3(&MissilePacket->position);
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
+		XMStoreFloat3(&resultPosition, curPosition);
+		SetPosition(resultPosition);
+	}*/
+
+	SetActive(MissilePacket->active);
 	SetPosition(MissilePacket->position);
-	if(MissilePacket->active)
-	cout << MissilePacket->position.x << ", " << MissilePacket->position.y << "," << MissilePacket->position.z << "\n";
-
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
@@ -89,12 +96,12 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Playe
 {
 	//SetActive(MissilePacket->active);
 
-	SetPosition(MissilePacket->position);
+	//SetPosition(MissilePacket->position);
 	//rotate
 
 
-	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
-	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
+	//if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
+	//if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 }
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {

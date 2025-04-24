@@ -127,7 +127,7 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 			//Check LifeSpan and Delete
 			if (missile->m_fLifeSpan < 0.f)
 			{
-				missile->m_bActive = false;
+				missile->shouldDeactivated = true;
 				missile->m_fLifeSpan = missileLifeSpan;
 			}
 		}
@@ -141,7 +141,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
 	Rotate(m_deltaY, m_deltaX, 0.f);
-
+	m_deltaY = 0.f; m_deltaX = 0.f;
 	if (playerKey)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
@@ -186,6 +186,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		if (playerKey & option6)
 		{
 			if (connectedClients >= 1) LaunchMissile();			// if not alone in the server
+			cout << "Check Space Input" << "\n";
 			playerKey &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
