@@ -112,6 +112,9 @@ public:
 
 	CPlayer* m_player = nullptr;
 
+	concurrency::concurrent_queue<unsigned char> keyInput_q;
+	
+
 	float deadTime = 0.f;
 private:
 	int m_playerNumber = -1;	// maybe client class can have playerID inside

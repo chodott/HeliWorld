@@ -233,6 +233,7 @@ void Server::Update()
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
+		clients[i]->keyInput_q.try_pop(clients[i]->m_player->playerKey);
 		// connected, but dead
 		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
 		{
@@ -365,10 +366,11 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 		{
 			Client* client = g_server->clients[i];
+			client->SetPlayerNumber(i);
+
 			if (!client->IsConnected())
 			{
 				client->sock = clientSock;
-				client->SetPlayerNumber(i);
 
 				std::cout << "Client accepted in " << client->GetPlayerNumber() << std::endl;
 				HANDLE receiver = CreateThread(NULL, 0, ReceiveFromClient, client, 0, NULL);
@@ -411,7 +413,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			break;
 		}
 		CPlayer* player = client->m_player;
-		player->playerKey = keyPacket.playerKeyInput;
+		client->keyInput_q.push(keyPacket.playerKeyInput);
+		//player->playerKey = keyPacket.playerKeyInput;
 
 		player->m_deltaX += keyPacket.deltaMouse.x;
 		player->m_deltaY += keyPacket.deltaMouse.y;
