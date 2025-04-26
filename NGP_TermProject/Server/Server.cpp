@@ -19,6 +19,7 @@ Server::Server()
 	}
 
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
+
 }
 
 Server::~Server()
@@ -144,86 +145,86 @@ void Server::CheckCollision()
 	}
 }
 
-void Server::SendAllClient()
-{
-	PlayerInfoBundlePacket scInfoBundle;
-	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
-	{
-		if (!clients[i]->IsConnected())
-		{
-			continue;
-		}
-		Client* client = clients[i];
-		CPlayer* player = client->m_player;
-		int playerNumber = client->GetPlayerNumber();
-		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
-		// PlayerInfo
-		PlayerInfoPacket& scInfo = scInfoBundle.playerInfos[i];
-		scInfoBundle.packetType = SC_PlayerInfo;
-		scInfo.playerNumber = playerNumber;
-		scInfo.playerHP = player->m_nHp;
-		scInfo.position = position;
-		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
-		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
-		{
-			client->Disconnect();			// disconnect
-		}
-		send(client->sock, (char*)&keyPackets[playerNumber], sizeof(PlayerKeyPacket), 0);
-
-		for (int i = 0; i < player->maxMissileNum; ++i)
-		{
-			CMissileObject* missile = player->m_pMissiles[i];
-			if (!missile->IsActive())
-			{
-				continue;
-			}
-
-			MissileInfoPacket scMissile;
-			scMissile.packetType = SC_MissileInfo;
-			scMissile.playerNumber = playerNumber;
-			scMissile.missileNumber = i;
-			if (missile->shouldDeactivated)
-			{
-				trashCan.push(missile);
-				scMissile.active = false;
-			}
-			else
-			{
-				scMissile.active = true;
-			}
-
-			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
-		}
-	}
-	SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
-
-	//sending ItemInfo Packet
-	for (int i = 0; i < MAX_ITEM_NUM; ++i)
-	{
-		CItemObject* item = m_ItemObject[i];
-		if (!item->IsActive())
-		{
-			continue;
-		}
-
-		ItemInfoPacket scItem;
-		scItem.packetType = SC_ItemInfo;
-		if (item->shouldDeactivated)
-		{
-			trashCan.push(item);
-			scItem.active = false;
-		}
-		else
-		{
-			scItem.active = true;
-		}
-		scItem.itemNum = i;
-		scItem.position = item->GetCurPos();
-		SendPacketAllClient((char*)&scItem, sizeof(ItemInfoPacket), 0);
-	}
-}
+//void Server::SendAllClient()
+//{
+//	PlayerInfoBundlePacket scInfoBundle;
+//	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
+//	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
+//	{
+//		if (!clients[i]->IsConnected())
+//		{
+//			continue;
+//		}
+//		Client* client = clients[i];
+//		CPlayer* player = client->m_player;
+//		int playerNumber = client->GetPlayerNumber();
+//		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
+//		// PlayerInfo
+//		PlayerInfoPacket& scInfo = scInfoBundle.playerInfos[i];
+//		scInfoBundle.packetType = SC_PlayerInfo;
+//		scInfo.playerNumber = playerNumber;
+//		scInfo.playerHP = player->m_nHp;
+//		scInfo.position = position;
+//		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
+//		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
+//		{
+//			client->Disconnect();			// disconnect
+//		}
+//		send(client->sock, (char*)&keyPackets[playerNumber], sizeof(PlayerKeyPacket), 0);
+//
+//		for (int i = 0; i < player->maxMissileNum; ++i)
+//		{
+//			CMissileObject* missile = player->m_pMissiles[i];
+//			if (!missile->IsActive())
+//			{
+//				continue;
+//			}
+//
+//			MissileInfoPacket scMissile;
+//			scMissile.packetType = SC_MissileInfo;
+//			scMissile.playerNumber = playerNumber;
+//			scMissile.missileNumber = i;
+//			if (missile->shouldDeactivated)
+//			{
+//				trashCan.push(missile);
+//				scMissile.active = false;
+//			}
+//			else
+//			{
+//				scMissile.active = true;
+//			}
+//
+//			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
+//			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
+//		}
+//	}
+//	SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
+//
+//	//sending ItemInfo Packet
+//	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+//	{
+//		CItemObject* item = m_ItemObject[i];
+//		if (!item->IsActive())
+//		{
+//			continue;
+//		}
+//
+//		ItemInfoPacket scItem;
+//		scItem.packetType = SC_ItemInfo;
+//		if (item->shouldDeactivated)
+//		{
+//			trashCan.push(item);
+//			scItem.active = false;
+//		}
+//		else
+//		{
+//			scItem.active = true;
+//		}
+//		scItem.itemNum = i;
+//		scItem.position = item->GetCurPos();
+//		SendPacketAllClient((char*)&scItem, sizeof(ItemInfoPacket), 0);
+//	}
+//}
 
 void Server::Update()
 {
@@ -247,9 +248,6 @@ void Server::Update()
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
 		}
 	}
-
-	SetEvent(updateDone);
-
 	CheckCollision();
 
 	itemSpawnTime += elapsedTime;
@@ -259,6 +257,10 @@ void Server::Update()
 		if (connectedClients >= 2)
 			SpawnItem();
 	}
+
+	PreparePackets();
+	SetEvent(updateDone);
+
 
 	while (!trashCan.empty())
 	{
@@ -283,11 +285,60 @@ void Server::SpawnItem()
 	}
 }
 
+void Server::PreparePackets()
+{
+	PlayerInfoBundlePacket playerBundle;
+	MissileInfoBundlePacket missileBundle;
+	ItemInfoBundlePacket itemBundle;
+	playerBundle.packetType = SC_PlayerInfo;
+	missileBundle.packetType = SC_MissileInfo;
+	itemBundle.packetType = SC_ItemInfo;
+	for (int clientNum =0; clientNum < MAX_CLIENT_NUM;++clientNum)
+	{
+		Client* client = clients[clientNum];
+		CPlayer* player = client->m_player;
+		if (client->ShouldDisconnected())
+		{
+			client->Disconnect();
+			player->SetActive(false);
+		}
+		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot() };
+		for (int i =0; i < player->maxMissileNum; ++i)
+		{
+			CMissileObject* missile = player->m_pMissiles[i];
+			missileBundle.missileInfos[clientNum * player->maxMissileNum + i] = {missile->IsActive(), missile->GetCurPos() };
+		}
+	}
+	playerBundlePacket_q.push(playerBundle);
+	missileBundlePacket_q.push(missileBundle);
+
+	for (int i=0;i<MAX_ITEM_NUM;++i)
+	{
+		CItemObject* item = m_ItemObject[i];
+		itemBundle.itemInfos[i] = { item->GetCurPos(), item->IsActive() };
+	}
+	itemBundlePacket_q.push(itemBundle);
+}
+
 uint32_t Server::GetTimestampMs()
 {
 	using namespace std::chrono;
 	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
+}
+
+
+void Server::SendPacketAllClient(char* packet, int size, int flag)
+{
+	// send client[i] info to all clients
+	for (const auto& client : clients)
+	{
+		if (!client->IsConnected())
+		{
+			continue;
+		}
+		send(client->sock, packet, size, flag);
+	}
 }
 
 
@@ -369,6 +420,36 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	return 0;
 }
 
+DWORD WINAPI SendAllClient(LPVOID arg)
+{
+	while (1)
+	{
+		WaitForSingleObject(g_server->updateDone, INFINITE);
+		PlayerInfoBundlePacket scInfoBundle;
+		MissileInfoBundlePacket msInfoBundle;
+		ItemInfoBundlePacket ItemInfoBundle;
+		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
+		{
+			scInfoBundle.serverTimestampMs = g_server->GetTimestampMs();
+			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
+		}
+
+		if (g_server->missileBundlePacket_q.try_pop(msInfoBundle))
+		{
+			g_server->SendPacketAllClient((char*)&msInfoBundle, sizeof(MissileInfoBundlePacket), 0);
+
+		}
+
+		//sending ItemInfo Packet
+		if (g_server->itemBundlePacket_q.try_pop(ItemInfoBundle))
+		{
+			g_server->SendPacketAllClient((char*)&ItemInfoBundle, sizeof(ItemInfoBundlePacket), 0);
+
+		}
+		ResetEvent(g_server->updateDone);
+	}
+}
+
 void Client::Reset()
 {
 	closesocket(sock);
@@ -385,16 +466,18 @@ int main()
 	g_server->OpenListenSocket();
 
 	srand(time(NULL));
-
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
+	CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
+
 	while (true)
 	{
+		if (g_server->connectedClients < 1) continue;
 		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
 		if (g_server->elapsedTime >= g_server->FIXED_DELTA_TIME)
 		{
 			g_server->timer.Record();
 			g_server->Update();
-			g_server->SendAllClient();
+			//g_server->SendAllClient();
 			g_server->elapsedTime = g_server->FIXED_DELTA_TIME;
 		}
 	}

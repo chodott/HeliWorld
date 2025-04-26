@@ -32,6 +32,7 @@ struct PlayerInfoBundlePacket
 	uint32_t serverTimestampMs;
 };
 
+
 struct PlayerKeyPacket {
 	char packetType;
 	unsigned char playerKeyInput;
@@ -40,18 +41,26 @@ struct PlayerKeyPacket {
 };
 
 struct ItemInfoPacket {
-	char packetType;
-	int itemNum;
 	XMFLOAT3 position;
 	bool active;
 };
 
-struct MissileInfoPacket {
+struct ItemInfoBundlePacket
+{
 	char packetType;
-	int playerNumber;		
-	int missileNumber;
-	bool active = false;
+	ItemInfoPacket itemInfos[10];
+};
+
+struct MissileInfoPacket {
+
+	bool active;
 	XMFLOAT3 position;
+};
+
+struct MissileInfoBundlePacket
+{
+	char packetType;
+	MissileInfoPacket missileInfos[32];
 };
 
 #pragma pack()

@@ -10,10 +10,10 @@ int PacketSizeHelper(char packetType)
 		packetSize = sizeof(PlayerInfoBundlePacket);
 		break;
 	case PACKET::ItemInfo:
-		packetSize = sizeof(ItemInfoPacket);
+		packetSize = sizeof(ItemInfoBundlePacket);
 		break;
 	case PACKET::MissileInfo:
-		packetSize = sizeof(MissileInfoPacket);
+		packetSize = sizeof(MissileInfoBundlePacket);
 		break;
 	case PACKET::KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
@@ -33,24 +33,21 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		uint32_t timestamp = ntohl(piPacket.serverTimestampMs);
-		if (piPacket.serverTimestampMs <= timestamp) return;
-		client->lastRecvPacketTime = timestamp;
-		memcpy(&client->playerData, piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
-		ItemInfoPacket itPacket;
-		memcpy(&itPacket, fillTarget, sizeof(ItemInfoPacket));
-		client->itemPacket[itPacket.itemNum] = itPacket;
+		ItemInfoBundlePacket itPacket;
+		memcpy(&itPacket, fillTarget, sizeof(ItemInfoBundlePacket));
+		memcpy(&client->itemPacket, itPacket.itemInfos, sizeof(ItemInfoPacket)*10);
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
-		MissileInfoPacket miPacket;
-		memcpy(&miPacket, fillTarget, sizeof(MissileInfoPacket));
-		client->missilePacket[miPacket.playerNumber * 8 + miPacket.missileNumber] = miPacket;
+		MissileInfoBundlePacket miPacket;
+		memcpy(&miPacket, fillTarget, sizeof(MissileInfoBundlePacket));
+		memcpy(&client->missilePacket, miPacket.missileInfos, sizeof(MissileInfoPacket) * 32);
 		break;
 	}
 	case PACKET::KeyInfo:
@@ -80,8 +77,6 @@ Client::~Client()
 
 void Client::ConnectServer()
 {
-
-
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
 
 	sockaddr_in serverAddr;

@@ -46,7 +46,8 @@ public:
 	void ShouldDeactive() { shouldDeactivated = true; }
 	void Deactivate() { m_bActive = false; shouldDeactivated = false; }
 
-	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
+	inline XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
+	inline XMFLOAT3 GetCurRot() { return XMFLOAT3(m_fPitch, m_fYaw, m_fRoll); }
 
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);

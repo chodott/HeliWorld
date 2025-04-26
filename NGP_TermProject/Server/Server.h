@@ -4,6 +4,7 @@
 #include "SCPacket.h"
 #include "GameObject.h"
 
+#include <concurrent_queue.h>
 #include <array>
 #include <chrono>
 #include <queue>
@@ -50,7 +51,7 @@ public:
 
 	void OpenListenSocket();
 
-	void SendAllClient();
+	//void SendAllClient();
 	void SendPacketAllClient(char* packet, int size, int flag);
 
 	PlayerKeyPacket keyPackets[4];
@@ -59,6 +60,7 @@ public:
 	void Update();
 	void CheckCollision();
 	void SpawnItem();
+	void PreparePackets();
 
 	uint32_t GetTimestampMs();
 
@@ -77,6 +79,10 @@ public:
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
 
+	//Packet Queue
+	concurrency::concurrent_queue<PlayerInfoBundlePacket> playerBundlePacket_q;
+	concurrency::concurrent_queue<ItemInfoBundlePacket> itemBundlePacket_q;
+	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
 
 	//Fixed Frametime
 	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
@@ -114,15 +120,6 @@ private:
 	bool shouldDisconnected = false;
 };
 
-void Server::SendPacketAllClient(char* packet, int size, int flag)
-{
-	// send client[i] info to all clients
-	for (const auto& client : clients)
-	{
-		if (!client->IsConnected())
-		{
-			continue;
-		}
-		send(client->sock, packet, size, flag);
-	}
-}
+
+DWORD WINAPI SendAllClient(LPVOID arg);
+
