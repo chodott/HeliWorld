@@ -24,6 +24,8 @@
 #define MAX_BOUNDARY_Z		1000
 #define MIN_BOUNDARY_Z		0
 
+#define MAP_SCALE 32.767
+
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 

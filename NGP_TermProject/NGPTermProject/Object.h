@@ -15,6 +15,8 @@
 #define DIR_UP                  0x10
 #define DIR_DOWN               0x20
 
+#define MAP_SCALE 32.767
+
 class CShader;
 class CStandardShader;
 

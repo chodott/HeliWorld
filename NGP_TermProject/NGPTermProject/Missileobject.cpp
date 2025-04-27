@@ -87,7 +87,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	}*/
 
 	SetActive(MissilePacket->active);
-	SetPosition(MissilePacket->position);
+	SetPosition(ConvertInt16tofloat3(MissilePacket->positionX, MissilePacket->positionY, MissilePacket->positionZ, MAP_SCALE));
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);

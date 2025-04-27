@@ -54,7 +54,9 @@ struct ItemInfoBundlePacket
 struct MissileInfoPacket {
 
 	bool active;
-	XMFLOAT3 position;
+	int16_t positionX;  
+	int16_t positionY; 
+	int16_t positionZ; 
 };
 
 struct MissileInfoBundlePacket

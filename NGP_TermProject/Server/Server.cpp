@@ -145,87 +145,6 @@ void Server::CheckCollision()
 	}
 }
 
-//void Server::SendAllClient()
-//{
-//	PlayerInfoBundlePacket scInfoBundle;
-//	scInfoBundle.serverTimestampMs = htonl(GetTimestampMs());
-//	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
-//	{
-//		if (!clients[i]->IsConnected())
-//		{
-//			continue;
-//		}
-//		Client* client = clients[i];
-//		CPlayer* player = client->m_player;
-//		int playerNumber = client->GetPlayerNumber();
-//		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
-//		// PlayerInfo
-//		PlayerInfoPacket& scInfo = scInfoBundle.playerInfos[i];
-//		scInfoBundle.packetType = SC_PlayerInfo;
-//		scInfo.playerNumber = playerNumber;
-//		scInfo.playerHP = player->m_nHp;
-//		scInfo.position = position;
-//		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
-//		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
-//		{
-//			client->Disconnect();			// disconnect
-//		}
-//		send(client->sock, (char*)&keyPackets[playerNumber], sizeof(PlayerKeyPacket), 0);
-//
-//		for (int i = 0; i < player->maxMissileNum; ++i)
-//		{
-//			CMissileObject* missile = player->m_pMissiles[i];
-//			if (!missile->IsActive())
-//			{
-//				continue;
-//			}
-//
-//			MissileInfoPacket scMissile;
-//			scMissile.packetType = SC_MissileInfo;
-//			scMissile.playerNumber = playerNumber;
-//			scMissile.missileNumber = i;
-//			if (missile->shouldDeactivated)
-//			{
-//				trashCan.push(missile);
-//				scMissile.active = false;
-//			}
-//			else
-//			{
-//				scMissile.active = true;
-//			}
-//
-//			scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-//			SendPacketAllClient((char*)&scMissile, sizeof(MissileInfoPacket), 0);
-//		}
-//	}
-//	SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
-//
-//	//sending ItemInfo Packet
-//	for (int i = 0; i < MAX_ITEM_NUM; ++i)
-//	{
-//		CItemObject* item = m_ItemObject[i];
-//		if (!item->IsActive())
-//		{
-//			continue;
-//		}
-//
-//		ItemInfoPacket scItem;
-//		scItem.packetType = SC_ItemInfo;
-//		if (item->shouldDeactivated)
-//		{
-//			trashCan.push(item);
-//			scItem.active = false;
-//		}
-//		else
-//		{
-//			scItem.active = true;
-//		}
-//		scItem.itemNum = i;
-//		scItem.position = item->GetCurPos();
-//		SendPacketAllClient((char*)&scItem, sizeof(ItemInfoPacket), 0);
-//	}
-//}
-
 void Server::Update()
 {
 	ResetEvent(updateDone);
@@ -307,7 +226,9 @@ void Server::PreparePackets()
 		for (int i =0; i < player->maxMissileNum; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
-			missileBundle.missileInfos[clientNum * player->maxMissileNum + i] = {missile->IsActive(), missile->GetCurPos() };
+			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * player->maxMissileNum + i];
+			ConvertFloat3toInt16(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
+			missileInfo.active = missile->IsActive();
 		}
 	}
 	playerBundlePacket_q.push(playerBundle);
