@@ -231,7 +231,9 @@ void Server::PreparePackets()
 	for (int i=0;i<MAX_ITEM_NUM;++i)
 	{
 		CItemObject* item = m_ItemObject[i];
-		itemBundle.itemInfos[i] = { item->GetCurPos(), item->IsActive() };
+		ItemInfoPacket& itemInfo = itemBundle.itemInfos[i];
+		ConvertFloat3toInt16(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
+		itemInfo.active = item->IsActive();
 	}
 	itemBundlePacket_q.push(itemBundle);
 }
@@ -344,7 +346,6 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 		ItemInfoBundlePacket ItemInfoBundle;
 		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
 		{
-			scInfoBundle.serverTimestampMs = g_server->GetTimestampMs();
 			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
 		}
 

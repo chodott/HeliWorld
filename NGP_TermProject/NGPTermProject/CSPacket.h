@@ -29,7 +29,6 @@ struct PlayerInfoBundlePacket
 {
 	char packetType;
 	PlayerInfoPacket playerInfos[4];
-	uint32_t serverTimestampMs;
 };
 
 
@@ -41,7 +40,9 @@ struct PlayerKeyPacket {
 };
 
 struct ItemInfoPacket {
-	XMFLOAT3 position;
+	int16_t positionX;
+	int16_t positionY;
+	int16_t positionZ;
 	bool active;
 };
 
