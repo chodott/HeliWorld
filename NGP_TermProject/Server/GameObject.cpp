@@ -102,11 +102,9 @@ void CPlayer::Rotate(float x, float y, float z)
 void CPlayer::LaunchMissile(int16_t missileNum)
 {
 	if (missileNum < 0) return;
-	cout << missileNum << " ";
 	CMissileObject* missile = m_pMissiles[missileNum];
 	if (!missile->IsActive())
 	{
-		cout << "success"<<"\n";
 		missile->m_bActive = true;
 		missile->SetPosition(m_fxPos, m_fyPos, m_fzPos);
 		missile->m_xmf3Look = m_xmf3Look;
@@ -126,8 +124,6 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 			{
 				missile->SetActive(false);
 				missile->m_fLifeSpan = missileLifeSpan;
-				cout << "missiiledead" << "\n";
-
 			}
 		}
 	}
@@ -218,6 +214,7 @@ void CPlayer::Reset(int playerNum)
 	keyPacket.deltaMouse.y = 0;
 	keyPacket.playerKeyInput = NULL;
 	keyPacket.requestMissileNum = -1;
+	
 
 	for (auto& missile : m_pMissiles)
 		missile->Reset();

@@ -54,7 +54,6 @@ struct ItemInfoBundlePacket
 struct MissileInfoPacket {
 
 	bool active;
-	bool bMustKill = false;
 	int16_t positionX;  
 	int16_t positionY; 
 	int16_t positionZ; 

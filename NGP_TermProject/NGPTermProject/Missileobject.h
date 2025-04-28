@@ -32,6 +32,7 @@ public:
 
 	const int movingSpeed = 300.f;
 	bool bServerLife = false;
+	bool bLocalMissile = false;
 
 private:
 	bool m_Collision = false;

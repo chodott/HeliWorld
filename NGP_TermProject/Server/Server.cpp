@@ -216,12 +216,7 @@ void Server::PreparePackets()
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
-		if (client->ShouldDisconnected())
-		{
-			client->Disconnect();
-			player->SetActive(false);
-		}
-		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot() };
+		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive()};
 		for (int i =0; i < player->maxMissileNum; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
@@ -375,7 +370,8 @@ void Client::Reset()
 	sock = NULL;
 
 	shouldDisconnected = true;
-
+	keyPacket_q.clear();
+	Disconnect();
 	m_player->Reset(GetPlayerNumber());
 }
 
