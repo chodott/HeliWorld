@@ -37,7 +37,7 @@ struct PlayerKeyPacket {
 	char packetType;
 	unsigned char playerKeyInput;
 	FPoint deltaMouse;
-	uint32_t timestampMs;
+	int16_t launchedMissileNum = -1;
 };
 
 struct ItemInfoPacket {
@@ -54,6 +54,7 @@ struct ItemInfoBundlePacket
 struct MissileInfoPacket {
 
 	bool active;
+	bool bMustKill = false;
 	int16_t positionX;  
 	int16_t positionY; 
 	int16_t positionZ; 

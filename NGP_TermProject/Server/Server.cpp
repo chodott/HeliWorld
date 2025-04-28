@@ -152,7 +152,7 @@ void Server::Update()
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
-		clients[i]->keyInput_q.try_pop(clients[i]->m_player->playerKey);
+		clients[i]->keyPacket_q.try_pop(clients[i]->m_player->keyPacket);
 		// connected, but dead
 		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
 		{
@@ -178,15 +178,14 @@ void Server::Update()
 			SpawnItem();
 	}
 
-	PreparePackets();
-	SetEvent(updateDone);
-
-
 	while (!trashCan.empty())
 	{
 		trashCan.front()->Deactivate();
 		trashCan.pop();
 	}
+
+	PreparePackets();
+	SetEvent(updateDone);
 }
 
 void Server::SpawnItem()
@@ -334,11 +333,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			break;
 		}
 		CPlayer* player = client->m_player;
-		client->keyInput_q.push(keyPacket.playerKeyInput);
-		//player->playerKey = keyPacket.playerKeyInput;
-
-		player->m_deltaX += keyPacket.deltaMouse.x;
-		player->m_deltaY += keyPacket.deltaMouse.y;
+		client->keyPacket_q.push(keyPacket);
 	}
 
 	return 0;

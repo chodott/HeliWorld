@@ -95,24 +95,21 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
 	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
 
-	m_deltaX = 0.f;
-	m_deltaY = 0.f;
+	keyPacket.deltaMouse.x = 0.f;
+	keyPacket.deltaMouse.y = 0.f;
 }
 
-void CPlayer::LaunchMissile()
+void CPlayer::LaunchMissile(int16_t missileNum)
 {
-	for (int i = 0; i < maxMissileNum; ++i)
+	if (missileNum < 0) return;
+	cout << missileNum << " ";
+	CMissileObject* missile = m_pMissiles[missileNum];
+	if (!missile->IsActive())
 	{
-		if(!m_pMissiles[i]->IsActive())
-		{
-			m_pMissiles[i]->m_bActive = true;
-			m_pMissiles[i]->SetPosition(m_fxPos, m_fyPos, m_fzPos);
-			m_pMissiles[i]->m_fPitch = m_fPitch;
-			m_pMissiles[i]->m_fYaw = m_fYaw;
-			m_pMissiles[i]->m_fRoll = m_fRoll;
-			m_pMissiles[i]->m_xmf3Look = m_xmf3Look;
-			break;
-		}
+		cout << "success"<<"\n";
+		missile->m_bActive = true;
+		missile->SetPosition(m_fxPos, m_fyPos, m_fzPos);
+		missile->m_xmf3Look = m_xmf3Look;
 	}
 }
 
@@ -127,8 +124,10 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 			//Check LifeSpan and Delete
 			if (missile->m_fLifeSpan < 0.f)
 			{
-				missile->shouldDeactivated = true;
+				missile->SetActive(false);
 				missile->m_fLifeSpan = missileLifeSpan;
+				cout << "missiiledead" << "\n";
+
 			}
 		}
 	}
@@ -140,54 +139,53 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 	RecalculateRight();
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
-	Rotate(m_deltaY, m_deltaX, 0.f);
-	m_deltaY = 0.f; m_deltaX = 0.f;
-	if (playerKey)
+
+	Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
+	if (keyPacket.playerKeyInput)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
 
 		float distance = movingSpeed * elapsedTime;
 
-		if (playerKey & option0)
+		if (keyPacket.playerKeyInput & option0)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			playerKey &= ~option0;
+			keyPacket.playerKeyInput &= ~option0;
 		}
-		if (playerKey & option1)
+		if (keyPacket.playerKeyInput & option1)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			playerKey &= ~option1;
+			keyPacket.playerKeyInput &= ~option1;
 		}
-		if (playerKey & option2)
+		if (keyPacket.playerKeyInput & option2)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			playerKey &= ~option2;
+			keyPacket.playerKeyInput &= ~option2;
 		}
-		if (playerKey & option3)
+		if (keyPacket.playerKeyInput & option3)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			playerKey &= ~option3;
+			keyPacket.playerKeyInput &= ~option3;
 		}
-		if (playerKey & option4)
+		if (keyPacket.playerKeyInput & option4)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -distance);
-			playerKey &= ~option4;
+			keyPacket.playerKeyInput &= ~option4;
 		}
-		if (playerKey & option5)
+		if (keyPacket.playerKeyInput & option5)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, distance);
-			playerKey &= ~option5;
+			keyPacket.playerKeyInput &= ~option5;
 		}
 		Move(xmf3Shift);
 
 		MoveOOBB(m_xmf3Position);
 
 		// Attack
-		if (playerKey & option6)
+		if (keyPacket.playerKeyInput & option6)
 		{
-			if (connectedClients >= 1) LaunchMissile();			// if not alone in the server
-			cout << "Check Space Input" << "\n";
-			playerKey &= ~option6;
+			if (connectedClients >= 1) LaunchMissile(keyPacket.requestMissileNum);			// if not alone in the server
+			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
 		m_xmf4x4World._42 = m_xmf3Position.y;
@@ -216,9 +214,10 @@ void CPlayer::Reset(int playerNum)
 	m_bActive = false;
 
 	m_nHp = 100;
-	m_deltaX = 0.f;
-	m_deltaY = 0.f;
-	playerKey = 0;
+	keyPacket.deltaMouse.x = 0;
+	keyPacket.deltaMouse.y = 0;
+	keyPacket.playerKeyInput = NULL;
+	keyPacket.requestMissileNum = -1;
 
 	for (auto& missile : m_pMissiles)
 		missile->Reset();

@@ -5,6 +5,7 @@
 CMissleObject::CMissleObject() :CGameObject(1, 1)
 {
 	SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(1.25f, 1.25f, 2.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	SetActive(false);
 }
 
 CMissleObject::~CMissleObject()
@@ -63,31 +64,30 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
 {
-	/*bool bServerActive = MissilePacket->active;
+	bool bServerActive = MissilePacket->active;
 	if (bServerActive) bServerLife = true;
 	if (bServerLife == true && bServerActive == false)
 	{
 		bServerLife = false;
 		SetActive(false);
+		cout << "missiiledead" << "\n";
 	}
 	if (!GetActive()) return;
 
 	Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-
 	if (bServerActive)
 	{
 		XMFLOAT3 resultPosition;
-
+		XMFLOAT3 position = ConvertInt16tofloat3(MissilePacket->positionX, MissilePacket->positionY, MissilePacket->positionZ, MAP_SCALE);
 		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
-		XMVECTOR nextPosition = XMLoadFloat3(&MissilePacket->position);
+		XMVECTOR nextPosition = XMLoadFloat3(&position);
 		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
-	}*/
+	}
 
-	SetActive(MissilePacket->active);
-	SetPosition(ConvertInt16tofloat3(MissilePacket->positionX, MissilePacket->positionY, MissilePacket->positionZ, MAP_SCALE));
+	cout << GetPosition().x << ", " << GetPosition().y << ", " << GetPosition().z << "\n";
 
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);

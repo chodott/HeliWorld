@@ -114,7 +114,7 @@ public:
 
 	CPlayer* m_player = nullptr;
 
-	concurrency::concurrent_queue<unsigned char> keyInput_q;
+	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 	
 
 	float deadTime = 0.f;

@@ -518,7 +518,10 @@ void CGameFramework::ProcessInput()
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 
-	//if (pKeysBuffer[VK_SPACE] & 0xF0) m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client->PlayerNum);
+	if (client->sendKey & 0x40)
+	{
+		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
+	}
 
 }
 

@@ -321,11 +321,11 @@ inline void ConvertFloat3toInt16(XMFLOAT3& position, int16_t& x, int16_t& y, int
 	z = static_cast<int16_t>(position.z * scale);
 }
 
-inline XMFLOAT3 ConvertInt16tofloat3(int16_t& x, int16_t& y, int16_t& z, float scale)
+inline XMFLOAT3 ConvertInt16tofloat3( int16_t& x, int16_t& y, int16_t& z, float scale)
 {
-	XMFLOAT3 newPosition;
-	newPosition.x = static_cast<float>(x / scale);
-	newPosition.y = static_cast<float>(y / scale);
-	newPosition.z = static_cast<float>(z / scale);
-	return newPosition;
+	XMFLOAT3 position;
+	position.x = static_cast<float>(x / scale);
+	position.y = static_cast<float>(y / scale);
+	position.z = static_cast<float>(z / scale);
+	return position;
 }

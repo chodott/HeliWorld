@@ -2,6 +2,7 @@
 #pragma warning(disable : 26495)
 
 #include "stdafx.h"
+#include "SCPacket.h"
 
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
@@ -80,17 +81,14 @@ public:
 
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
-	void LaunchMissile();
+	void LaunchMissile(int16_t missileNum);
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime, int connectedClients);
 	void Reset(int playerNum);
 
 	const float movingSpeed = 200.f;
 
-	float m_deltaX = 0.f;
-	float m_deltaY = 0.f;
-
-	unsigned char playerKey = 0;
+	PlayerKeyPacket keyPacket;
 
 	XMFLOAT3 initialPos[4]{ {100,400,500},{100,400,500},{100,400,500},{100,400,500} };
 
@@ -119,6 +117,7 @@ public:
 	int m_playerNumber = 0;
 	int damage = 10;
 	const float movingSpeed = 300.f;
+	bool bMustKill = false;
 
 	float m_fLifeSpan = 6.f;
 	

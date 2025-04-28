@@ -155,13 +155,15 @@ void Client::SendtoServer()
 	cs_key.packetType = PACKET::KeyInfo;
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
-	cs_key.timestampMs = GetTimestampMs();
+	cs_key.launchedMissileNum = lastLaunchedMissileNum;
+	if(lastLaunchedMissileNum >=0) cout << lastLaunchedMissileNum << " ";
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
 		return;
 	}
 	sendKey &= (~option6);
+	lastLaunchedMissileNum = -1;
 }
 
 uint32_t Client::GetTimestampMs()

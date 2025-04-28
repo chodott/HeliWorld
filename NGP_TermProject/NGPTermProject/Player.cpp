@@ -168,15 +168,22 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
 }
 
-void CPlayer::LaunchMissiles(CGameObject** missiles, int num)
+void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 {
+	int num = client->PlayerNum;
 	for (int i = 0; i < 8; ++i)
 	{
-		auto& missile = missiles[i + num];
+		auto& missile = missiles[i + num * 8];
 		if (missile->GetActive()) continue;
-		missile->SetActive(true);
-		missile->SetPosition(GetPosition());
-		missile->SetMovingDirection(GetLookVector());
+		else
+		{
+			missile->SetActive(true);
+			missile->SetPosition(GetPosition());
+			missile->SetMovingDirection(GetLookVector());
+			client->lastLaunchedMissileNum = i;
+			break;
+
+		}
 	}
 }
 
