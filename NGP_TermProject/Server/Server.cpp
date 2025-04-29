@@ -121,6 +121,7 @@ void Server::CheckCollision()
 				{
 					iPlayer->m_nHp -= missile->damage;
 					missile->ShouldDeactive();
+					trashCan.push(missile);
 					if (iPlayer->m_nHp <= 0)
 					{
 						iPlayer->Reset(i);
@@ -140,6 +141,7 @@ void Server::CheckCollision()
 				if (iPlayer->m_nHp > iPlayer->maxHp)			iPlayer->m_nHp = iPlayer->maxHp;
 
 				m_ItemObject[j]->ShouldDeactive();
+				trashCan.push(m_ItemObject[j]);
 			}
 		}
 	}
@@ -313,8 +315,10 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 	CPlayer* p = client->m_player;
 	p->SetActive(true);
-	p->SetPosition(p->initialPos[playerNumber].x, p->initialPos[playerNumber].y, p->initialPos[playerNumber].z);
-	p->m_fPitch = p->initialRot[playerNumber].x; p->m_fYaw = p->initialRot[playerNumber].y; p->m_fRoll = p->initialRot[playerNumber].z;
+	XMFLOAT3& initialPosition = p->initialPos[playerNumber];
+	XMFLOAT3& initialRotation = p->initialRot[playerNumber];
+	p->SetPosition(initialPosition.x, initialPosition.y, initialPosition.z);
+	p->Rotate(initialRotation.x, initialRotation.y, initialRotation.z);
 
 	client->Connected();
 	++g_server->connectedClients;
@@ -340,13 +344,18 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 {
 	while (1)
 	{
-		WaitForSingleObject(g_server->updateDone, INFINITE);
 		PlayerInfoBundlePacket scInfoBundle;
 		MissileInfoBundlePacket msInfoBundle;
 		ItemInfoBundlePacket ItemInfoBundle;
 		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
 		{
 			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
+		}
+		else
+		{
+			//Didnt prepare Packet Wait event
+			WaitForSingleObject(g_server->updateDone, INFINITE);
+			continue;
 		}
 
 		if (g_server->missileBundlePacket_q.try_pop(msInfoBundle))

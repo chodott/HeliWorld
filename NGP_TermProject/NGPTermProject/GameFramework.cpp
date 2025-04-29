@@ -424,20 +424,20 @@ void CGameFramework::BuildObjects()
 	switch (client->PlayerNum)
 	{
 	case 0:
-		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
-		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 500));
+		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 100));
+		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 100));
 		break;
 	case 1:
-		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
-		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 500));
+		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 900));
+		pWirePlayer->SetPosition(XMFLOAT3(900, 400, 900));
 		break;
 	case 2:
-		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
-		pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 700.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(900.0f, 400.0f, 100.0f));
+		pWirePlayer->SetPosition(XMFLOAT3(900.0f, 400.0f, 100.0f));
 		break;
 	case 3:
-		pAirplanePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
-		pWirePlayer->SetPosition(XMFLOAT3(300.0f, 500.0f, 800.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(100.0f, 400.0f, 900.0f));
+		pWirePlayer->SetPosition(XMFLOAT3(100.0f, 400.0f, 900.0f));
 		break;
 	default:
 		break;

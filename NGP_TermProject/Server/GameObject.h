@@ -90,7 +90,7 @@ public:
 
 	PlayerKeyPacket keyPacket;
 
-	XMFLOAT3 initialPos[4]{ {100,400,500},{100,400,500},{100,400,500},{100,400,500} };
+	XMFLOAT3 initialPos[4]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
 
 	XMFLOAT3 initialRot[4]{ {0,90,0},{0,90,0},{0,90,0},{0,90,0} };
 

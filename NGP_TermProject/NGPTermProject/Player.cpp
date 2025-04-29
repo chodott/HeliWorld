@@ -27,7 +27,7 @@ CPlayer::CPlayer()
 
 	m_fPitch = 0.0f;
 	m_fRoll = 0.00f;
-	m_fYaw = 90.0f;
+	m_fYaw = 0.0f;
 
 	m_pPlayerUpdatedContext = NULL;
 	m_pCameraUpdatedContext = NULL;
@@ -213,21 +213,24 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
-	XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
-	XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
+	if (GetActive())
+	{
+		XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
+		XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
 
-	XMFLOAT3 curRotation  = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
-	RotatePYR(curRotation);
+		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
+		RotatePYR(curRotation);
 
-	XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
-	XMVECTOR nextPosition = XMLoadFloat3(&PlayerPacket->position);
+		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
+		XMVECTOR nextPosition = XMLoadFloat3(&PlayerPacket->position);
 
-	XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
-	XMFLOAT3 resultPosition;
-	XMStoreFloat3(&resultPosition, curPosition);
-	SetPosition(resultPosition);
-
+		XMFLOAT3 resultPosition;
+		XMStoreFloat3(&resultPosition, curPosition);
+		SetPosition(resultPosition);
+	}
+	else SetPosition(PlayerPacket->position);
 	if (bWire)
 	{
 		RotatePYR(PlayerPacket->rotation);
