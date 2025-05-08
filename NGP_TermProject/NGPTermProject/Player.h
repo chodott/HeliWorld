@@ -76,7 +76,7 @@ public:
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 
 	void Update(float fTimeElapsed);
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
 	void SetPlayerUpdatedContext(LPVOID pContext) { m_pPlayerUpdatedContext = pContext; }
@@ -110,7 +110,7 @@ public:
 
 private:
 	virtual void PrepareAnimate();
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value);
 
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);

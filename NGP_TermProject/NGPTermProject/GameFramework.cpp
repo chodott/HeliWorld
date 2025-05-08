@@ -528,14 +528,15 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
+	float value = (float)client->getDelayedTimeStampMs() / (float)(client->curServerTimeStampMs - client->prevServerTimeStampMs);
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)
 		{
 			if (client->playerData[i].playerNumber == client->PlayerNum)
 			{
-				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);   //player update
-				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i]);
+				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i], value);   //player update
+				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i], value);
 				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 				for (int j = 1; j < 11; ++j)
 				{
@@ -641,7 +642,7 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 #endif
 	if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
-	//if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
+	if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
 
 	d3dResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	d3dResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

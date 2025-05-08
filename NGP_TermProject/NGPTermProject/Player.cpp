@@ -211,20 +211,20 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
 }
 
-void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
+void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value)
 {
 	if (GetActive())
 	{
 		XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
 		XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
 
-		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
+		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, value);
 		RotatePYR(curRotation);
 
 		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
 		XMVECTOR nextPosition = XMLoadFloat3(&PlayerPacket->position);
 
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);
@@ -393,7 +393,7 @@ void CAirplanePlayer::PrepareAnimate()
 	m_pTailRotorFrame = FindFrame("Tail_Rotor");
 }
 
-void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,PlayerInfoPacket *PlayerPacket)
+void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,PlayerInfoPacket *PlayerPacket, float value)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -406,7 +406,7 @@ void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,Play
 		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
 	}
 
-	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent, PlayerPacket);
+	CPlayer::Animate(fTimeElapsed, pxmf4x4Parent, PlayerPacket, value);
 }
 
 void CAirplanePlayer::OnPrepareRender()

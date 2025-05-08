@@ -151,7 +151,6 @@ void Server::Update()
 {
 	ResetEvent(updateDone);
 
-	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		clients[i]->keyPacket_q.try_pop(clients[i]->m_player->keyPacket);
@@ -227,6 +226,7 @@ void Server::PreparePackets()
 			missileInfo.active = missile->IsActive();
 		}
 	}
+	playerBundle.serverTimestampMs = GetTimestampMs();
 	playerBundlePacket_q.push(playerBundle);
 	missileBundlePacket_q.push(missileBundle);
 
@@ -351,12 +351,7 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 		{
 			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
 		}
-		else
-		{
-			//Didnt prepare Packet Wait event
-			WaitForSingleObject(g_server->updateDone, INFINITE);
-			continue;
-		}
+
 
 		if (g_server->missileBundlePacket_q.try_pop(msInfoBundle))
 		{

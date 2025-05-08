@@ -34,6 +34,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
 		memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		client->curServerTimeStampMs = piPacket.serverTimestampMs;
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -156,7 +157,6 @@ void Client::SendtoServer()
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
 	cs_key.launchedMissileNum = lastLaunchedMissileNum;
-	if(lastLaunchedMissileNum >=0) cout << lastLaunchedMissileNum << " ";
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
@@ -182,7 +182,6 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	char buf[bufSize]{};
 	while (true)
 	{
-		const int frameTime = 17;		// 1000ms / 60frame	+ 1
 		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
 
 		int restBufSize = bufSize;
