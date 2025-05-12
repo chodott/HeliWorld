@@ -7,6 +7,7 @@ namespace PACKET {
 	const char ItemInfo = 1;
 	const char MissileInfo = 2;
 	const char KeyInfo = 3;
+	const char PingpongInfo = 4;
 };
 
 
@@ -17,6 +18,12 @@ struct FPoint {
 
 
 #pragma pack(1)
+struct PingpongPacket
+{
+	char packetType;
+	uint64_t clientTimeStamp;
+};
+
 struct PlayerInfoPacket {
 	int playerNumber = -1;
 	int playerHP;
@@ -29,7 +36,6 @@ struct PlayerInfoBundlePacket
 {
 	char packetType;
 	PlayerInfoPacket playerInfos[4];
-	uint32_t serverTimestampMs;
 };
 
 

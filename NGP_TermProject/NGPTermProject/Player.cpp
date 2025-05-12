@@ -218,7 +218,7 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 		XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
 		XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
 
-		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, value);
+		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
 		RotatePYR(curRotation);
 
 		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());

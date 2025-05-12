@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include <thread>
 #include "Client.h"
 
 int PacketSizeHelper(char packetType)
@@ -18,6 +19,9 @@ int PacketSizeHelper(char packetType)
 	case PACKET::KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
 		break;
+	case PACKET::PingpongInfo:
+		packetSize = sizeof(PingpongPacket);
+		break;
 	default:
 		packetSize = -1;
 		break;
@@ -34,7 +38,6 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
 		memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-		client->curServerTimeStampMs = piPacket.serverTimestampMs;
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -55,6 +58,13 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerKeyPacket pkPacket;
 		memcpy(&pkPacket, fillTarget, sizeof(PlayerKeyPacket));
+		break;
+	}
+	case PACKET::PingpongInfo:
+	{
+		PingpongPacket ppPacket;
+		memcpy(&ppPacket, fillTarget, sizeof(PingpongPacket));
+		cout <<"RTT: "<< client->GetTimestampMs() - ppPacket.clientTimeStamp << "\n";
 		break;
 	}
 	default:
@@ -112,6 +122,7 @@ void Client::ConnectServer()
 	playerData[PlayerNum].playerNumber = PlayerNum;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
+	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -166,11 +177,33 @@ void Client::SendtoServer()
 	lastLaunchedMissileNum = -1;
 }
 
+
+
 uint32_t Client::GetTimestampMs()
 {
 	using namespace std::chrono;
 	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
+}
+
+DWORD WINAPI SendPingPacket(LPVOID arg)
+{
+	Client* client = (Client*)arg;
+	SOCKET* sock = client->GetClientsock();
+
+	PingpongPacket cs_pingpong{PACKET::PingpongInfo};
+
+	while (true)
+	{
+		cs_pingpong.clientTimeStamp = client->GetTimestampMs();
+		if (send(*sock, (char*)&cs_pingpong, sizeof(PingpongPacket), 0) == SOCKET_ERROR)
+		{
+			err_display("send()");
+			return 0;
+		}
+
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 }
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg)

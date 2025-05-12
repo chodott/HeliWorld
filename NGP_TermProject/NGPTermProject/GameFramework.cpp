@@ -528,7 +528,9 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	float value = (float)client->getDelayedTimeStampMs() / (float)(client->curServerTimeStampMs - client->prevServerTimeStampMs);
+	float value = (float)client->getDelayedTimeStampMs() - client->curServerTimeStampMs / 
+		(float)(client->curServerTimeStampMs - client->prevServerTimeStampMs);
+
 	if (m_pScene)
 	{
 		for (int i = 0; i < 4; i++)
@@ -680,5 +682,4 @@ void CGameFramework::FrameAdvance()
 	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
-	//cout << std::chrono::duration<float>(chrono::steady_clock::now() - curTime).count()<<" " << chrono::duration<float>(client->receiveTimeCur - client->receiveTimePrev).count() <<"\n";
 }

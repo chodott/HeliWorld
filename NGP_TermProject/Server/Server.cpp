@@ -245,7 +245,6 @@ void Server::PreparePackets()
 			missileInfo.active = missile->IsActive();
 		}
 	}
-	playerBundle.serverTimestampMs = GetTimestampMs();
 	playerBundlePacket_q.push(playerBundle);
 	missileBundlePacket_q.push(missileBundle);
 
@@ -383,13 +382,12 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
 				client->keyPacket_q.push(keyPacket);
-				cout << keyPacket.deltaMouse.x << ", " << keyPacket.deltaMouse.y << "\n";
 				break;
 			}
 			case CS_PingpongInfo:
 			{
 				PingpongPacket ppPacket;
-				memcpy(&ppPacket, buf + offset, packetSize);
+				memcpy(&ppPacket, client->remainBuffer + offset, packetSize);
 				send(client->sock, (char*)&ppPacket, packetSize, 0);
 				break;
 			}

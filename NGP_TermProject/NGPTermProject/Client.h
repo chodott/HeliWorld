@@ -56,7 +56,7 @@ public:
 
 	//Add
 	inline uint32_t getDelayedTimeStampMs() { return GetTimestampMs() - delayedTimeMs; }
-	const static uint32_t delayedTimeMs = 50;
+	const static uint32_t delayedTimeMs = 200;
 	uint32_t prevServerTimeStampMs;
 	uint32_t curServerTimeStampMs;
 	int16_t lastLaunchedMissileNum = -1;
@@ -80,3 +80,4 @@ private:
 };
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
+DWORD WINAPI SendPingPacket(LPVOID arg);
