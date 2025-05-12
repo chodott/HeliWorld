@@ -6,7 +6,8 @@
 const char SC_PlayerInfo = 0;
 const char SC_ItemInfo = 1;
 const char SC_MissileInfo = 2;
-const char SC_KeyInfo = 3;
+const char CS_KeyInfo = 3;
+const char CS_PingpongInfo = 4;
 
 
 struct FPoint {
@@ -16,6 +17,12 @@ struct FPoint {
 
 
 #pragma pack(1)
+struct PingpongPacket
+{
+	char packetType;
+	uint64_t clientTimeStamp;
+};
+
 struct PlayerInfoPacket {
 	int playerNumber = -1;
 	int playerHP;

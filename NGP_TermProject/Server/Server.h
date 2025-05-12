@@ -81,6 +81,7 @@ public:
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
 
+
 	//Packet Queue
 	concurrency::concurrent_queue<PlayerInfoBundlePacket> playerBundlePacket_q;
 	concurrency::concurrent_queue<ItemInfoBundlePacket> itemBundlePacket_q;
@@ -114,9 +115,15 @@ public:
 
 	CPlayer* m_player = nullptr;
 
+
+	//Check RTT
+	char remainBuffer[512]{};
+	int receivedBytes = 0;
+	int remainSize = 0;
+	//
+
 	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 	
-
 	float deadTime = 0.f;
 private:
 	int m_playerNumber = -1;	// maybe client class can have playerID inside

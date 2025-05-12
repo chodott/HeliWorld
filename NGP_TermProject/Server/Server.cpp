@@ -1,7 +1,26 @@
 #include "Server.h"
 #include "GameObject.h"
+#include "SCPacket.h"
 
 Server* g_server;
+
+int PacketSizeHelper(char packetType)
+{
+	int packetSize;
+	switch(packetType)
+	{
+	case CS_KeyInfo:
+		packetSize = sizeof(PlayerKeyPacket);
+		break;
+	case CS_PingpongInfo:
+		packetSize = sizeof(PingpongPacket);
+		break;
+	default:
+		packetSize = -1;
+		break;
+	}
+	return packetSize;
+}
 
 Server::Server()
 {
@@ -323,18 +342,64 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	client->Connected();
 	++g_server->connectedClients;
 	PlayerKeyPacket& keyPacket = g_server->keyPackets[playerNumber];
+
+	const int bufMaxSize = 512;
+	int combinedSize = 0;
+	int remainOffset = 0;
+	int receivedBytes;
+	char buf[512]{};
 	while (true)
 	{
-		WaitForSingleObject(g_server->updateDone, INFINITE);
-		if (recv(client->sock, (char*)&keyPacket, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
+		receivedBytes = recv(client->sock, (char*)&buf, bufMaxSize, 0);
+		if(receivedBytes == SOCKET_ERROR)
 		{
 			// cut the connection
 			client->Reset();
 			--g_server->connectedClients;
 			break;
 		}
-		CPlayer* player = client->m_player;
-		client->keyPacket_q.push(keyPacket);
+		
+		int bufSize = bufMaxSize;
+		int offset = 0;
+
+		memcpy(client->remainBuffer + remainOffset, buf, receivedBytes);
+		combinedSize += receivedBytes;
+
+		while (offset < combinedSize)
+		{
+			char packetType = buf[offset];
+			int packetSize = PacketSizeHelper(packetType);
+			   
+			if (offset + packetSize > combinedSize)
+			{
+				//next packet
+				break;
+			}
+
+			switch (packetType)
+			{
+			case CS_KeyInfo:
+			{
+				CPlayer* player = client->m_player;
+				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
+				client->keyPacket_q.push(keyPacket);
+				cout << keyPacket.deltaMouse.x << ", " << keyPacket.deltaMouse.y << "\n";
+				break;
+			}
+			case CS_PingpongInfo:
+			{
+				PingpongPacket ppPacket;
+				memcpy(&ppPacket, buf + offset, packetSize);
+				send(client->sock, (char*)&ppPacket, packetSize, 0);
+				break;
+			}
+			}
+			offset += packetSize;
+
+		}
+		int remainSize = combinedSize - offset;
+		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); // 안전하게 옮기기
+		combinedSize = remainSize;
 	}
 
 	return 0;
@@ -379,6 +444,8 @@ void Client::Reset()
 	Disconnect();
 	m_player->Reset(GetPlayerNumber());
 }
+
+
 
 int main()
 {
