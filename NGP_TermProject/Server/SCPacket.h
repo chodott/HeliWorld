@@ -9,7 +9,6 @@ const char SC_MissileInfo = 2;
 const char CS_KeyInfo = 3;
 const char CS_PingpongInfo = 4;
 
-
 struct FPoint {
 	float x;
 	float y;
@@ -21,6 +20,7 @@ struct PingpongPacket
 {
 	char packetType;
 	uint64_t clientTimeStamp;
+	uint64_t serverSendTimeStamp;
 };
 
 struct PlayerInfoPacket {

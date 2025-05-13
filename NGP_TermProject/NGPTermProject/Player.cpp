@@ -213,10 +213,6 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value)
 {
-	if (GetActive())
-	{
-		XMVECTOR prevRotation = XMLoadFloat3(&GetRotation());
-		XMVECTOR nextRotation = XMLoadFloat3(&PlayerPacket->rotation);
 
 		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), PlayerPacket->rotation, 0.1f);
 		RotatePYR(curRotation);
@@ -224,13 +220,12 @@ void CPlayer::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoP
 		XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
 		XMVECTOR nextPosition = XMLoadFloat3(&PlayerPacket->position);
 
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
-	}
-	else SetPosition(PlayerPacket->position);
+
 	if (bWire)
 	{
 		RotatePYR(PlayerPacket->rotation);

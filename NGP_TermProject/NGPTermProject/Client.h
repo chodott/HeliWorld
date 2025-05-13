@@ -62,7 +62,11 @@ public:
 	int16_t lastLaunchedMissileNum = -1;
 	unsigned char sendKey = NULL;
 
-	bool bReceived = false;
+	//Check RTT
+	float offsetAvg;
+
+	void caculateOffset(PingpongPacket& ppPacket);
+
 
 private:
 	SOCKET* sock = nullptr;
@@ -77,6 +81,9 @@ private:
 	unsigned char option5 = 0x20;   // 0010 0000
 	unsigned char option6 = 0x40;   // 0100 0000
 	unsigned char option7 = 0x80;   // 1000 0000
+
+	//Check RTT
+	deque<uint64_t> scOffset_dq;
 };
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);

@@ -64,7 +64,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PingpongPacket ppPacket;
 		memcpy(&ppPacket, fillTarget, sizeof(PingpongPacket));
-		cout <<"RTT: "<< client->GetTimestampMs() - ppPacket.clientTimeStamp << "\n";
+		client->caculateOffset(ppPacket);
 		break;
 	}
 	default:
@@ -184,6 +184,21 @@ uint32_t Client::GetTimestampMs()
 	using namespace std::chrono;
 	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
+}
+
+void Client::caculateOffset(PingpongPacket& ppPacket)
+{
+	uint64_t rtt = GetTimestampMs() - ppPacket.clientTimeStamp;
+	uint64_t offset = ppPacket.serverSendTimeStamp - (ppPacket.clientTimeStamp + rtt / 2);
+	scOffset_dq.push_back(offset);
+
+	while (scOffset_dq.size() > 10) scOffset_dq.pop_front();
+	float sum = 0;
+	for (auto& offset : scOffset_dq)
+	{
+		sum += offset;
+	}
+	offsetAvg = offset / scOffset_dq.size();
 }
 
 DWORD WINAPI SendPingPacket(LPVOID arg)

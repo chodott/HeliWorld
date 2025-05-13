@@ -12,9 +12,12 @@ int PacketSizeHelper(char packetType)
 	case CS_KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
 		break;
-	case CS_PingpongInfo:
-		packetSize = sizeof(PingpongPacket);
-		break;
+	case CS_PingInfo:
+		packetSize = sizeof(PingPacket);
+		break;	
+	case CS_PongInfo:
+			packetSize = sizeof(PongPacket);
+			break;
 	default:
 		packetSize = -1;
 		break;
@@ -349,6 +352,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	char buf[512]{};
 	while (true)
 	{
+		WaitForSingleObject(g_server->updateDone, INFINITE);
 		receivedBytes = recv(client->sock, (char*)&buf, bufMaxSize, 0);
 		if(receivedBytes == SOCKET_ERROR)
 		{
@@ -388,7 +392,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			{
 				PingpongPacket ppPacket;
 				memcpy(&ppPacket, client->remainBuffer + offset, packetSize);
-				send(client->sock, (char*)&ppPacket, packetSize, 0);
+				ppPacket.serverSendTimeStamp = g_server->GetTimestampMs();
+				send(client->sock, (char*)&ppPacket, PacketSizeHelper(CS_PingpongInfo), 0);
 				break;
 			}
 			}

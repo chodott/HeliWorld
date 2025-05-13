@@ -22,7 +22,9 @@ struct PingpongPacket
 {
 	char packetType;
 	uint64_t clientTimeStamp;
+	uint64_t serverSendTimeStamp;
 };
+
 
 struct PlayerInfoPacket {
 	int playerNumber = -1;
