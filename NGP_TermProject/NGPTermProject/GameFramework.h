@@ -35,6 +35,7 @@ public:
 
     void ProcessInput();
     void AnimateObjects();
+	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();
 
 	void WaitForGpuComplete();

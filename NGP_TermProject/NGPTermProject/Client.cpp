@@ -37,7 +37,8 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 		PlayerInfoBundlePacket piPacket;
 		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		//memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
+		client->addInfoPacket(piPacket);
 		break;
 	}
 	case PACKET::ItemInfo:
@@ -188,17 +189,39 @@ uint32_t Client::GetTimestampMs()
 
 void Client::caculateOffset(PingpongPacket& ppPacket)
 {
-	uint64_t rtt = GetTimestampMs() - ppPacket.clientTimeStamp;
-	uint64_t offset = ppPacket.serverSendTimeStamp - (ppPacket.clientTimeStamp + rtt / 2);
-	scOffset_dq.push_back(offset);
 
-	while (scOffset_dq.size() > 10) scOffset_dq.pop_front();
+	uint64_t rtt = GetTimestampMs() - ppPacket.clientTimeStamp;
+	cout << "rtt: " << rtt << "\n";
+	float offset = (float)ppPacket.serverSendTimeStamp - (float)(ppPacket.clientTimeStamp + (float)rtt / 2);
+	scOffset_dq.push_back(offset);
+	int count = 0;
+
+	while (scOffset_dq.size() > 10)
+	{
+		scOffset_dq.pop_front();
+	}
 	float sum = 0;
 	for (auto& offset : scOffset_dq)
 	{
 		sum += offset;
 	}
-	offsetAvg = offset / scOffset_dq.size();
+	offsetAvg = sum / scOffset_dq.size();
+}
+
+void Client::addInfoPacket(PlayerInfoBundlePacket& pbPacket)
+{
+	std::lock_guard<std::mutex> lock();
+	playerInfoBundle_dq.push_back(pbPacket);
+
+	while (!playerInfoBundle_dq.empty() && playerInfoBundle_dq.front().timestamp < getEstimatedServerTimeMs() - 500.0)
+	{
+		playerInfoBundle_dq.pop_front();
+	}
+}
+
+uint64_t Client::getEstimatedServerTimeMs()
+{
+	return GetTimestampMs() + offsetAvg - 400;
 }
 
 DWORD WINAPI SendPingPacket(LPVOID arg)

@@ -528,37 +528,9 @@ void CGameFramework::ProcessInput()
 void CGameFramework::AnimateObjects()
 {
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	float value = (float)client->getDelayedTimeStampMs() - client->curServerTimeStampMs / 
-		(float)(client->curServerTimeStampMs - client->prevServerTimeStampMs);
-
 	if (m_pScene)
 	{
-		for (int i = 0; i < 4; i++)
-		{
-			if (client->playerData[i].playerNumber == client->PlayerNum)
-			{
-				m_pPlayer->Animate(fTimeElapsed, NULL, &client->playerData[i], value);   //player update
-				m_pWirePlayer->Animate(fTimeElapsed, NULL, &client->playerData[i], value);
-				m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
-				for (int j = 1; j < 11; ++j)
-				{
-					if (j <= (client->playerData[i].playerHP) / 10)
-					{
-						m_pScene->m_ppShaders[3]->m_ppObjects[j]->SetActive(true);
-					}
-					else
-					{
-						m_pScene->m_ppShaders[3]->m_ppObjects[j]->SetActive(false);
-					}
-				}
-			}
-			else
-			{
-				m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
-			}
-			m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
-		}
-
+		AnimatePlayers(fTimeElapsed);
 		for (int i = 0; i < 32; ++i)
 		{
 			m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->missilePacket[i]);
@@ -568,6 +540,59 @@ void CGameFramework::AnimateObjects()
 			m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->itemPacket[i]);
 		}
 
+	}
+}
+
+void CGameFramework::AnimatePlayers(float fTimeElapsed)
+{
+	PlayerInfoBundlePacket prev;
+	PlayerInfoBundlePacket next;
+	bool found = false;
+	float value = 5.0f;
+	uint64_t estimatedServerTime = client->getEstimatedServerTimeMs();
+	{
+		std::lock_guard<std::mutex> lock();
+		// 이전/다음 패킷을 찾아서 보간할 준비
+		for (int i = 0; i + 1 < client->playerInfoBundle_dq.size(); ++i) {
+			if (client->playerInfoBundle_dq[i].timestamp <= estimatedServerTime &&
+				client->playerInfoBundle_dq[i + 1].timestamp >= estimatedServerTime) {
+				prev = client->playerInfoBundle_dq[i];
+				next = client->playerInfoBundle_dq[i+1];
+				found = true;
+				break;
+			}
+		}
+	}
+
+	if (found) {
+		value = float(estimatedServerTime - prev.timestamp) /
+			float(next.timestamp - prev.timestamp);
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (client->playerData[i].playerNumber == client->PlayerNum)
+		{
+			m_pPlayer->Animate(fTimeElapsed, prev.playerInfos[i], next.playerInfos[i], value);   //player update
+			m_pWirePlayer->Animate(fTimeElapsed,prev.playerInfos[i], next.playerInfos[i], value);
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
+			for (int j = 1; j < 11; ++j)
+			{
+				if (j <= (client->playerData[i].playerHP) / 10)
+				{
+					m_pScene->m_ppShaders[3]->m_ppObjects[j]->SetActive(true);
+				}
+				else
+				{
+					m_pScene->m_ppShaders[3]->m_ppObjects[j]->SetActive(false);
+				}
+			}
+		}
+		else
+		{
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &client->playerData[i]);//Enemy Update 
+		}
+		m_pScene->AnimateObjects(fTimeElapsed, &client->playerData[i]);
 	}
 }
 

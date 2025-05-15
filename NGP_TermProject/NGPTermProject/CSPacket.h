@@ -38,6 +38,7 @@ struct PlayerInfoBundlePacket
 {
 	char packetType;
 	PlayerInfoPacket playerInfos[4];
+	uint64_t timestamp;
 };
 
 

@@ -12,12 +12,9 @@ int PacketSizeHelper(char packetType)
 	case CS_KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
 		break;
-	case CS_PingInfo:
-		packetSize = sizeof(PingPacket);
+	case CS_PingpongInfo:
+		packetSize = sizeof(PingpongPacket);
 		break;	
-	case CS_PongInfo:
-			packetSize = sizeof(PongPacket);
-			break;
 	default:
 		packetSize = -1;
 		break;
@@ -248,6 +245,7 @@ void Server::PreparePackets()
 			missileInfo.active = missile->IsActive();
 		}
 	}
+	playerBundle.timestamp = GetTimestampMs();
 	playerBundlePacket_q.push(playerBundle);
 	missileBundlePacket_q.push(missileBundle);
 

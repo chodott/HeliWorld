@@ -76,7 +76,7 @@ public:
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 
 	void Update(float fTimeElapsed);
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value);
+	virtual void Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket,float value);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
 	void SetPlayerUpdatedContext(LPVOID pContext) { m_pPlayerUpdatedContext = pContext; }

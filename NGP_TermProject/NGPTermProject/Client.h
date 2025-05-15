@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <queue>
 #include <deque>
+#include <concurrent_queue.h>
+#include <mutex>
 
 #include "CSPacket.h"
 #include "error.h"
@@ -62,10 +64,13 @@ public:
 	int16_t lastLaunchedMissileNum = -1;
 	unsigned char sendKey = NULL;
 
-	//Check RTT
+	//Latency Interpolation
 	float offsetAvg;
 
 	void caculateOffset(PingpongPacket& ppPacket);
+	void addInfoPacket(PlayerInfoBundlePacket& pbPacket);
+	deque<PlayerInfoBundlePacket> playerInfoBundle_dq;
+	uint64_t getEstimatedServerTimeMs();
 
 
 private:
@@ -83,7 +88,9 @@ private:
 	unsigned char option7 = 0x80;   // 1000 0000
 
 	//Check RTT
-	deque<uint64_t> scOffset_dq;
+	deque<float> scOffset_dq;
+	//Latency interpolation
+
 };
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
