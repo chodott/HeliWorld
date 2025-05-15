@@ -35,30 +35,27 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	{
 	case PACKET::PlayerInfo:
 	{
-		PlayerInfoBundlePacket piPacket;
-		memcpy(&piPacket, fillTarget, sizeof(PlayerInfoBundlePacket));
-		//memcpy(&client->playerData, &piPacket.playerInfos, sizeof(PlayerInfoPacket) * 4);
-		client->addInfoPacket(piPacket);
+		//PlayerInfoBundlePacket pkt;
+		//memcpy(&pkt, fillTarget, sizeof(PlayerInfoBundlePacket));
+
+		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
+		client->frameDataMgr->CombinePacket(pkt,0);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
-		ItemInfoBundlePacket itPacket;
-		memcpy(&itPacket, fillTarget, sizeof(ItemInfoBundlePacket));
-		memcpy(&client->itemPacket, itPacket.itemInfos, sizeof(ItemInfoPacket)*10);
+		//ItemInfoBundlePacket pkt;
+		//memcpy(&pkt, fillTarget, sizeof(ItemInfoBundlePacket));
+		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
+		client->frameDataMgr->CombinePacket(pkt, client->getEstimatedServerTimeMs() - 200);
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
-		MissileInfoBundlePacket miPacket;
-		memcpy(&miPacket, fillTarget, sizeof(MissileInfoBundlePacket));
-		memcpy(&client->missilePacket, miPacket.missileInfos, sizeof(MissileInfoPacket) * 32);
-		break;
-	}
-	case PACKET::KeyInfo:
-	{
-		PlayerKeyPacket pkPacket;
-		memcpy(&pkPacket, fillTarget, sizeof(PlayerKeyPacket));
+		//MissileInfoBundlePacket pkt;
+		//memcpy(&pkt, fillTarget, sizeof(MissileInfoBundlePacket));
+		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
+		client->frameDataMgr->CombinePacket(pkt, 0);
 		break;
 	}
 	case PACKET::PingpongInfo:
@@ -79,6 +76,7 @@ Client::Client()
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
 	sock = new SOCKET();
+	frameDataMgr = new FrameDataManager();
 }
 
 Client::~Client()
@@ -119,8 +117,6 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
-
-	playerData[PlayerNum].playerNumber = PlayerNum;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
@@ -208,20 +204,9 @@ void Client::caculateOffset(PingpongPacket& ppPacket)
 	offsetAvg = sum / scOffset_dq.size();
 }
 
-void Client::addInfoPacket(PlayerInfoBundlePacket& pbPacket)
-{
-	std::lock_guard<std::mutex> lock();
-	playerInfoBundle_dq.push_back(pbPacket);
-
-	while (!playerInfoBundle_dq.empty() && playerInfoBundle_dq.front().timestamp < getEstimatedServerTimeMs() - 500.0)
-	{
-		playerInfoBundle_dq.pop_front();
-	}
-}
-
 uint64_t Client::getEstimatedServerTimeMs()
 {
-	return GetTimestampMs() + offsetAvg - 400;
+	return GetTimestampMs() + offsetAvg - 50;
 }
 
 DWORD WINAPI SendPingPacket(LPVOID arg)

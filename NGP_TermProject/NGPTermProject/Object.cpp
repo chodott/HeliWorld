@@ -484,6 +484,46 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
     if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->AddRef();
 }
 
+XMFLOAT3 CGameObject::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t)
+{
+    auto LerpAngle = [](float a, float b, float t) -> float
+    {
+        // b - a의 차이를 -180 ~ 180도로 만들어서 가장 짧은 방향으로 회전
+        float delta = fmodf(b - a + 540.0f, 360.0f) - 180.0f;
+        return a + delta * t;
+    };
+
+    XMFLOAT3 result;
+    result.x = LerpAngle(prevRotation.x, nextRotation.x, t); // Pitch
+    result.y = LerpAngle(prevRotation.y, nextRotation.y, t); // Yaw
+    result.z = LerpAngle(prevRotation.z, nextRotation.z, t); // Roll
+    return result;
+}
+
+
+void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
+{
+    if (value > 3.0f)
+    {
+        RotatePYR(GetRotation());
+    }
+
+    else
+    {
+        XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value);
+        RotatePYR(curRotation);
+
+        XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
+        XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
+
+        XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
+
+        XMFLOAT3 resultPosition;
+        XMStoreFloat3(&resultPosition, curPosition);
+        SetPosition(resultPosition);
+    }
+}
+
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
     //SetShifts(PlayerPacket->movement, PlayerPacket->rotation);

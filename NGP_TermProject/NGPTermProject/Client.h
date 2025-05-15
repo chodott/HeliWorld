@@ -16,11 +16,10 @@
 #include <chrono>
 #include <algorithm>
 #include <queue>
-#include <deque>
 #include <concurrent_queue.h>
 #include <mutex>
 
-#include "CSPacket.h"
+#include "FrameDataManager.h"
 #include "error.h"
 #include "Missileobject.h"
 
@@ -43,9 +42,7 @@ public:
 
 	uint32_t GetTimestampMs();
 
-	PlayerInfoPacket playerData[4];
-	MissileInfoPacket missilePacket[32];
-	ItemInfoPacket itemPacket[10];
+	
 	FPoint deltaMouse;
 
 	int PlayerNum = 0;
@@ -65,11 +62,10 @@ public:
 	unsigned char sendKey = NULL;
 
 	//Latency Interpolation
+	FrameDataManager* frameDataMgr;
 	float offsetAvg;
 
 	void caculateOffset(PingpongPacket& ppPacket);
-	void addInfoPacket(PlayerInfoBundlePacket& pbPacket);
-	deque<PlayerInfoBundlePacket> playerInfoBundle_dq;
 	uint64_t getEstimatedServerTimeMs();
 
 

@@ -18,8 +18,8 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value);
 	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket);
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* MissilePacket);
 
 
 	void SetID(int id) { m_ID = id; }

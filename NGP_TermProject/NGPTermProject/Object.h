@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include"CSPacket.h"
 
+
 #define DIR_FORWARD               0x01
 #define DIR_BACKWARD            0x02
 #define DIR_LEFT               0x04
@@ -202,6 +203,7 @@ public:
     CGameObject(int nMaterials, int meshes);
     virtual ~CGameObject();
 
+    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value) {};
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket) {};
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInfoPacket* ItemPacket) {};
     //void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerStatusPacket* PlayerStatus) {};
@@ -240,6 +242,8 @@ public:
     XMFLOAT3 GetMovement() { return m_movement; }
     XMFLOAT3 GetRotation() { return m_rotation; }
     virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+    XMFLOAT3 XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t);
+
 
 
 
@@ -283,6 +287,7 @@ public:
     virtual void BuildMaterials(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) { }
 
     virtual void PrepareAnimate() { }
+    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value);
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
     //   virtual void Animate(float fTimeElapsed);

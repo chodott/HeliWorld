@@ -95,7 +95,6 @@ public:
 	virtual void Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera = NULL);
 	virtual void SetRotation(XMFLOAT3X3 xmf3Rotation);
 
-	XMFLOAT3 XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t);
 };
 
 class CAirplanePlayer : public CPlayer

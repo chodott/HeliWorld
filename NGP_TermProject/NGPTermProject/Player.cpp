@@ -2,9 +2,8 @@
 // File: CPlayer.cpp
 //-----------------------------------------------------------------------------
 
-#include "stdafx.h"
 #include "Player.h"
-
+#include "stdafx.h"
 #include "MissileObjectShader.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,8 +234,8 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		
 	if (bWire)
 	{
-		RotatePYR(nextPacket.rotation);
-		SetPosition(nextPacket.position);
+		//RotatePYR(nextPacket.rotation);
+		//SetPosition(nextPacket.position);
 	}
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
@@ -310,22 +309,6 @@ void CPlayer::SetRotation(XMFLOAT3X3 xmf3Rotation)
 	m_xmf3Look.x = xmf3Rotation._31, m_xmf3Look.y= xmf3Rotation._32, m_xmf3Look.z = xmf3Rotation._33;
 
 	m_xmf4x4World = m_xmf4x4Transform;
-}
-
-XMFLOAT3 CPlayer::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t)
-{
-	auto LerpAngle = [](float a, float b, float t) -> float
-	{
-		// b - a의 차이를 -180 ~ 180도로 만들어서 가장 짧은 방향으로 회전
-		float delta = fmodf(b - a + 540.0f, 360.0f) - 180.0f;
-		return a + delta * t;
-	};
-
-	XMFLOAT3 result;
-	result.x = LerpAngle(prevRotation.x, nextRotation.x, t); // Pitch
-	result.y = LerpAngle(prevRotation.y, nextRotation.y, t); // Yaw
-	result.z = LerpAngle(prevRotation.z, nextRotation.z, t); // Roll
-	return result;
 }
 
 void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)

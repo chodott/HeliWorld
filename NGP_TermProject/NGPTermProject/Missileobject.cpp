@@ -95,16 +95,25 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	else SetPosition(newPosition);
 
 }
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* MissilePacket)
+void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value)
 {
-	//SetActive(MissilePacket->active);
+	if (value > 3.0f)
+	{
+		RotatePYR(GetRotation());
+	}
 
-	//SetPosition(MissilePacket->position);
-	//rotate
+	else
+	{
+		SetActive(prevPacket.active);
+		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
+		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 
-	//if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
-	//if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
+		XMFLOAT3 resultPosition;
+		XMStoreFloat3(&resultPosition, curPosition);
+		SetPosition(resultPosition);
+	}
 }
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
