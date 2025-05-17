@@ -185,6 +185,8 @@ void Server::Update()
 		}
 		else
 		{
+			float timeOffset = (float)(GetTimestampMs() - clients[i]->m_player->keyPacket.timestamp) / 1000.0f;
+			if (timeOffset > 0.f) clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
 		}
 	}

@@ -44,6 +44,7 @@ struct PlayerKeyPacket {
 	unsigned char playerKeyInput;
 	FPoint deltaMouse;
 	int16_t requestMissileNum;
+	uint64_t timestamp
 };
 
 struct ItemInfoPacket {

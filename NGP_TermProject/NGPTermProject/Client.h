@@ -67,12 +67,12 @@ public:
 
 	void caculateOffset(PingpongPacket& ppPacket);
 	uint64_t getEstimatedServerTimeMs();
-
+	int delay = 50;
 
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.66";
+	char* serverIp = (char*)"172.30.1.7";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

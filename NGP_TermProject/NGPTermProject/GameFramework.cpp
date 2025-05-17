@@ -469,6 +469,7 @@ void CGameFramework::ReleaseObjects()
 void CGameFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
+	static InputData curInputData;
 	bool bProcessedByScene = false;
 	if (GetKeyboardState(pKeysBuffer) && m_pScene) bProcessedByScene = m_pScene->ProcessInput(pKeysBuffer);
 	if (!bProcessedByScene)
@@ -499,6 +500,11 @@ void CGameFramework::ProcessInput()
 			client->deltaMouse.y = cyDelta;
 		}
 
+		client->frameDataMgr->
+			AddInputData(client->GetTimestampMs(),client->sendKey, client->deltaMouse, m_GameTimer.GetTimeElapsed());
+
+
+
 		if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 		{
 			if (cxDelta || cyDelta)
@@ -516,6 +522,7 @@ void CGameFramework::ProcessInput()
 			if (dwDirection) m_pPlayer->Move(dwDirection, 200.f * m_GameTimer.GetTimeElapsed(), false);
 		}
 	}
+
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 
 	if (client->sendKey & 0x40)
@@ -540,7 +547,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	FrameData* nextData;
 	bool found = false;
 
-	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs());
+	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs()- client->delay);
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)

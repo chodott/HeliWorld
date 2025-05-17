@@ -165,6 +165,7 @@ void Client::SendtoServer()
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
 	cs_key.launchedMissileNum = lastLaunchedMissileNum;
+	cs_key.timestamp = getEstimatedServerTimeMs();
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
@@ -206,7 +207,7 @@ void Client::caculateOffset(PingpongPacket& ppPacket)
 
 uint64_t Client::getEstimatedServerTimeMs()
 {
-	return GetTimestampMs() + offsetAvg - 50;
+	return GetTimestampMs() + offsetAvg;
 }
 
 DWORD WINAPI SendPingPacket(LPVOID arg)
