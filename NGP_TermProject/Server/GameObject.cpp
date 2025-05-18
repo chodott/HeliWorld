@@ -146,32 +146,26 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		if (keyPacket.playerKeyInput & option0)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			keyPacket.playerKeyInput &= ~option0;
 		}
 		if (keyPacket.playerKeyInput & option1)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			keyPacket.playerKeyInput &= ~option1;
 		}
 		if (keyPacket.playerKeyInput & option2)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			keyPacket.playerKeyInput &= ~option2;
 		}
 		if (keyPacket.playerKeyInput & option3)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			keyPacket.playerKeyInput &= ~option3;
 		}
 		if (keyPacket.playerKeyInput & option4)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -distance);
-			keyPacket.playerKeyInput &= ~option4;
 		}
 		if (keyPacket.playerKeyInput & option5)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, distance);
-			keyPacket.playerKeyInput &= ~option5;
 		}
 		Move(xmf3Shift);
 

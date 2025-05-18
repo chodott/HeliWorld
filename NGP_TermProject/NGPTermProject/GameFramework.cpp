@@ -482,12 +482,12 @@ void CGameFramework::ProcessInput()
 		if (pKeysBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
-		float cxDelta = 0.0f, cyDelta = 0.0f;
+		float cxDelta = 0.00f, cyDelta = 0.00f;
 		POINT ptCursorPos;
 		(char*)&ptCursorPos;
 
-		client->deltaMouse.x = 0.f;
-		client->deltaMouse.y = 0.f;
+		client->deltaMouse.x = 0.00f;
+		client->deltaMouse.y = 0.00f;
 		if (GetCapture() == m_hWnd)
 		{
 			SetCursor(NULL);
@@ -502,8 +502,6 @@ void CGameFramework::ProcessInput()
 
 		client->frameDataMgr->
 			AddInputData(client->GetTimestampMs(),client->sendKey, client->deltaMouse, m_GameTimer.GetTimeElapsed());
-
-
 
 		if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 		{
@@ -553,7 +551,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 		if (i == client->PlayerNum)
 		{
 			m_pPlayer->Animate(fTimeElapsed, prevData->playerInfos[i], nextData->playerInfos[i], value);   //player update
-			m_pWirePlayer->Animate(fTimeElapsed,prevData->playerInfos[i], nextData->playerInfos[i], value);
+			//m_pWirePlayer->Animate(fTimeElapsed,prevData->playerInfos[i], nextData->playerInfos[i], value);
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 			if (value > 3.0f) continue;
 			for (int j = 1; j < 11; ++j)
@@ -572,7 +570,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 		{
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData->playerInfos[i], nextData->playerInfos[i], value);//Enemy Update 
 		}
-		//m_pScene->AnimateObjects(fTimeElapsed, prevData->playerInfos[i]);
+		m_pScene->AnimateObjects(fTimeElapsed, prevData->playerInfos[i]);
 	}
 
 	if (value > 3.0f) return;
@@ -617,7 +615,6 @@ void CGameFramework::MoveToNextFrame()
 
 void CGameFramework::FrameAdvance()
 {
-	//ResetEvent(client->FrameAdvanced);
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
@@ -625,9 +622,6 @@ void CGameFramework::FrameAdvance()
 
 	AnimateObjects();
 	client->SendtoServer();
-
-	//SetEvent(client->FrameAdvanced);
-
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
@@ -659,7 +653,7 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
 #endif
 	if (m_pPlayer) m_pPlayer->Render(m_pd3dCommandList, m_pCamera);
-	if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
+	//if (m_pWirePlayer) m_pWirePlayer->Render(m_pd3dCommandList, m_pCamera);
 
 	d3dResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	d3dResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;

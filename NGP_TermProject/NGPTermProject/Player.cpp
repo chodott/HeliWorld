@@ -214,7 +214,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 {
 	if (value > 3.0f)
 	{
-		RotatePYR(GetRotation());
+		//RotatePYR(GetRotation());
 	}
 
 	else

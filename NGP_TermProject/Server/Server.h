@@ -88,7 +88,7 @@ public:
 	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
 
 	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 120.0f;
+	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
 
 
 private:

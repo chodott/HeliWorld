@@ -168,25 +168,30 @@ void Server::CheckCollision()
 
 void Server::Update()
 {
-	ResetEvent(updateDone);
 
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
-		clients[i]->keyPacket_q.try_pop(clients[i]->m_player->keyPacket);
+		CPlayer* player = clients[i]->m_player;
+		if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
 		// connected, but dead
-		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
+		if (clients[i]->IsConnected() && !player->IsActive())
 		{
 			clients[i]->deadTime += elapsedTime;
 			if (clients[i]->deadTime > RESPAWN_TIME)
 			{
-				clients[i]->m_player->SetActive(true);
+				player->SetActive(true);
 				clients[i]->deadTime = 0.f;
 			}
 		}
 		else
 		{
 			float timeOffset = (float)(GetTimestampMs() - clients[i]->m_player->keyPacket.timestamp) / 1000.0f;
-			if (timeOffset > 0.f) clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
+			bool bKeyChanged = player->keyPacket.bKeyChanged;
+			if (bKeyChanged && timeOffset > 0.f)
+			{
+				clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
+				player->keyPacket.bKeyChanged = false;
+			}
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
 		}
 	}
@@ -352,7 +357,6 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	char buf[512]{};
 	while (true)
 	{
-		WaitForSingleObject(g_server->updateDone, INFINITE);
 		receivedBytes = recv(client->sock, (char*)&buf, bufMaxSize, 0);
 		if(receivedBytes == SOCKET_ERROR)
 		{
@@ -433,7 +437,6 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 			g_server->SendPacketAllClient((char*)&ItemInfoBundle, sizeof(ItemInfoBundlePacket), 0);
 
 		}
-		ResetEvent(g_server->updateDone);
 	}
 }
 
@@ -467,7 +470,6 @@ int main()
 		{
 			g_server->timer.Record();
 			g_server->Update();
-			//g_server->SendAllClient();
 			g_server->elapsedTime = g_server->FIXED_DELTA_TIME;
 		}
 	}

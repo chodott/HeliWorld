@@ -160,7 +160,10 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 
 void Client::SendtoServer()
 {
-	PlayerKeyPacket cs_key;
+	//여기서부터. 로테이션때문에 이동량 막아야해
+	if (prevKey == sendKey && (deltaMouse.x == 0.0f && deltaMouse.y == 0.0f)) return;
+	static PlayerKeyPacket cs_key;
+	cs_key.bKeyChanged = (prevKey != sendKey);
 	cs_key.packetType = PACKET::KeyInfo;
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
@@ -171,6 +174,7 @@ void Client::SendtoServer()
 		err_display("send()");
 		return;
 	}
+	prevKey = sendKey;
 	sendKey &= (~option6);
 	lastLaunchedMissileNum = -1;
 }

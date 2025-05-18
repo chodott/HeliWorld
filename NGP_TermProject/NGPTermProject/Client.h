@@ -44,7 +44,6 @@ public:
 
 	
 	FPoint deltaMouse;
-
 	int PlayerNum = 0;
 
 	HANDLE FrameAdvanced;
@@ -60,6 +59,7 @@ public:
 	uint32_t curServerTimeStampMs;
 	int16_t lastLaunchedMissileNum = -1;
 	unsigned char sendKey = NULL;
+	unsigned char prevKey = NULL;
 
 	//Latency Interpolation
 	FrameDataManager* frameDataMgr;
@@ -72,7 +72,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.7";
+	char* serverIp = (char*)"172.30.1.66";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

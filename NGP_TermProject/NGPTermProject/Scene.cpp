@@ -529,7 +529,7 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
 	}
 }
-void CScene::AnimateObjects(float fTimeElapsed,PlayerInfoPacket* PlayerInfoPacket)
+void CScene::AnimateObjects(float fTimeElapsed,PlayerInfoPacket& PlayerInfoPacket)
 {
 	fTimer += fTimeElapsed;
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
