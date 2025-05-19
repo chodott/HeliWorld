@@ -120,6 +120,7 @@ void Client::ConnectServer()
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
+	CreateThread(NULL, 0, SendInputPacket, this, 0, NULL);
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -161,7 +162,7 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::SendtoServer()
 {
 	//여기서부터. 로테이션때문에 이동량 막아야해
-	if (prevKey == sendKey && (deltaMouse.x == 0.0f && deltaMouse.y == 0.0f)) return;
+	if (prevKey == sendKey) return;
 	static PlayerKeyPacket cs_key;
 	cs_key.bKeyChanged = (prevKey != sendKey);
 	cs_key.packetType = PACKET::KeyInfo;
@@ -169,6 +170,7 @@ void Client::SendtoServer()
 	cs_key.deltaMouse = deltaMouse;
 	cs_key.launchedMissileNum = lastLaunchedMissileNum;
 	cs_key.timestamp = getEstimatedServerTimeMs();
+	deltaMouse = { 0.0f, 0.0f };
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
 		err_display("send()");
@@ -231,6 +233,26 @@ DWORD WINAPI SendPingPacket(LPVOID arg)
 		}
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
+}
+
+DWORD WINAPI SendInputPacket(LPVOID arg)
+{
+	Client* client = (Client*)arg;
+	SOCKET* sock = client->GetClientsock();
+
+	static PlayerKeyPacket cs_keyInput{ PACKET::KeyInfo };
+	while (true)
+	{
+		cs_keyInput = { PACKET::KeyInfo, client->sendKey, client->deltaMouse, -1, client->getEstimatedServerTimeMs(), false };
+		client->deltaMouse = { 0.f,0.f };
+		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
+		{
+			err_display("send()");
+			return 0;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(33));
 	}
 }
 

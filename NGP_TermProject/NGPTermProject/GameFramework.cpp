@@ -486,8 +486,6 @@ void CGameFramework::ProcessInput()
 		POINT ptCursorPos;
 		(char*)&ptCursorPos;
 
-		client->deltaMouse.x = 0.00f;
-		client->deltaMouse.y = 0.00f;
 		if (GetCapture() == m_hWnd)
 		{
 			SetCursor(NULL);
@@ -496,8 +494,8 @@ void CGameFramework::ProcessInput()
 			cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 			cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
 			SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-			client->deltaMouse.x = cxDelta;
-			client->deltaMouse.y = cyDelta;
+			client->deltaMouse.x += cxDelta;
+			client->deltaMouse.y += cyDelta;
 		}
 
 		client->frameDataMgr->
@@ -545,7 +543,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	FrameData* nextData;
 	bool found = false;
 
-	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs()- client->delay);
+	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)

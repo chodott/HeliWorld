@@ -67,12 +67,12 @@ public:
 
 	void caculateOffset(PingpongPacket& ppPacket);
 	uint64_t getEstimatedServerTimeMs();
-	int delay = 50;
+	int delay = 50;//ms
 
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.66";
+	char* serverIp = (char*)"192.168.0.19";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010
@@ -91,3 +91,4 @@ private:
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
 DWORD WINAPI SendPingPacket(LPVOID arg);
+DWORD WINAPI SendInputPacket(LPVOID arg);
