@@ -185,11 +185,13 @@ void Server::Update()
 		}
 		else
 		{
-			float timeOffset = (float)(GetTimestampMs() - clients[i]->m_player->keyPacket.timestamp) / 1000.0f;
+			float curServerTime = GetTimestampMs();
+			float clientEstimatedTime = clients[i]->m_player->keyPacket.timestamp;
 			bool bKeyChanged = player->keyPacket.bKeyChanged;
-			if (bKeyChanged && timeOffset > 0.f)
+			if (bKeyChanged && curServerTime > clientEstimatedTime)
 			{
-				clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
+				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
+				//clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
 				player->keyPacket.bKeyChanged = false;
 			}
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
@@ -212,7 +214,6 @@ void Server::Update()
 	}
 
 	PreparePackets();
-	SetEvent(updateDone);
 }
 
 void Server::SpawnItem()
@@ -266,7 +267,7 @@ void Server::PreparePackets()
 	itemBundlePacket_q.push(itemBundle);
 }
 
-uint32_t Server::GetTimestampMs()
+uint64_t Server::GetTimestampMs()
 {
 	using namespace std::chrono;
 	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
