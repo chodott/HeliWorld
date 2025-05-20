@@ -539,22 +539,21 @@ void CGameFramework::AnimateObjects()
 
 void CGameFramework::AnimatePlayers(float fTimeElapsed)
 {
-	FrameData* prevData;
-	FrameData* nextData;
-	bool found = false;
+	static FrameData prevData;;
+	static FrameData nextData;
 
 	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)
 		{
-			m_pPlayer->Animate(fTimeElapsed, prevData->playerInfos[i], nextData->playerInfos[i], value);   //player update
+			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			//m_pWirePlayer->Animate(fTimeElapsed,prevData->playerInfos[i], nextData->playerInfos[i], value);
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 			if (value > 3.0f) continue;
 			for (int j = 1; j < 11; ++j)
 			{
-				if (j <= (prevData->playerInfos[i].playerHP) / 10)
+				if (j <= (prevData.playerInfos[i].playerHP) / 10)
 				{
 					m_pScene->m_ppShaders[3]->m_ppObjects[j]->SetActive(true);
 				}
@@ -566,19 +565,19 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 		}
 		else
 		{
-			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData->playerInfos[i], nextData->playerInfos[i], value);//Enemy Update 
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.playerInfos[i], nextData.playerInfos[i], value);//Enemy Update 
 		}
-		m_pScene->AnimateObjects(fTimeElapsed, prevData->playerInfos[i]);
+		m_pScene->AnimateObjects(fTimeElapsed, prevData.playerInfos[i]);
 	}
 
 	if (value > 3.0f) return;
 	for (int i = 0; i < 32; ++i)
 	{
-		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData->missileInfos[i], nextData->missileInfos[i], value);
+		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.missileInfos[i], nextData.missileInfos[i], value);
 	}
 	for (int i = 0; i < 10; ++i)
 	{
-		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &prevData->itemInfos[i]);
+		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &prevData.itemInfos[i]);
 	}
 }
 

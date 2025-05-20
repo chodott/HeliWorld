@@ -1,6 +1,7 @@
 #pragma once
 #include "CSPacket.h"
 #include <deque>
+#include <mutex>
 struct FrameData {
     uint64_t timestamp;
     PlayerInfoPacket playerInfos[4];
@@ -25,9 +26,10 @@ public:
     {
         inputData_dq.push_back({ timestamp, keyInput, deltaMouse, deltaTime });
     }
-    float GetFrameData(FrameData*& prevData, FrameData*& nextData, const uint64_t& serverTime);
+    float GetFrameData(FrameData& prevData, FrameData& nextData, const uint64_t& serverTime);
 
 private:
+    std::mutex mtx;
     std::deque<FrameData> frameData_dq;
     std::deque<InputData> inputData_dq;
     FrameData currentFrameData;

@@ -1,32 +1,34 @@
 #include "FrameDataManager.h"
 
-float FrameDataManager::GetFrameData(FrameData*& prevData, FrameData*& nextData, const uint64_t& serverTime)
+float FrameDataManager::GetFrameData(FrameData& prevData, FrameData& nextData, const uint64_t& serverTime)
 {
+    std::lock_guard<std::mutex> lock(mtx);
     float value = 5.0f;
     bool bCanInterpolate = false;
     for (int i = 0; i + 1 < frameData_dq.size(); ++i) {
         if (frameData_dq[i].timestamp <= serverTime &&
             frameData_dq[i + 1].timestamp >= serverTime) {
-            prevData = &frameData_dq[i];
-            nextData = &frameData_dq[i + 1];
+            prevData = frameData_dq[i];
+            nextData = frameData_dq[i + 1];
             bCanInterpolate = true;
             break;
         }
     }
     if (bCanInterpolate)
     {
-        value = float(serverTime - prevData->timestamp) / float(nextData->timestamp - prevData->timestamp);
-
+        value = float(serverTime - prevData.timestamp) / float(nextData.timestamp - prevData.timestamp);
     }
+    //cout << prevData.playerInfos[0].position.x << " ." << prevData.playerInfos[0].position.y << " ." << prevData.playerInfos[0].position.z << " \n";
+    //cout << nextData.playerInfos[0].position.x << " ." << nextData.playerInfos[0].position.y << " ." << nextData.playerInfos[0].position.z << " \n";
     return value;
 }
 
 template<>
 void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundlePacket& pkt, uint64_t cutTimeline)
 {
+    std::lock_guard<std::mutex> lock(mtx);
     memcpy(currentFrameData.itemInfos, pkt.itemInfos, sizeof(ItemInfoPacket) * 10);
     frameData_dq.push_back(currentFrameData);
-
 
     while (!frameData_dq.empty() && frameData_dq.front().timestamp < cutTimeline)
     {
