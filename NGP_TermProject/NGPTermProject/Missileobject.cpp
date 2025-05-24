@@ -35,7 +35,7 @@ void CMissleObject::OnPrepareRender()
 void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	OnPrepareRender();
-
+	if (!GetActive()) return;
 	if (m_ppMaterials)
 	{
 		if (m_ppMaterials[0]->m_pShader)//->½¦ÀÌ´õ 
@@ -64,7 +64,7 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
 {
-	bool bServerActive = MissilePacket->active;
+	/*bool bServerActive = MissilePacket->active;
 	if (bServerActive)
 	{
 		bServerLife = true;
@@ -92,7 +92,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 			SetPosition(resultPosition);
 		}
 	}
-	else SetPosition(newPosition);
+	else SetPosition(newPosition);*/
 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value)
@@ -105,6 +105,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	else
 	{
 		SetActive(prevPacket.active);
+		if (!GetActive()) return;
 		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
 		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 

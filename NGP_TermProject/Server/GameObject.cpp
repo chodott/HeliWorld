@@ -106,8 +106,8 @@ void CPlayer::LaunchMissile(int16_t missileNum)
 	if (!missile->IsActive())
 	{
 		missile->m_bActive = true;
-		missile->SetPosition(m_fxPos, m_fyPos, m_fzPos);
 		missile->m_xmf3Look = m_xmf3Look;
+		missile->SetPosition(m_fxPos + m_xmf3Look.x * 5, m_fyPos + m_xmf3Look.y * 5, m_fzPos + m_xmf3Look.z * 5);
 	}
 }
 

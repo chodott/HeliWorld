@@ -53,10 +53,6 @@ public:
 	int remainSize = 0;
 
 	//Add
-	inline uint32_t getDelayedTimeStampMs() { return GetTimestampMs() - delayedTimeMs; }
-	const static uint32_t delayedTimeMs = 200;
-	uint32_t prevServerTimeStampMs;
-	uint32_t curServerTimeStampMs;
 	int16_t lastLaunchedMissileNum = -1;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;
@@ -67,12 +63,12 @@ public:
 
 	void caculateOffset(PingpongPacket& ppPacket);
 	uint64_t getEstimatedServerTimeMs();
-	int delay = 50;//ms
+	int delay = 200;//ms
 
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"192.168.0.19";
+	char* serverIp = (char*)"172.30.1.7";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

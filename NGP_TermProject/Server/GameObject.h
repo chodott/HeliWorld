@@ -86,7 +86,7 @@ public:
 	void Update(float elapsedTime, int connectedClients);
 	void Reset(int playerNum);
 
-	const float movingSpeed = 200.f;
+	const float movingSpeed = 100.f;
 
 	PlayerKeyPacket keyPacket;
 
@@ -116,7 +116,7 @@ class CMissileObject : public GameObject
 public:
 	int m_playerNumber = 0;
 	int damage = 10;
-	const float movingSpeed = 300.f;
+	const float movingSpeed = 500.f;
 	bool bMustKill = false;
 
 	float m_fLifeSpan = 6.f;

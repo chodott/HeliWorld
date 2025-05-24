@@ -176,9 +176,9 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 		if (missile->GetActive()) continue;
 		else
 		{
-			missile->SetActive(true);
+			/*missile->SetActive(true);
 			missile->SetPosition(GetPosition());
-			missile->SetMovingDirection(GetLookVector());
+			missile->SetMovingDirection(GetLookVector());*/
 			missile->bLocalMissile = true;
 			client->lastLaunchedMissileNum = i;
 			break;
@@ -214,16 +214,18 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 {
 	if (value > 3.0f)
 	{
-		//RotatePYR(GetRotation());
+		//SetPosition(prevPacket.position);
 	}
 
 	else
 	{
-		XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value);
+		XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value) ;
+		curRotation = XMVectorAngleLerp(GetRotation(), curRotation, 0.1f);
 		RotatePYR(curRotation);
 
 		XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
 		XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
+		
 
 		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 

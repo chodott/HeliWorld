@@ -515,7 +515,7 @@ void CGameFramework::ProcessInput()
 					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, 200.f * m_GameTimer.GetTimeElapsed(), false);
+			//if (dwDirection) m_pPlayer->Move(dwDirection, 200.f * m_GameTimer.GetTimeElapsed(), false);
 		}
 	}
 
@@ -547,6 +547,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	{
 		if (i == client->PlayerNum)
 		{
+			cout << value << "\n";
 			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			//m_pWirePlayer->Animate(fTimeElapsed,prevData->playerInfos[i], nextData->playerInfos[i], value);
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);

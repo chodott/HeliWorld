@@ -64,7 +64,7 @@ public:
 	void SpawnItem();
 	void PreparePackets();
 
-	uint32_t GetTimestampMs();
+	uint64_t GetTimestampMs();
 
 	SOCKET* GetSocket() { return &listenSock; }
 
@@ -88,7 +88,7 @@ public:
 	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
 
 	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
+	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
 
 
 private:
