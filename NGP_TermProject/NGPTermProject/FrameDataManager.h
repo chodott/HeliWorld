@@ -2,16 +2,18 @@
 #include "CSPacket.h"
 #include <deque>
 #include <mutex>
-struct FrameData {
+struct ServerFrameData {
     uint64_t timestamp;
     PlayerInfoPacket playerInfos[4];
     ItemInfoPacket itemInfos[10];
     MissileInfoPacket missileInfos[32];
 };
 
-struct InputData
+struct ClientFrameData
 {
     uint64_t timestamp;
+    XMFLOAT3 position;
+    XMFLOAT3 rotation;
     unsigned char playerKeyInput;
     FPoint deltaMouse;
     float deltaTime;
@@ -22,17 +24,18 @@ class FrameDataManager
 public:
     template<typename PacketType>
     void CombinePacket(const PacketType& packet, uint64_t cutTimeline);
-    inline void AddInputData(uint64_t timestamp, unsigned char keyInput, const FPoint& deltaMouse, float deltaTime)
+    inline void AddClientFrameData(const ClientFrameData& frameData)
     {
-        inputData_dq.push_back({ timestamp, keyInput, deltaMouse, deltaTime });
+        clientFrameData_dq.emplace_back(frameData);
     }
-    float GetFrameData(FrameData& prevData, FrameData& nextData, const uint64_t& serverTime);
-
+    float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
+    bool CheckPrediction(uint64_t timestamp);
 private:
     std::mutex mtx;
-    std::deque<FrameData> frameData_dq;
-    std::deque<InputData> inputData_dq;
-    FrameData currentFrameData;
+    std::deque<ServerFrameData> serverframeData_dq;
+    std::deque<ClientFrameData> clientFrameData_dq;
+
+    ServerFrameData currentFrameData;
 };
 
 

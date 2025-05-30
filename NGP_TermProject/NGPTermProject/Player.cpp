@@ -28,6 +28,8 @@ CPlayer::CPlayer()
 	m_fRoll = 0.00f;
 	m_fYaw = 0.0f;
 
+	m_fMovingSpeed = 100.0f;
+
 	m_pPlayerUpdatedContext = NULL;
 	m_pCameraUpdatedContext = NULL;
 }
@@ -57,8 +59,9 @@ void CPlayer::ReleaseShaderVariables()
 	if (m_pCamera) m_pCamera->ReleaseShaderVariables();
 }
 
-void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
+void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 {
+	float fDistance = fTimeElapsed * m_fMovingSpeed
 	if (dwDirection)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);

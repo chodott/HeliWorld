@@ -419,31 +419,25 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
-	CAirplanePlayer* pWirePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), true);
 	pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
 	switch (client->PlayerNum)
 	{
 	case 0:
 		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 100));
-		pWirePlayer->SetPosition(XMFLOAT3(100, 400, 100));
 		break;
 	case 1:
 		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 900));
-		pWirePlayer->SetPosition(XMFLOAT3(900, 400, 900));
 		break;
 	case 2:
 		pAirplanePlayer->SetPosition(XMFLOAT3(900.0f, 400.0f, 100.0f));
-		pWirePlayer->SetPosition(XMFLOAT3(900.0f, 400.0f, 100.0f));
 		break;
 	case 3:
 		pAirplanePlayer->SetPosition(XMFLOAT3(100.0f, 400.0f, 900.0f));
-		pWirePlayer->SetPosition(XMFLOAT3(100.0f, 400.0f, 900.0f));
 		break;
 	default:
 		break;
 	}
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
-	m_pWirePlayer = pWirePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
 	m_pd3dCommandList->Close();
@@ -469,7 +463,6 @@ void CGameFramework::ReleaseObjects()
 void CGameFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
-	static InputData curInputData;
 	bool bProcessedByScene = false;
 	if (GetKeyboardState(pKeysBuffer) && m_pScene) bProcessedByScene = m_pScene->ProcessInput(pKeysBuffer);
 	if (!bProcessedByScene)
@@ -498,8 +491,6 @@ void CGameFramework::ProcessInput()
 			client->deltaMouse.y += cyDelta;
 		}
 
-		client->frameDataMgr->
-			AddInputData(client->GetTimestampMs(),client->sendKey, client->deltaMouse, m_GameTimer.GetTimeElapsed());
 
 		if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 		{
@@ -515,11 +506,21 @@ void CGameFramework::ProcessInput()
 					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
-			//if (dwDirection) m_pPlayer->Move(dwDirection, 200.f * m_GameTimer.GetTimeElapsed(), false);
+			if (dwDirection) m_pPlayer->Move(dwDirection, m_GameTimer.GetTimeElapsed(), false);
 		}
+
+		//Save ClientFrameData 
+		m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+		client->frameDataMgr->AddClientFrameData({ client->getEstimatedServerTimeMs(),
+			m_pPlayer->GetPosition(),
+			m_pPlayer->GetRotation(),
+			client->sendKey,
+			{cxDelta, cyDelta},
+			m_GameTimer.GetTimeElapsed()
+			});
 	}
 
-	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+
 
 	if (client->sendKey & 0x40)
 	{
@@ -547,9 +548,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	{
 		if (i == client->PlayerNum)
 		{
-			cout << value << "\n";
 			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
-			//m_pWirePlayer->Animate(fTimeElapsed,prevData->playerInfos[i], nextData->playerInfos[i], value);
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 			if (value > 3.0f) continue;
 			for (int j = 1; j < 11; ++j)
