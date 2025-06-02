@@ -308,6 +308,8 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 			err_quit("accept()");
 			continue;
 		}
+		bool noDelay = true;
+		setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, (char*)noDelay, sizeof(noDelay));
 
 		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 		{
@@ -338,6 +340,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	Client* client = (Client*)arg;
 
 	int playerNumber = client->GetPlayerNumber();
+
 	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
 
 	CPlayer* p = client->m_player;
@@ -415,11 +418,11 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
+	static PlayerInfoBundlePacket scInfoBundle;
+	static MissileInfoBundlePacket msInfoBundle;
+	static ItemInfoBundlePacket ItemInfoBundle;
 	while (1)
 	{
-		PlayerInfoBundlePacket scInfoBundle;
-		MissileInfoBundlePacket msInfoBundle;
-		ItemInfoBundlePacket ItemInfoBundle;
 		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
 		{
 			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);

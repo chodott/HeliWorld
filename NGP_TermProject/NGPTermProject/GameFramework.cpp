@@ -548,7 +548,7 @@ void CGameFramework::ProcessInput()
 
 		//Save ClientFrameData 
 		m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
-		client->frameDataMgr->AddClientFrameData({ client->getEstimatedServerTimeMs(),
+		client->frameDataMgr->AddClientFrameData({ client->GetEstimatedServerTimeMs(),
 			m_pPlayer->GetPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
@@ -583,7 +583,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData prevData;;
 	static ServerFrameData nextData;
 
-	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->getEstimatedServerTimeMs() - client->delay);
+	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->GetEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)

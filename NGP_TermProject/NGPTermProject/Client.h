@@ -61,8 +61,8 @@ public:
 	FrameDataManager* frameDataMgr;
 	float offsetAvg;
 
-	void caculateOffset(PingpongPacket& ppPacket);
-	uint64_t getEstimatedServerTimeMs();
+	void CaculateOffset(const PingpongPacket& ppPacket);
+	uint64_t GetEstimatedServerTimeMs();
 	int delay = 200;//ms
 
 private:
@@ -88,3 +88,4 @@ private:
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
 DWORD WINAPI SendPingPacket(LPVOID arg);
 DWORD WINAPI SendInputPacket(LPVOID arg);
+

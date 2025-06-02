@@ -47,7 +47,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		//ItemInfoBundlePacket pkt;
 		//memcpy(&pkt, fillTarget, sizeof(ItemInfoBundlePacket));
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		client->frameDataMgr->CombinePacket(pkt, client->getEstimatedServerTimeMs() - 200);
+		client->frameDataMgr->CombinePacket(pkt, client->GetEstimatedServerTimeMs() - 200);
 		break;
 	}
 	case PACKET::MissileInfo:
@@ -60,9 +60,8 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 	}
 	case PACKET::PingpongInfo:
 	{
-		PingpongPacket ppPacket;
-		memcpy(&ppPacket, fillTarget, sizeof(PingpongPacket));
-		client->caculateOffset(ppPacket);
+		auto& pkt = *reinterpret_cast<const PingpongPacket*>(fillTarget);
+		client->CaculateOffset(pkt);
 		break;
 	}
 	default:
@@ -97,7 +96,7 @@ void Client::ConnectServer()
 
 	DWORD recvTimeout = 5000;		// 5000ms
 	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
-	setsockopt(*sock, SOL_SOCKET, TCP_NODELAY, (char*)&recvTimeout, sizeof(recvTimeout));
+	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (char*)&recvTimeout, sizeof(recvTimeout));
 
 	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{
@@ -170,7 +169,7 @@ void Client::SendtoServer()
 	cs_key.playerKeyInput = sendKey;
 	cs_key.deltaMouse = deltaMouse;
 	cs_key.launchedMissileNum = lastLaunchedMissileNum;
-	cs_key.timestamp = getEstimatedServerTimeMs();
+	cs_key.timestamp = GetEstimatedServerTimeMs();
 	deltaMouse = { 0.0f, 0.0f };
 	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 	{
@@ -191,7 +190,7 @@ uint32_t Client::GetTimestampMs()
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-void Client::caculateOffset(PingpongPacket& ppPacket)
+void Client::CaculateOffset(const PingpongPacket& ppPacket)
 {
 
 	uint64_t rtt = GetTimestampMs() - ppPacket.clientTimeStamp;
@@ -212,7 +211,7 @@ void Client::caculateOffset(PingpongPacket& ppPacket)
 	offsetAvg = sum / scOffset_dq.size();
 }
 
-uint64_t Client::getEstimatedServerTimeMs()
+uint64_t Client::GetEstimatedServerTimeMs()
 {
 	return GetTimestampMs() + offsetAvg;
 }
@@ -245,7 +244,7 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 	static PlayerKeyPacket cs_keyInput{ PACKET::KeyInfo };
 	while (true)
 	{
-		cs_keyInput = { PACKET::KeyInfo, client->sendKey, client->deltaMouse, -1, client->getEstimatedServerTimeMs(), false };
+		cs_keyInput = { PACKET::KeyInfo, client->sendKey, client->deltaMouse, -1, client->GetEstimatedServerTimeMs(), false };
 		client->deltaMouse = { 0.f,0.f };
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
