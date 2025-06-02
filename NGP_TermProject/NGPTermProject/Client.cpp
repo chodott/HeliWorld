@@ -97,6 +97,7 @@ void Client::ConnectServer()
 
 	DWORD recvTimeout = 5000;		// 5000ms
 	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
+	setsockopt(*sock, SOL_SOCKET, TCP_NODELAY, (char*)&recvTimeout, sizeof(recvTimeout));
 
 	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{

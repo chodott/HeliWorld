@@ -29,9 +29,21 @@ public:
         clientFrameData_dq.emplace_back(frameData);
     }
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
-    bool CheckPrediction(uint64_t timestamp);
+    pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange(uint64_t timestamp);
+    bool CheckPrediction(const uint64_t& timestamp);
+
+    void RequestResimulation(const uint64_t& timestamp);
+    bool FrameDataManager::CheckResimulateRequest(uint64_t& timestamp);
+
+
+    XMFLOAT3 position;
+    XMFLOAT3 rotation;
+
 private:
     std::mutex mtx;
+    std::mutex resimulateLock;
+    uint64_t targetTimestamp;
+    bool bNeedResimulate = false;
     std::deque<ServerFrameData> serverframeData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
 

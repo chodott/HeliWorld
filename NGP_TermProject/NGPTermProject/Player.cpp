@@ -61,7 +61,7 @@ void CPlayer::ReleaseShaderVariables()
 
 void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 {
-	float fDistance = fTimeElapsed * m_fMovingSpeed
+	float fDistance = fTimeElapsed * m_fMovingSpeed;
 	if (dwDirection)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
@@ -215,6 +215,7 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
 {
+	/*
 	if (value > 3.0f)
 	{
 		//SetPosition(prevPacket.position);
@@ -236,12 +237,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
 	}
-		
-	if (bWire)
-	{
-		//RotatePYR(nextPacket.rotation);
-		//SetPosition(nextPacket.position);
-	}
+	*/
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

@@ -37,6 +37,7 @@ public:
     void AnimateObjects();
 	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();
+	void Resimulate(uint64_t timestamp);
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();

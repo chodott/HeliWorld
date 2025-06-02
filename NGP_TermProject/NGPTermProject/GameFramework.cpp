@@ -460,6 +460,43 @@ void CGameFramework::ReleaseObjects()
 	if (m_pScene) delete m_pScene;
 }
 
+void CGameFramework::Resimulate(uint64_t timestamp)
+{
+	/*
+		-특정 타임스탬프 이후의 입력 전부 반영
+		- 플레이어 회전 + 이동
+		미사일 입력에 따른 미사일 발사 지정 및 이동
+	*/
+	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  client->frameDataMgr->GetSimulateRange(timestamp);
+	auto begin = range.first; 
+	auto end = range.second;
+
+	//서버 위치로 초기화
+	m_pPlayer->SetPosition(client->frameDataMgr->position);
+	//m_pPlayer->SetRotationP(client->frameDataMgr->rotation);
+
+	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
+	{
+		//Input Simulation
+		DWORD dwDirection = 0;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_FORWARD;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_BACKWARD;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_LEFT;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_RIGHT;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_UP;
+		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_DOWN;
+
+		m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
+		if (dwDirection) m_pPlayer->Move(dwDirection, iter->deltaTime, false);
+		m_pPlayer->Update(iter->deltaTime);
+
+
+		//Simulation data Update
+		iter->position = m_pPlayer->GetPosition();
+		iter->rotation = m_pPlayer->GetRotation();
+	}
+}
+
 void CGameFramework::ProcessInput()
 {
 	static UCHAR pKeysBuffer[256];
@@ -538,12 +575,15 @@ void CGameFramework::AnimateObjects()
 	}
 }
 
+
+
+
 void CGameFramework::AnimatePlayers(float fTimeElapsed)
 {
-	static FrameData prevData;;
-	static FrameData nextData;
+	static ServerFrameData prevData;;
+	static ServerFrameData nextData;
 
-	float value = client->frameDataMgr->GetFrameData(prevData, nextData, client->getEstimatedServerTimeMs() - client->delay);
+	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->getEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)
@@ -615,6 +655,11 @@ void CGameFramework::FrameAdvance()
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
+	uint64_t targetTimestamp;
+	if (client->frameDataMgr->CheckResimulateRequest(targetTimestamp))
+	{
+		Resimulate(targetTimestamp);
+	}
 	ProcessInput();
 
 	AnimateObjects();
