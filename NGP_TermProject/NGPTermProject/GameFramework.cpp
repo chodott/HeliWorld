@@ -462,29 +462,24 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate(uint64_t timestamp)
 {
-	/*
-		-특정 타임스탬프 이후의 입력 전부 반영
-		- 플레이어 회전 + 이동
-		미사일 입력에 따른 미사일 발사 지정 및 이동
-	*/
 	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  client->frameDataMgr->GetSimulateRange(timestamp);
 	auto begin = range.first; 
 	auto end = range.second;
 
 	//서버 위치로 초기화
-	m_pPlayer->SetPosition(client->frameDataMgr->position);
-	//m_pPlayer->SetRotationP(client->frameDataMgr->rotation);
+	m_pPlayer->SetRealPosition(client->frameDataMgr->position);
+	m_pPlayer->RotateRealPYR(client->frameDataMgr->rotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
 	{
 		//Input Simulation
 		DWORD dwDirection = 0;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_FORWARD;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_BACKWARD;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_LEFT;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_RIGHT;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_UP;
-		if (iter->playerKeyInput & 0xF0) dwDirection |= DIR_DOWN;
+		if (iter->playerKeyInput & 0x01) dwDirection |= DIR_FORWARD;
+		if (iter->playerKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+		if (iter->playerKeyInput & 0x04) dwDirection |= DIR_LEFT;
+		if (iter->playerKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+		if (iter->playerKeyInput & 0x10) dwDirection |= DIR_UP;
+		if (iter->playerKeyInput & 0x20) dwDirection |= DIR_DOWN;
 
 		m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
 		if (dwDirection) m_pPlayer->Move(dwDirection, iter->deltaTime, false);
@@ -492,16 +487,19 @@ void CGameFramework::Resimulate(uint64_t timestamp)
 
 
 		//Simulation data Update
-		iter->position = m_pPlayer->GetPosition();
+		iter->position = m_pPlayer->GetRealPosition();
 		iter->rotation = m_pPlayer->GetRotation();
 	}
 }
 
-void CGameFramework::ProcessInput()
+void CGameFramework::ProcessInput(float fTimeElapsed)
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
-	if (GetKeyboardState(pKeysBuffer) && m_pScene) bProcessedByScene = m_pScene->ProcessInput(pKeysBuffer);
+	if (GetKeyboardState(pKeysBuffer) && m_pScene)
+	{
+		bProcessedByScene = m_pScene->ProcessInput(pKeysBuffer);
+	}
 	if (!bProcessedByScene)
 	{
 		DWORD dwDirection = 0;
@@ -543,21 +541,19 @@ void CGameFramework::ProcessInput()
 					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 				}
 			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, m_GameTimer.GetTimeElapsed(), false);
+			if (dwDirection) m_pPlayer->Move(dwDirection, fTimeElapsed, false);
 		}
 
 		//Save ClientFrameData 
-		m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+		m_pPlayer->Update(fTimeElapsed);
 		client->frameDataMgr->AddClientFrameData({ client->GetEstimatedServerTimeMs(),
-			m_pPlayer->GetPosition(),
+			m_pPlayer->GetRealPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
 			{cxDelta, cyDelta},
-			m_GameTimer.GetTimeElapsed()
+			fTimeElapsed
 			});
 	}
-
-
 
 	if (client->sendKey & 0x40)
 	{
@@ -582,6 +578,9 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 {
 	static ServerFrameData prevData;;
 	static ServerFrameData nextData;
+
+	m_pPlayer->SetServerPosition(client->frameDataMgr->position);
+	m_pPlayer->SetServerRotation(client->frameDataMgr->rotation);
 
 	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->GetEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
@@ -660,7 +659,9 @@ void CGameFramework::FrameAdvance()
 	{
 		Resimulate(targetTimestamp);
 	}
-	ProcessInput();
+
+	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
+	ProcessInput(fTimeElapsed);
 
 	AnimateObjects();
 	client->SendtoServer();

@@ -33,7 +33,7 @@ public:
     void BuildObjects();
     void ReleaseObjects();
 
-    void ProcessInput();
+    void ProcessInput(float fTimeElapsed);
     void AnimateObjects();
 	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();

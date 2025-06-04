@@ -65,14 +65,16 @@ void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 	if (dwDirection)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-		if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
-		if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
-		if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
-		if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
-		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
-		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
+		if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealLook, fDistance);
+		if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealLook, -fDistance);
+		if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealRight, fDistance);
+		if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealRight, -fDistance);
+		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealUp, fDistance);
+		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3RealUp, -fDistance);
 
-		Move(xmf3Shift, bUpdateVelocity);
+		m_xmf3RealPosition =  Vector3::Add(GetRealPosition(), xmf3Shift);
+
+		//Move(xmf3Shift, bUpdateVelocity);
 	}
 }
 
@@ -119,9 +121,9 @@ void CPlayer::Rotate(float x, float y, float z)
 		m_pCamera->Rotate(x, y, z);
 		if (y != 0.0f)
 		{
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
-			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
+			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3RealUp), XMConvertToRadians(y));
+			m_xmf3RealLook = Vector3::TransformNormal(m_xmf3RealLook, xmmtxRotate);
+			m_xmf3RealRight = Vector3::TransformNormal(m_xmf3RealRight, xmmtxRotate);
 		}
 		if (x != 0.0f)
 		{
@@ -155,9 +157,19 @@ void CPlayer::Rotate(float x, float y, float z)
 		}
 	}
 	m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
-	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
-	m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
-	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+	m_xmf3RealLook = Vector3::Normalize(m_xmf3RealLook);
+	m_xmf3RealRight = Vector3::CrossProduct(m_xmf3RealUp, m_xmf3RealLook, true);
+	m_xmf3RealUp = Vector3::CrossProduct(m_xmf3RealLook, m_xmf3RealRight, true);
+}
+
+void CPlayer::RotateRealPYR(XMFLOAT3& xmf3RotationAxis)
+{
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
+	m_xmf4x4RealWorld = Matrix4x4::Identity();
+	m_xmf4x4RealWorld = Matrix4x4::Multiply(mtxRotate, m_xmf4x4RealWorld);
+	m_xmf3RealRight.x = m_xmf4x4RealWorld._11, m_xmf3RealRight.y = m_xmf4x4RealWorld._12, m_xmf3RealRight.z = m_xmf4x4RealWorld._13;
+	m_xmf3RealUp.x = m_xmf4x4RealWorld._21, m_xmf3RealUp.y = m_xmf4x4RealWorld._22, m_xmf3RealUp.z = m_xmf4x4RealWorld._23;
+	m_xmf3RealLook.x = m_xmf4x4RealWorld._31, m_xmf3RealLook.y = m_xmf4x4RealWorld._32, m_xmf3RealLook.z = m_xmf4x4RealWorld._33;
 }
 
 void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
@@ -215,20 +227,24 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
 {
-	/*
+	
 	if (value > 3.0f)
 	{
-		//SetPosition(prevPacket.position);
+		SetPosition(m_xmf3ServerPosition);
 	}
 
 	else
 	{
-		XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value) ;
-		curRotation = XMVectorAngleLerp(GetRotation(), curRotation, 0.1f);
+		float distance = 0.0f;
+		distance = sqrt(pow((m_xmf3RealPosition.x - m_xmf3ServerPosition.x), 2)
+			+ pow((m_xmf3RealPosition.y - m_xmf3ServerPosition.y), 2)
+			+ pow((m_xmf3RealPosition.z - m_xmf3ServerPosition.z), 2));
+
+		XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), m_xmf3ServerRotation,distance/20.f);
 		RotatePYR(curRotation);
 
-		XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
-		XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
+		XMVECTOR prevPosition = XMLoadFloat3(&m_xmf3ServerPosition);
+		XMVECTOR nextPosition = XMLoadFloat3(&m_xmf3RealPosition);
 		
 
 		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
@@ -237,7 +253,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
 	}
-	*/
+	
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
@@ -305,7 +321,6 @@ void CPlayer::OnPrepareRender()
 void CPlayer::SetRotation(XMFLOAT3X3 xmf3Rotation)
 {
 	m_xmf3Right.x = xmf3Rotation._11, m_xmf3Right.y = xmf3Rotation._12, m_xmf3Right.z = xmf3Rotation._13;
-	//cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
 	m_xmf3Up.x = xmf3Rotation._21, m_xmf3Up.y = xmf3Rotation._22, m_xmf3Up.z = xmf3Rotation._23;
 	m_xmf3Look.x = xmf3Rotation._31, m_xmf3Look.y= xmf3Rotation._32, m_xmf3Look.z = xmf3Rotation._33;
 

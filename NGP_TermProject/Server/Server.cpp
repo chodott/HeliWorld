@@ -191,8 +191,9 @@ void Server::Update()
 			if (bKeyChanged && curServerTime > clientEstimatedTime)
 			{
 				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
-				clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
-				player->keyPacket.bKeyChanged = false;
+				//clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
+				//player->keyPacket.bKeyChanged = false;
+				//player->keyPacket.deltaMouse = { 0,0 };
 			}
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
 		}

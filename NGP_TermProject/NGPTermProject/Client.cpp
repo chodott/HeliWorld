@@ -194,7 +194,7 @@ void Client::CaculateOffset(const PingpongPacket& ppPacket)
 {
 
 	uint64_t rtt = GetTimestampMs() - ppPacket.clientTimeStamp;
-	cout << "rtt: " << rtt << "\n";
+	//cout << "rtt: " << rtt << "\n";
 	float offset = (float)ppPacket.serverSendTimeStamp - (float)(ppPacket.clientTimeStamp + (float)rtt / 2);
 	scOffset_dq.push_back(offset);
 	int count = 0;
