@@ -39,7 +39,7 @@ void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundleP
     serverframeData_dq.push_back(currentFrameData);
 
 
-    if (!CheckPrediction(currentFrameData.timestamp))
+    if (CheckPrediction(currentFrameData.timestamp))
     {
         RequestResimulation(currentFrameData.timestamp);
     }
@@ -77,11 +77,13 @@ bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
     float distance = 0.0f;
 
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + pow((clientPosition.y - serverPosition.y),2) + pow((clientPosition.z - serverPosition.z),2));
-    cout << distance << "\n";
-
+   cout << distance << "\n";
+    
+    bool bOverMaxDistance = distance >= 10.0f;
     position = serverPosition;
-    rotation = target->rotation;
-    return distance < 10.0f ? true : false;
+    rotation = currentFrameData.playerInfos[0].rotation;
+
+    return bOverMaxDistance;
 }
 
 void FrameDataManager::RequestResimulation(const uint64_t& timestamp)
@@ -98,6 +100,7 @@ bool FrameDataManager::CheckResimulateRequest(uint64_t& timestamp)
 
     if (!bNeedResimulate) return false;
     bNeedResimulate = false;
+    timestamp = targetTimestamp;
     return true;
 
 }

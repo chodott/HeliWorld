@@ -21,13 +21,8 @@ protected:
 	XMFLOAT3					m_xmf3Up;
 	XMFLOAT3					m_xmf3Look;
 
-	XMFLOAT4X4             m_xmf4x4RealWorld;
 	XMFLOAT3					m_xmf3RealPosition;
 	XMFLOAT3					m_xmf3ServerPosition;
-	XMFLOAT3					m_xmf3ServerRotation;
-	XMFLOAT3					m_xmf3RealRight;
-	XMFLOAT3					m_xmf3RealUp;
-	XMFLOAT3					m_xmf3RealLook;
 
 	float           			m_fPitch;
 	float           			m_fYaw;
@@ -69,7 +64,6 @@ public:
 	void SetVelocity(const XMFLOAT3& xmf3Velocity) { m_xmf3Velocity = xmf3Velocity; }
 	void SetPosition(const XMFLOAT3& xmf3Position) { Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false); }
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
-	inline void SetServerRotation(const XMFLOAT3& xmf3Rotation) { m_xmf3ServerRotation = xmf3Rotation; }
 	inline void SetRealPosition(const XMFLOAT3& xmf3Position) { m_xmf3RealPosition = xmf3Position; }
 	const XMFLOAT3& GetVelocity() const { return(m_xmf3Velocity); }
 	float GetYaw() const { return(m_fYaw); }
@@ -83,7 +77,6 @@ public:
 	virtual void Move(const XMFLOAT3& xmf3Shift, bool bVelocity = false);
 	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	virtual void Rotate(float x, float y, float z);
-	virtual void RotateRealPYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 

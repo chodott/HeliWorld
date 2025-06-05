@@ -47,7 +47,7 @@ void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
 		//ItemInfoBundlePacket pkt;
 		//memcpy(&pkt, fillTarget, sizeof(ItemInfoBundlePacket));
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		client->frameDataMgr->CombinePacket(pkt, client->GetEstimatedServerTimeMs() - 200);
+		client->frameDataMgr->CombinePacket(pkt, client->GetEstimatedServerTimeMs() - 5000);
 		break;
 	}
 	case PACKET::MissileInfo:

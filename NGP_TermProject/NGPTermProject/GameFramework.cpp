@@ -462,13 +462,15 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate(uint64_t timestamp)
 {
-	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  client->frameDataMgr->GetSimulateRange(timestamp);
+	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  
+		client->frameDataMgr->GetSimulateRange(timestamp);
 	auto begin = range.first; 
 	auto end = range.second;
 
 	//서버 위치로 초기화
+	m_pPlayer->SetServerPosition(client->frameDataMgr->position);
 	m_pPlayer->SetRealPosition(client->frameDataMgr->position);
-	m_pPlayer->RotateRealPYR(client->frameDataMgr->rotation);
+	m_pPlayer->RotatePYR(client->frameDataMgr->rotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
 	{
@@ -579,8 +581,6 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData prevData;;
 	static ServerFrameData nextData;
 
-	m_pPlayer->SetServerPosition(client->frameDataMgr->position);
-	m_pPlayer->SetServerRotation(client->frameDataMgr->rotation);
 
 	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->GetEstimatedServerTimeMs() - client->delay);
 	for (int i = 0; i < 4; i++)
