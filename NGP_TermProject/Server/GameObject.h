@@ -85,6 +85,8 @@ public:
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime, int connectedClients);
 	void Reset(int playerNum);
+	void CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency);
+
 
 	const float movingSpeed = 100.f;
 
@@ -105,8 +107,8 @@ private:
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
 
-	const float maxPitch = 89.f;
-	const float maxRoll = 20.f;
+	const float maxPitch = 89.0f;
+	const float maxRoll = 20.0f;
 	const float missileLifeSpan = 6.f;
 
 };

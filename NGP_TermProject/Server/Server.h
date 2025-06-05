@@ -93,6 +93,7 @@ public:
 
 private:
 	SOCKET listenSock;
+
 };
 
 
@@ -120,7 +121,9 @@ public:
 	char remainBuffer[512]{};
 	int receivedBytes = 0;
 	int remainSize = 0;
-	//
+	
+	//Latency
+	PlayerKeyPacket prevKeyPacket;
 
 	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 	

@@ -168,7 +168,6 @@ void Server::CheckCollision()
 
 void Server::Update()
 {
-
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		CPlayer* player = clients[i]->m_player;
@@ -188,14 +187,14 @@ void Server::Update()
 			float curServerTime = GetTimestampMs();
 			float clientEstimatedTime = clients[i]->m_player->keyPacket.timestamp;
 			bool bKeyChanged = player->keyPacket.bKeyChanged;
-			if (bKeyChanged && curServerTime > clientEstimatedTime)
+			if (bKeyChanged)
 			{
 				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
-				//clients[i]->m_player->Update(timeOffset, g_server->connectedClients);
-				//player->keyPacket.bKeyChanged = false;
-				//player->keyPacket.deltaMouse = { 0,0 };
+				clients[i]->m_player->CompensateLatency(clients[i]->prevKeyPacket, timeOffset);
+				player->keyPacket.bKeyChanged = false;
 			}
 			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
+			clients[i]->prevKeyPacket = player->keyPacket;
 		}
 	}
 	CheckCollision();

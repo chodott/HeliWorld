@@ -72,8 +72,8 @@ void CPlayer::Rotate(float x, float y, float z)
 	if (y != 0.0f)
 	{
 		m_fYaw += y;
-		if (m_fYaw > 360.f) m_fYaw -= 360.f;
-		if (m_fYaw < 0.f) m_fYaw += 360.f;
+		if (m_fYaw > 360.0f) m_fYaw -= 360.0f;
+		if (m_fYaw < 0.0f) m_fYaw += 360.0f;
 	}
 	if (z != 0.0f)
 	{
@@ -89,7 +89,6 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf3Right.x = tempMatrix._11, m_xmf3Right.y = tempMatrix._12, m_xmf3Right.z = tempMatrix._13;
 	m_xmf3Up.x = tempMatrix._21, m_xmf3Up.y = tempMatrix._22, m_xmf3Up.z = tempMatrix._23;
 	m_xmf3Look.x = tempMatrix._31, m_xmf3Look.y = tempMatrix._32, m_xmf3Look.z = tempMatrix._33;
-
 
 	m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z;
 	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
@@ -137,6 +136,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 
 
 	Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
+
 	if (keyPacket.playerKeyInput)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
@@ -212,6 +212,57 @@ void CPlayer::Reset(int playerNum)
 
 	for (auto& missile : m_pMissiles)
 		missile->Reset();
+}
+
+void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency)
+{
+	const unsigned char& prevKeyInput = prevKeyPacket.playerKeyInput;
+	const unsigned char& nextKeyInput = keyPacket.playerKeyInput;
+
+	float distance = movingSpeed * latency;
+	XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
+
+	for (int i = 0; i <= 5; ++i)
+	{
+		bool prevBit = (prevKeyInput >> i) & 1;
+		bool nextBit = (nextKeyInput >> i) & 1;
+
+		if (prevBit == nextBit) continue;
+
+		switch (i)
+		{
+		case 0:
+			if(nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
+			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
+			break;
+		case 1:
+			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
+			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
+			break;
+		case 2:
+			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
+			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
+			break;
+		case 3:
+			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
+			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
+			break;
+		case 4:
+			// ...
+			break;
+		case 5:
+			// ...
+			break;
+		}
+	}
+
+	Move(xmf3Shift);
+
+	MoveOOBB(m_xmf3Position);
+
+	m_xmf4x4World._41 = m_xmf3Position.x;
+	m_xmf4x4World._42 = m_xmf3Position.y;
+	m_xmf4x4World._43 = m_xmf3Position.z;
 }
 
 void CMissileObject::Move(float elapsedTime)

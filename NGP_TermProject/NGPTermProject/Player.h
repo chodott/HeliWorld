@@ -7,6 +7,13 @@
 #define DIR_UP					0x10
 #define DIR_DOWN				0x20
 
+#define MAX_BOUNDARY_X		1000
+#define MIN_BOUNDARY_X		0
+#define MAX_BOUNDARY_Y		1000
+#define MIN_BOUNDARY_Y		300
+#define MAX_BOUNDARY_Z		1000
+#define MIN_BOUNDARY_Z		0
+
 #include "Object.h"
 #include "Camera.h"
 #include"Client.h"

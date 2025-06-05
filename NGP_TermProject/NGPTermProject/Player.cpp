@@ -72,9 +72,16 @@ void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
 		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
-		SetRealPosition(Vector3::Add(GetRealPosition(), xmf3Shift));
+		XMFLOAT3& position = GetRealPosition();
 
-		//Move(xmf3Shift, bUpdateVelocity);
+		if (position.y < MIN_BOUNDARY_Y || position.y > MAX_BOUNDARY_Y ||
+			position.z < MIN_BOUNDARY_Z || position.z > MAX_BOUNDARY_Z ||
+			position.x < MIN_BOUNDARY_X || position.x > MAX_BOUNDARY_X)
+		{	//Escape map block
+			return;
+		}
+
+		SetRealPosition(Vector3::Add(GetRealPosition(), xmf3Shift));
 	}
 }
 
@@ -119,7 +126,7 @@ void CPlayer::Rotate(float x, float y, float z)
 			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
 		}
 		m_pCamera->Rotate(x, y, z);
-		if (y != 0.0f)
+		/*if (y != 0.0f)
 		{
 			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
 			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
@@ -131,7 +138,7 @@ void CPlayer::Rotate(float x, float y, float z)
 			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
 			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
 			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
-		}
+		}*/
 	}
 	else if (nCurrentCameraMode == SPACESHIP_CAMERA)
 	{
@@ -156,10 +163,22 @@ void CPlayer::Rotate(float x, float y, float z)
 			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
 		}
 	}
-	m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
-	m_xmf3Look = Vector3::Normalize(m_xmf3Look);
-	m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
-	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
+	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();
+	tempMatrix = Matrix4x4::Multiply(mtxRotate, tempMatrix);
+	m_xmf3Right.x = tempMatrix._11, m_xmf3Right.y = tempMatrix._12, m_xmf3Right.z = tempMatrix._13;
+	m_xmf3Up.x = tempMatrix._21, m_xmf3Up.y = tempMatrix._22, m_xmf3Up.z = tempMatrix._23;
+	m_xmf3Look.x = tempMatrix._31, m_xmf3Look.y = tempMatrix._32, m_xmf3Look.z = tempMatrix._33;
+
+	m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z;
+	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
+	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
+
+	//m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
+	//m_xmf3Look = Vector3::Normalize(m_xmf3Look);
+	//m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
+	//m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 }
 
 void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
@@ -217,7 +236,6 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
 {
-	
 	if (value > 3.0f)
 	{
 		SetPosition(GetRealPosition());
@@ -230,13 +248,10 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 			+ pow((m_xmf3RealPosition.y - m_xmf3ServerPosition.y), 2)
 			+ pow((m_xmf3RealPosition.z - m_xmf3ServerPosition.z), 2));
 
-		//XMFLOAT3 curRotation = XMVectorAngleLerp(GetRotation(), m_xmf3ServerRotation,distance/20.f);
-		//RotatePYR(curRotation);
-
 		XMVECTOR nextPosition = XMLoadFloat3(&m_xmf3ServerPosition);
 		XMVECTOR prevPosition = XMLoadFloat3(&m_xmf3RealPosition);
 
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, distance / 10.f);
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, distance / 20.f);
 
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);
