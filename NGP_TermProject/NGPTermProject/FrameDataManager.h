@@ -2,6 +2,9 @@
 #include "CSPacket.h"
 #include <deque>
 #include <mutex>
+
+#define FRAMEDATA_DEADLINE_MS 5000
+
 struct ServerFrameData {
     uint64_t timestamp;
     PlayerInfoPacket playerInfos[4];
@@ -23,7 +26,7 @@ class FrameDataManager
 {
 public:
     template<typename PacketType>
-    void CombinePacket(const PacketType& packet, uint64_t cutTimeline);
+    void CombinePacket(const PacketType& packet, uint64_t cutTimeline = 0);
     inline void AddClientFrameData(const ClientFrameData& frameData)
     {
         clientFrameData_dq.emplace_back(frameData);
@@ -43,11 +46,12 @@ private:
     std::mutex mtx;
     std::mutex resimulateLock;
     uint64_t targetTimestamp;
-    bool bNeedResimulate = false;
     std::deque<ServerFrameData> serverframeData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
 
     ServerFrameData currentFrameData;
+    bool bNeedResimulate = false;
+
 };
 
 

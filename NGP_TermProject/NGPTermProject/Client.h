@@ -20,6 +20,7 @@
 #include <mutex>
 
 #include "FrameDataManager.h"
+#include "NetworkSyncManager.h"
 #include "error.h"
 #include "Missileobject.h"
 
@@ -40,7 +41,9 @@ public:
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void SendtoServer();
 
-	uint32_t GetTimestampMs();
+	uint64_t GetTimestampMs();
+	uint64_t GetEstimatedServerTimeMs();
+	uint64_t GetDelayedServerTimeMs();
 
 	
 	FPoint deltaMouse;
@@ -59,11 +62,7 @@ public:
 
 	//Latency Interpolation
 	FrameDataManager* frameDataMgr;
-	float offsetAvg;
-
-	void CaculateOffset(const PingpongPacket& ppPacket);
-	uint64_t GetEstimatedServerTimeMs();
-	int delay = 200;//ms
+	NetworkSyncManager* networkSyncMgr;
 
 private:
 	SOCKET* sock = nullptr;
@@ -79,9 +78,6 @@ private:
 	unsigned char option6 = 0x40;   // 0100 0000
 	unsigned char option7 = 0x80;   // 1000 0000
 
-	//Check RTT
-	deque<float> scOffset_dq;
-	//Latency interpolation
 
 };
 

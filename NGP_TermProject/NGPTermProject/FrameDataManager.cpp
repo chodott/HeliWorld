@@ -43,7 +43,6 @@ void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundleP
     {
         RequestResimulation(currentFrameData.timestamp);
     }
-
     while (!serverframeData_dq.empty() && serverframeData_dq.front().timestamp < cutTimeline)
     {
         serverframeData_dq.pop_front();

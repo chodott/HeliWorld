@@ -99,7 +99,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 {
 	//if (value > 3.0f)
 	{
-		bool bServerActive = MissilePacket->active;
+		bool bServerActive = prevPacket.active;
 		if (bServerActive)
 		{
 			bServerLife = true;

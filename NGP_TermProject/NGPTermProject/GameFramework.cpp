@@ -462,15 +462,16 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate(uint64_t timestamp)
 {
+	FrameDataManager* frameDataMgr = client->frameDataMgr;
 	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  
-		client->frameDataMgr->GetSimulateRange(timestamp);
+		frameDataMgr->GetSimulateRange(timestamp);
 	auto begin = range.first; 
 	auto end = range.second;
 
 	//서버 위치로 초기화
-	m_pPlayer->SetServerPosition(client->frameDataMgr->position);
-	m_pPlayer->SetRealPosition(client->frameDataMgr->position);
-	m_pPlayer->RotatePYR(client->frameDataMgr->rotation);
+	m_pPlayer->SetServerPosition(frameDataMgr->position);
+	m_pPlayer->SetRealPosition(frameDataMgr->position);
+	m_pPlayer->RotatePYR(frameDataMgr->rotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
 	{
@@ -578,11 +579,13 @@ void CGameFramework::AnimateObjects()
 
 void CGameFramework::AnimatePlayers(float fTimeElapsed)
 {
-	static ServerFrameData prevData;;
+	static ServerFrameData prevData;
 	static ServerFrameData nextData;
 
 
-	float value = client->frameDataMgr->GetServerFrameData(prevData, nextData, client->GetEstimatedServerTimeMs() - client->delay);
+	//Need delay apply 
+	float value = client->frameDataMgr->
+		GetServerFrameData(prevData, nextData, client->GetDelayedServerTimeMs());
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)
