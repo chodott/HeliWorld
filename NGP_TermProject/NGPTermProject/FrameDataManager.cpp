@@ -79,7 +79,7 @@ bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + pow((clientPosition.y - serverPosition.y),2) + pow((clientPosition.z - serverPosition.z),2));
    cout << distance << "\n";
     
-    bool bOverMaxDistance = distance >= 10.0f;
+    bool bOverMaxDistance = distance >= 20.0f;
     position = serverPosition;
     rotation = currentFrameData.playerInfos[0].rotation;
 

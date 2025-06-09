@@ -98,7 +98,7 @@ void CPlayer::Rotate(float x, float y, float z)
 	keyPacket.deltaMouse.y = 0.f;
 }
 
-void CPlayer::LaunchMissile(int16_t missileNum)
+void CPlayer::LaunchMissile(int16_t missileNum, float fLatency = 0)
 {
 	if (missileNum < 0) return;
 	CMissileObject* missile = m_pMissiles[missileNum];
@@ -106,7 +106,9 @@ void CPlayer::LaunchMissile(int16_t missileNum)
 	{
 		missile->m_bActive = true;
 		missile->m_xmf3Look = m_xmf3Look;
-		missile->SetPosition(m_fxPos + m_xmf3Look.x * 5, m_fyPos + m_xmf3Look.y * 5, m_fzPos + m_xmf3Look.z * 5);
+		missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
+											m_fyPos + m_xmf3Look.y * fLatency,
+											m_fzPos + m_xmf3Look.z * fLatency);
 	}
 }
 
@@ -174,7 +176,10 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		// Attack
 		if (keyPacket.playerKeyInput & option6)
 		{
-			if (connectedClients >= 1) LaunchMissile(keyPacket.requestMissileNum);			// if not alone in the server
+			if (connectedClients >= 1)
+			{
+				LaunchMissile(keyPacket.requestMissileNum, elapsedTime);			// if not alone in the server
+			}
 			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
@@ -257,12 +262,19 @@ void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const floa
 	}
 
 	Move(xmf3Shift);
-
 	MoveOOBB(m_xmf3Position);
 
 	m_xmf4x4World._41 = m_xmf3Position.x;
 	m_xmf4x4World._42 = m_xmf3Position.y;
 	m_xmf4x4World._43 = m_xmf3Position.z;
+
+	// Attack
+	if (nextKeyInput & option6)
+	{
+		LaunchMissile(keyPacket.requestMissileNum);
+		keyPacket.playerKeyInput &= ~option6;
+	}
+
 }
 
 void CMissileObject::Move(float elapsedTime)

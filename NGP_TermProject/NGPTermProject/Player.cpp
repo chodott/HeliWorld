@@ -200,9 +200,9 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 		if (missile->GetActive()) continue;
 		else
 		{
-			/*missile->SetActive(true);
+			missile->SetActive(true);
 			missile->SetPosition(GetPosition());
-			missile->SetMovingDirection(GetLookVector());*/
+			missile->SetMovingDirection(GetLookVector());
 			missile->bLocalMissile = true;
 			client->lastLaunchedMissileNum = i;
 			break;

@@ -97,12 +97,26 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value)
 {
-	if (value > 3.0f)
+	//if (value > 3.0f)
 	{
-		RotatePYR(GetRotation());
+		bool bServerActive = MissilePacket->active;
+		if (bServerActive)
+		{
+			bServerLife = true;
+			SetActive(true);
+		}
+
+		if (bServerLife == true && bServerActive == false)
+		{
+			bServerLife = false;
+			SetActive(false);
+		}
+		if (GetActive() == false) return;
+
+		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
 	}
 
-	else
+	/*else
 	{
 		SetActive(prevPacket.active);
 		if (!GetActive()) return;
@@ -114,7 +128,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
-	}
+	}*/
 }
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {

@@ -187,7 +187,7 @@ void Server::Update()
 			float curServerTime = GetTimestampMs();
 			float clientEstimatedTime = clients[i]->m_player->keyPacket.timestamp;
 			bool bKeyChanged = player->keyPacket.bKeyChanged;
-			if (bKeyChanged)
+			if (bKeyChanged && curServerTime > clientEstimatedTime)
 			{
 				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
 				clients[i]->m_player->CompensateLatency(clients[i]->prevKeyPacket, timeOffset);
