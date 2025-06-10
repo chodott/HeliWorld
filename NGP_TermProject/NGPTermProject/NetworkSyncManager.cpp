@@ -1,5 +1,8 @@
 #include "NetworkSyncManager.h"
 
+float NetworkSyncManager::offsetAvg = 0.f;
+float NetworkSyncManager::rttAvg = 0.f;
+
 uint64_t NetworkSyncManager::GetEstimatedServerTimeMs(const uint64_t& fCurTimestampMs)
 {
 	return fCurTimestampMs + offsetAvg;

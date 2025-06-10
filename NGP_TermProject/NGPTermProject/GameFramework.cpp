@@ -582,10 +582,9 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData prevData;
 	static ServerFrameData nextData;
 
-
-	//Need delay apply 
 	float value = client->frameDataMgr->
 		GetServerFrameData(prevData, nextData, client->GetDelayedServerTimeMs());
+
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)

@@ -1,6 +1,6 @@
 #pragma once
 #include "CSPacket.h"
-#include <deque>
+#include "NetworkSyncManager.h"
 #include <mutex>
 
 #define FRAMEDATA_DEADLINE_MS 5000
