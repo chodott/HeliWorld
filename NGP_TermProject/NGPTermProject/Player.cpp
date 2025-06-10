@@ -80,7 +80,7 @@ void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 		{	//Escape map block
 			return;
 		}
-
+		Vector3::ScalarProduct(xmf3Shift, fDistance, true);
 		SetRealPosition(Vector3::Add(GetRealPosition(), xmf3Shift));
 	}
 }
@@ -251,7 +251,8 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMVECTOR nextPosition = XMLoadFloat3(&m_xmf3ServerPosition);
 		XMVECTOR prevPosition = XMLoadFloat3(&m_xmf3RealPosition);
 
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, distance / 20.f);
+		cout << value << "\n";
+		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);

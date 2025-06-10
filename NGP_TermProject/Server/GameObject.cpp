@@ -169,6 +169,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, distance);
 		}
+		Vector3::ScalarProduct(xmf3Shift, distance, true);
 		Move(xmf3Shift);
 
 		MoveOOBB(m_xmf3Position);
@@ -260,7 +261,7 @@ void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const floa
 			break;
 		}
 	}
-
+	Vector3::ScalarProduct(xmf3Shift, distance, true);
 	Move(xmf3Shift);
 	MoveOOBB(m_xmf3Position);
 
