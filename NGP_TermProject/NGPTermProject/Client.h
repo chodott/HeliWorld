@@ -39,6 +39,7 @@ public:
 	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void SendtoServer();
+	PlayerKeyPacket GetKeyPacketToSend();
 
 	uint64_t GetTimestampMs();
 	uint64_t GetEstimatedServerTimeMs();
@@ -58,6 +59,9 @@ public:
 	int16_t lastLaunchedMissileNum = -1;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;
+	mutex inputPacketLock;
+	condition_variable inputChangedCV;
+
 
 	//Latency Interpolation
 	FrameDataManager* frameDataMgr;
@@ -77,6 +81,8 @@ private:
 	unsigned char option6 = 0x40;   // 0100 0000
 	unsigned char option7 = 0x80;   // 1000 0000
 
+
+	deque<PlayerKeyPacket> inputPacket_dq;
 
 };
 

@@ -164,24 +164,40 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 
 void Client::SendtoServer()
 {
-	//여기서부터. 로테이션때문에 이동량 막아야해
-	if (prevKey == sendKey) return;
-	static PlayerKeyPacket cs_key;
-	cs_key.bKeyChanged = (prevKey != sendKey);
-	cs_key.packetType = PACKET::KeyInfo;
-	cs_key.playerKeyInput = sendKey;
-	cs_key.deltaMouse = deltaMouse;
-	cs_key.launchedMissileNum = lastLaunchedMissileNum;
-	cs_key.timestamp = networkSyncMgr->GetEstimatedServerTimeMs(GetTimestampMs());
-	deltaMouse = { 0.0f, 0.0f };
-	if (send(*sock, (char*)&cs_key, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
+	std::unique_lock<std::mutex> lock(inputPacketLock);
+	uint64_t serverTimestamp = GetEstimatedServerTimeMs();
+
+	PlayerKeyPacket& cs_key = inputPacket_dq.back();
+	if (cs_key.startServerTimestamp == 0) cs_key.startServerTimestamp = serverTimestamp;
+
+	if (prevKey == sendKey)
+	{	//Apply Rotate Only
+		cs_key.deltaMouse.x += deltaMouse.x;
+		cs_key.deltaMouse.y += deltaMouse.y;
+		cs_key.endServerTimestamp = serverTimestamp;
+	}
+	else
 	{
-		err_display("send()");
-		return;
+		cs_key.bKeyChanged = (prevKey != sendKey);
+		cs_key.playerKeyInput = sendKey;
+		cs_key.deltaMouse.x += deltaMouse.x;
+		cs_key.deltaMouse.y += deltaMouse.y;
+		cs_key.launchedMissileNum = lastLaunchedMissileNum;
+		cs_key.endServerTimestamp = serverTimestamp;
+		inputChangedCV.notify_one();
 	}
 	prevKey = sendKey;
 	sendKey &= (~option6);
 	lastLaunchedMissileNum = -1;
+	deltaMouse = { 0.0f, 0.0f };
+}
+
+PlayerKeyPacket Client::GetKeyPacketToSend()
+{
+	PlayerKeyPacket sendPacket = move(inputPacket_dq.front());
+	inputPacket_dq.pop_front();
+	inputPacket_dq.emplace_back(new PlayerKeyPacket());
+	return sendPacket;
 }
 
 uint64_t Client::GetTimestampMs()
@@ -226,19 +242,22 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	static PlayerKeyPacket cs_keyInput{ PACKET::KeyInfo };
+	PlayerKeyPacket cs_keyInput;
 	while (true)
 	{
-		cs_keyInput = { PACKET::KeyInfo, client->sendKey, client->deltaMouse, -1, 
-			client->GetEstimatedServerTimeMs(), false};
-		client->deltaMouse = { 0.f,0.f };
+		{
+			std::unique_lock<std::mutex> lock(client->inputPacketLock);
+			client->inputChangedCV.wait_for(lock, std::chrono::milliseconds(33));
+
+			cs_keyInput = client->GetKeyPacketToSend();
+		}
+
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
 			err_display("send()");
 			return 0;
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(33));
 	}
 }
 

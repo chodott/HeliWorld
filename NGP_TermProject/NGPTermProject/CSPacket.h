@@ -43,11 +43,12 @@ struct PlayerInfoBundlePacket
 
 
 struct PlayerKeyPacket {
-	char packetType;
+	char packetType = PACKET::KeyInfo;
 	unsigned char playerKeyInput;
 	FPoint deltaMouse;
 	int16_t launchedMissileNum = -1;
-	uint64_t timestamp;
+	uint64_t startServerTimestamp;
+	uint64_t endServerTimestamp;
 	bool bKeyChanged = false;
 };
 
