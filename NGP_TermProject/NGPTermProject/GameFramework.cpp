@@ -585,14 +585,11 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	float value = client->frameDataMgr->
 		GetServerFrameData(prevData, nextData, client->GetDelayedServerTimeMs());
 
-	float playerValue = (float)(client->GetEstimatedServerTimeMs() - nextData.timestamp)
-		/ (float)client->networkSyncMgr->GetDelay();
-
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)
 		{
-			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], playerValue);   //player update
+			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 			if (value > 3.0f) continue;
 			for (int j = 1; j < 11; ++j)

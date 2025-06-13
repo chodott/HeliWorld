@@ -179,8 +179,6 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
 	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
 	
-	cout << m_xmf3Look.x << "," << m_xmf3Look.y << "," << m_xmf3Look.z << "\n";
-
 	m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
 
 }
@@ -246,24 +244,18 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 	}
 	else
 	{
-		m_xmf3ServerPosition = nextPacket.position;
-		float distance = 0.0f;
-		distance = sqrt(pow((m_xmf3RealPosition.x - m_xmf3ServerPosition.x), 2)
-			+ pow((m_xmf3RealPosition.y - m_xmf3ServerPosition.y), 2)
-			+ pow((m_xmf3RealPosition.z - m_xmf3ServerPosition.z), 2));
+		XMVECTOR nextPosition = XMLoadFloat3(&prevPacket.position);
+		XMVECTOR prevPosition = XMLoadFloat3(&nextPacket.position);
 
-		XMVECTOR nextPosition = XMLoadFloat3(&m_xmf3ServerPosition);
-		XMVECTOR prevPosition = XMLoadFloat3(&m_xmf3RealPosition);
+		XMVECTOR serverPosition = XMVectorLerp(prevPosition, nextPosition, value);
+		XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
 
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
-
+		XMVECTOR renderPosition = XMVectorLerp(clientPosition, serverPosition, 0.1f);
 		XMFLOAT3 resultPosition;
-		XMStoreFloat3(&resultPosition, curPosition);
+		XMStoreFloat3(&resultPosition, renderPosition);
 		SetPosition(resultPosition);
 	}
-
-	
-	
+	cout << GetPosition().x << ", " << GetPosition().y << ", " << GetPosition().z << "\n";
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
