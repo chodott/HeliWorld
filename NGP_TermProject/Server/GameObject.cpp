@@ -63,6 +63,8 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 
 void CPlayer::Rotate(float x, float y, float z)
 {
+	cout << m_fPitch << "," << m_fYaw << "," << m_fRoll << "\n";
+
 	if (x != 0.0f)
 	{
 		m_fPitch += x;
@@ -94,8 +96,20 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
 	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
 
-	keyPacket.deltaMouse.x = 0.f;
-	keyPacket.deltaMouse.y = 0.f;
+	
+
+}
+
+void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
+{
+	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(xmf3RotationAxis.x), XMConvertToRadians(xmf3RotationAxis.y), XMConvertToRadians(xmf3RotationAxis.z));
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_xmf4x4World = Matrix4x4::Multiply(mtxRotate, m_xmf4x4World);
+	m_xmf3Right.x = m_xmf4x4World._11, m_xmf3Right.y = m_xmf4x4World._12, m_xmf3Right.z = m_xmf4x4World._13;
+	m_xmf3Up.x = m_xmf4x4World._21, m_xmf3Up.y = m_xmf4x4World._22, m_xmf3Up.z = m_xmf4x4World._23;
+	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
+
+	cout << m_xmf3Look.x << "," << m_xmf3Look.y << "," << m_xmf3Look.z << "\n";
 }
 
 void CPlayer::LaunchMissile(int16_t missileNum, float fLatency = 0)
@@ -136,8 +150,8 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 	RecalculateRight();
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
-
-	Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
+	RotatePYR(keyPacket.rotation);
+	//Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
 
 	if (keyPacket.playerKeyInput)
 	{
@@ -179,7 +193,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		{
 			if (connectedClients >= 1)
 			{
-				LaunchMissile(keyPacket.requestMissileNum, elapsedTime);			// if not alone in the server
+				LaunchMissile(keyPacket.launchedMissileNum, elapsedTime);			// if not alone in the server
 			}
 			keyPacket.playerKeyInput &= ~option6;
 		}
@@ -210,10 +224,9 @@ void CPlayer::Reset(int playerNum)
 	m_bActive = false;
 
 	m_nHp = 100;
-	keyPacket.deltaMouse.x = 0;
-	keyPacket.deltaMouse.y = 0;
+	keyPacket.rotation = { 0,0,0 };
 	keyPacket.playerKeyInput = NULL;
-	keyPacket.requestMissileNum = -1;
+	keyPacket.launchedMissileNum = -1;
 	
 
 	for (auto& missile : m_pMissiles)
@@ -272,7 +285,7 @@ void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const floa
 	// Attack
 	if (nextKeyInput & option6)
 	{
-		LaunchMissile(keyPacket.requestMissileNum);
+		LaunchMissile(keyPacket.launchedMissileNum);
 		keyPacket.playerKeyInput &= ~option6;
 	}
 

@@ -536,12 +536,12 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 			{
 				if (pKeysBuffer[VK_RBUTTON] & 0xF0)
 				{
-					m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
+					//m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
 				}
 				else
 				{
 
-					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
+					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.f);
 				}
 			}
 			if (dwDirection) m_pPlayer->Move(dwDirection, fTimeElapsed, false);
@@ -669,7 +669,8 @@ void CGameFramework::FrameAdvance()
 	ProcessInput(fTimeElapsed);
 
 	AnimateObjects();
-	client->SendtoServer();
+	client->PrepareInputPacket(m_pPlayer->GetRotation());
+
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);

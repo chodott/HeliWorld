@@ -162,28 +162,21 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 	}
 }
 
-void Client::SendtoServer()
+void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
 	uint64_t serverTimestamp = GetEstimatedServerTimeMs();
 
+	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
-	if (cs_key.startServerTimestamp == 0) cs_key.startServerTimestamp = serverTimestamp;
+	cs_key.playerKeyInput = sendKey;
+	cs_key.rotation = playerPYR;
+	cs_key.timestamp = serverTimestamp;
 
-	if (prevKey == sendKey)
-	{	//Apply Rotate Only
-		cs_key.deltaMouse.x += deltaMouse.x;
-		cs_key.deltaMouse.y += deltaMouse.y;
-		cs_key.endServerTimestamp = serverTimestamp;
-	}
-	else
+	if (prevKey != sendKey)
 	{
-		cs_key.bKeyChanged = (prevKey != sendKey);
-		cs_key.playerKeyInput = sendKey;
-		cs_key.deltaMouse.x += deltaMouse.x;
-		cs_key.deltaMouse.y += deltaMouse.y;
+		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
-		cs_key.endServerTimestamp = serverTimestamp;
 		inputChangedCV.notify_one();
 	}
 	prevKey = sendKey;
@@ -192,12 +185,13 @@ void Client::SendtoServer()
 	deltaMouse = { 0.0f, 0.0f };
 }
 
-PlayerKeyPacket Client::GetKeyPacketToSend()
+void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
 {
-	PlayerKeyPacket sendPacket = move(inputPacket_dq.front());
-	inputPacket_dq.pop_front();
-	inputPacket_dq.emplace_back(new PlayerKeyPacket());
-	return sendPacket;
+	if (!inputPacket_dq.empty())
+	{
+		keyPacket = inputPacket_dq.front();
+		inputPacket_dq.pop_front();
+	}
 }
 
 uint64_t Client::GetTimestampMs()
@@ -248,8 +242,7 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 		{
 			std::unique_lock<std::mutex> lock(client->inputPacketLock);
 			client->inputChangedCV.wait_for(lock, std::chrono::milliseconds(33));
-
-			cs_keyInput = client->GetKeyPacketToSend();
+			client->GetKeyPacketToSend(cs_keyInput);
 		}
 
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)

@@ -42,8 +42,8 @@ struct PlayerInfoBundlePacket
 struct PlayerKeyPacket {
 	char packetType;
 	unsigned char playerKeyInput;
-	FPoint deltaMouse;
-	int16_t requestMissileNum;
+	XMFLOAT3 rotation;
+	int16_t launchedMissileNum = -1;
 	uint64_t timestamp;
 	bool bKeyChanged = false;
 };

@@ -38,8 +38,8 @@ public:
 	char* GetServerIp() { return serverIp; }
 	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	void SendtoServer();
-	PlayerKeyPacket GetKeyPacketToSend();
+	void PrepareInputPacket(XMFLOAT3& playerPYR);
+	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
 
 	uint64_t GetTimestampMs();
 	uint64_t GetEstimatedServerTimeMs();
@@ -70,7 +70,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.66";
+	char* serverIp = (char*)"172.30.1.60";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

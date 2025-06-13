@@ -104,6 +104,10 @@ void CPlayer::Move(float fxOffset, float fyOffset, float fzOffset)
 
 void CPlayer::Rotate(float x, float y, float z)
 {
+	m_xmf3Look = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._31, m_xmf4x4World._32, m_xmf4x4World._33));
+	m_xmf3Right = Vector3::Normalize(XMFLOAT3(m_xmf4x4World._11, m_xmf4x4World._12, m_xmf4x4World._13));
+	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+
 	DWORD nCurrentCameraMode = m_pCamera->GetMode();
 	if ((nCurrentCameraMode == FIRST_PERSON_CAMERA) || (nCurrentCameraMode == THIRD_PERSON_CAMERA))
 	{
@@ -174,11 +178,11 @@ void CPlayer::Rotate(float x, float y, float z)
 	m_xmf4x4World._11 = m_xmf3Right.x; m_xmf4x4World._12 = m_xmf3Right.y; m_xmf4x4World._13 = m_xmf3Right.z;
 	m_xmf4x4World._21 = m_xmf3Up.x; m_xmf4x4World._22 = m_xmf3Up.y; m_xmf4x4World._23 = m_xmf3Up.z;
 	m_xmf4x4World._31 = m_xmf3Look.x; m_xmf4x4World._32 = m_xmf3Look.y; m_xmf4x4World._33 = m_xmf3Look.z;
+	
+	cout << m_xmf3Look.x << "," << m_xmf3Look.y << "," << m_xmf3Look.z << "\n";
 
-	//m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
-	//m_xmf3Look = Vector3::Normalize(m_xmf3Look);
-	//m_xmf3Right = Vector3::CrossProduct(m_xmf3Up, m_xmf3Look, true);
-	//m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+	m_rotation.x = m_fPitch; m_rotation.y = m_fYaw; m_rotation.z = m_fRoll;
+
 }
 
 void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
@@ -251,13 +255,14 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMVECTOR nextPosition = XMLoadFloat3(&m_xmf3ServerPosition);
 		XMVECTOR prevPosition = XMLoadFloat3(&m_xmf3RealPosition);
 
-		cout << value << "\n";
 		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 
 		XMFLOAT3 resultPosition;
 		XMStoreFloat3(&resultPosition, curPosition);
 		SetPosition(resultPosition);
 	}
+
+	
 	
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
