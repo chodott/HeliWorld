@@ -255,7 +255,6 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMStoreFloat3(&resultPosition, renderPosition);
 		SetPosition(resultPosition);
 	}
-	cout << GetPosition().x << ", " << GetPosition().y << ", " << GetPosition().z << "\n";
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

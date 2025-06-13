@@ -82,7 +82,7 @@ bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
     XMFLOAT3 clientPosition;
     XMStoreFloat3(&clientPosition, curPosition);
 ;
-    XMFLOAT3& serverPosition = currentFrameData.playerInfos[0].position;
+    XMFLOAT3& serverPosition = currentFrameData.playerInfos[playerNum].position;
 
     float distance = 0.0f;
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + pow((clientPosition.y - serverPosition.y),2) + pow((clientPosition.z - serverPosition.z),2));

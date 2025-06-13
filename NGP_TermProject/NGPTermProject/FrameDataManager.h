@@ -27,6 +27,10 @@ class FrameDataManager
 public:
     template<typename PacketType>
     void CombinePacket(const PacketType& packet, uint64_t cutTimeline = 0);
+    inline void SetPlayerNum(int n) 
+    {
+        playerNum = n;
+    }
     inline void AddClientFrameData(const ClientFrameData& frameData)
     {
         clientFrameData_dq.emplace_back(frameData);
@@ -50,6 +54,7 @@ private:
     std::deque<ClientFrameData> clientFrameData_dq;
 
     ServerFrameData currentFrameData;
+    int playerNum = 0;
     bool bNeedResimulate = false;
 
 };

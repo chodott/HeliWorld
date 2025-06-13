@@ -120,6 +120,7 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
+	frameDataMgr->SetPlayerNum(PlayerNum);
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
