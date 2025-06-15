@@ -440,6 +440,14 @@ void CGameFramework::BuildObjects()
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
+	int& playerNum = client->PlayerNum;
+
+	for (int i = playerNum * 8; i < (playerNum+1)*8; ++i)
+	{
+		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
+		missile->bLocalMissile = true;
+	}
+
 	m_pd3dCommandList->Close();
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);

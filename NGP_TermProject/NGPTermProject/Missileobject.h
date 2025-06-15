@@ -42,8 +42,8 @@ private:
 	XMFLOAT3					m_xmf3RealPosition;
 	XMFLOAT3					m_xmf3ServerPosition;
 
+	bool bLocal = false;
 	bool m_Collision = false;
 	int m_ID;
 	float m_PressTime = 0;
-	//bool b_Active = false;
 };
