@@ -611,7 +611,6 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 		m_pScene->AnimateObjects(fTimeElapsed, prevData.playerInfos[i]);
 	}
 
-	if (value > 3.0f) return;
 	for (int i = 0; i < 32; ++i)
 	{
 		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.missileInfos[i], nextData.missileInfos[i], value);

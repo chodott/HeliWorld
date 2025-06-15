@@ -97,42 +97,52 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value)
 {
-	//if (value > 3.0f)
+	if (!GetActive()) return;
+
+	Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
+
+	if (value >= 3.0f)
 	{
-		bool bServerActive = prevPacket.active;
-		if (bServerActive)
+		SetPosition(GetRealPosition());
+		return;
+	}
+
+
+	if(value <3.0f)
+	{
+		if (prevPacket.active == true)
 		{
+			XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
+			XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
+
+			XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
+			XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
+
+			XMVECTOR renderPosition = XMVectorLerp(clientPosition, curPosition, 0.1f);
+			XMFLOAT3 resultPosition;
+			XMStoreFloat3(&resultPosition, renderPosition);
+			SetPosition(resultPosition);
 			bServerLife = true;
-			SetActive(true);
+		}
+		else
+		{
+			SetPosition(GetRealPosition());
 		}
 
-		if (bServerLife == true && bServerActive == false)
+		if (prevPacket.active == false && bServerLife == true)
 		{
 			bServerLife = false;
 			SetActive(false);
 		}
-		if (GetActive() == false) return;
-
-		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
 	}
-
-	/*else
-	{
-		SetActive(prevPacket.active);
-		if (!GetActive()) return;
-		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
-		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
-
-		XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
-
-		XMFLOAT3 resultPosition;
-		XMStoreFloat3(&resultPosition, curPosition);
-		SetPosition(resultPosition);
-	}*/
 }
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
-	SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
+	m_xmf3RealPosition.x += vDirection.x * fSpeed;
+	m_xmf3RealPosition.y += vDirection.y * fSpeed;
+	m_xmf3RealPosition.z += vDirection.z * fSpeed;
+
+	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
 void CMissleObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)

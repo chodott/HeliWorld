@@ -30,11 +30,18 @@ public:
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
-	const int movingSpeed = 300.f;
+	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
+	inline void SetRealPosition(const XMFLOAT3& xmf3Position) { m_xmf3RealPosition = xmf3Position; }
+	XMFLOAT3 GetRealPosition() { return m_xmf3RealPosition; }
+
+	const int movingSpeed = 500.f;
 	bool bServerLife = false;
 	bool bLocalMissile = false;
 
 private:
+	XMFLOAT3					m_xmf3RealPosition;
+	XMFLOAT3					m_xmf3ServerPosition;
+
 	bool m_Collision = false;
 	int m_ID;
 	float m_PressTime = 0;
