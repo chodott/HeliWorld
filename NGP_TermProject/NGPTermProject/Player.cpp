@@ -243,16 +243,11 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 	}
 	else
 	{
-		XMVECTOR nextPosition = XMLoadFloat3(&prevPacket.position);
-		XMVECTOR prevPosition = XMLoadFloat3(&nextPacket.position);
+		XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
+		XMFLOAT3& clientPosition = GetRealPosition();
 
-		XMVECTOR serverPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
-		XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
-
-		XMVECTOR renderPosition = XMVectorLerp(clientPosition, serverPosition, 0.1f);
-		XMFLOAT3 resultPosition;
-		XMStoreFloat3(&resultPosition, renderPosition);
-		SetPosition(resultPosition);
+		XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
+		SetPosition(renderPosition);
 	}
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);

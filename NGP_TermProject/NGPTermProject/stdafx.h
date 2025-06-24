@@ -329,3 +329,18 @@ inline XMFLOAT3 ConvertInt16tofloat3( int16_t& x, int16_t& y, int16_t& z, float 
 	position.z = static_cast<float>(z / scale);
 	return position;
 }
+
+inline XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float lerpAlpha)
+{
+	lerpAlpha = (lerpAlpha < 0.0f) ? 0.0f : lerpAlpha;
+	lerpAlpha = (lerpAlpha > 1.0f) ? 1.0f : lerpAlpha;
+
+	XMVECTOR fromVector = XMLoadFloat3(&from);
+	XMVECTOR toVector = XMLoadFloat3(&to);
+	XMVECTOR resultVector = XMVectorLerp(fromVector, toVector, lerpAlpha);
+	
+	XMFLOAT3 result;
+	XMStoreFloat3(&result, resultVector);
+
+	return result;
+}

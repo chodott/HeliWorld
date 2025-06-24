@@ -115,16 +115,15 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 
 			if (prevPacket.active == true)
 			{
-				XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
-				XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 
-				XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
-				XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
-				renderPosition = XMVectorLerp(clientPosition, renderPosition, 0.1f);
+				XMFLOAT3 prevPosition = ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
+				XMFLOAT3 nextPosition = ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
 
-				XMFLOAT3 resultPosition;
-				XMStoreFloat3(&resultPosition, renderPosition);
-				SetPosition(resultPosition);
+				XMFLOAT3& renderPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
+				XMFLOAT3& clientPosition = GetRealPosition();
+				renderPosition = LerpFloat3(clientPosition, renderPosition, 0.1f);
+
+				SetPosition(renderPosition);
 			}
 			else
 			{
