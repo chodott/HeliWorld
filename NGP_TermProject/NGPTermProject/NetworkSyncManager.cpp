@@ -3,21 +3,27 @@
 float NetworkSyncManager::offsetAvg = 0.f;
 float NetworkSyncManager::rttAvg = 0.f;
 
-uint64_t NetworkSyncManager::GetEstimatedServerTimeMs(const uint64_t& fCurTimestampMs)
+uint64_t NetworkSyncManager::GetTimestampMs()
 {
-	return fCurTimestampMs + offsetAvg;
+	using namespace std::chrono;
+	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+		(steady_clock::now().time_since_epoch()).count();
 }
 
-uint64_t NetworkSyncManager::GetDelayedServerTimeMs(const uint64_t& fCurTimestampMs)
+uint64_t NetworkSyncManager::GetEstimatedServerTimeMs()
 {
-	return GetEstimatedServerTimeMs(fCurTimestampMs) - delay;
+	return GetTimestampMs() + offsetAvg;
 }
 
-void NetworkSyncManager::UpdateData(const PingpongPacket& ppPacket, const uint64_t& fCurTimestampMs)
+uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
 {
+	return GetEstimatedServerTimeMs() - delay;
+}
 
-	uint64_t rtt = fCurTimestampMs - ppPacket.clientTimeStamp;
-	float offset = (float)ppPacket.serverSendTimeStamp - (float)(ppPacket.clientTimeStamp + (float)rtt / 2);
+void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, const uint64_t serverSendTimestamp)
+{
+	uint64_t rtt = GetTimestampMs() - clientSendTimestamp;
+	float offset = (float)serverSendTimestamp - (float)(clientSendTimestamp + (float)rtt / 2);
 	scOffset_dq.push_back(offset);
 	rtt_dq.push_back(rtt);
 

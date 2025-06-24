@@ -29,39 +29,32 @@ int PacketSizeHelper(char packetType)
 	return packetSize;
 }
 
-void PacketProcessHelper(char packetType, char* fillTarget, Client* client)
+void Client::PacketProcessHelper(char packetType, char* fillTarget)
 {
 	switch (packetType)
 	{
 	case PACKET::PlayerInfo:
 	{
-		//PlayerInfoBundlePacket pkt;
-		//memcpy(&pkt, fillTarget, sizeof(PlayerInfoBundlePacket));
-
 		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
-		client->frameDataMgr->CombinePacket(pkt);
+		frameDataMgr->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
-		//ItemInfoBundlePacket pkt;
-		//memcpy(&pkt, fillTarget, sizeof(ItemInfoBundlePacket));
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		client->frameDataMgr->CombinePacket(pkt, client->GetEstimatedServerTimeMs());
+		frameDataMgr->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
-		//MissileInfoBundlePacket pkt;
-		//memcpy(&pkt, fillTarget, sizeof(MissileInfoBundlePacket));
 		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
-		client->frameDataMgr->CombinePacket(pkt);
+		frameDataMgr->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::PingpongInfo:
 	{
 		auto& pkt = *reinterpret_cast<const PingpongPacket*>(fillTarget);
-		client->networkSyncMgr->UpdateData(pkt, client->GetTimestampMs());
+		ReceivePingPongPacket(pkt);
 		break;
 	}
 	default:
@@ -79,12 +72,15 @@ Client::Client()
 	networkSyncMgr = new NetworkSyncManager();
 }
 
+Client::Client(NetworkSyncManager* networkSyncMgr):Client()
+{
+	this->networkSyncMgr = networkSyncMgr;
+}
+
 Client::~Client()
 {
 	closesocket(*sock);
 	WSACleanup();
-
-
 }
 
 void Client::ConnectServer()
@@ -166,7 +162,7 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
-	uint64_t serverTimestamp = GetEstimatedServerTimeMs();
+	uint64_t serverTimestamp = networkSyncMgr->GetEstimatedServerTimeMs();
 
 	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
@@ -195,21 +191,9 @@ void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
 	}
 }
 
-uint64_t Client::GetTimestampMs()
+void Client::ReceivePingPongPacket(const PingpongPacket& ppPacket)
 {
-	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
-		(steady_clock::now().time_since_epoch()).count();
-}
-
-uint64_t Client::GetEstimatedServerTimeMs()
-{
-	return networkSyncMgr->GetEstimatedServerTimeMs(GetTimestampMs());
-}
-
-uint64_t Client::GetDelayedServerTimeMs()
-{
-	return networkSyncMgr->GetDelayedServerTimeMs(GetTimestampMs());
+	networkSyncMgr->UpdateSyncData(ppPacket.clientTimeStamp, ppPacket.serverSendTimeStamp);
 }
 
 DWORD WINAPI SendPingPacket(LPVOID arg)
@@ -221,7 +205,7 @@ DWORD WINAPI SendPingPacket(LPVOID arg)
 
 	while (true)
 	{
-		cs_pingpong.clientTimeStamp = client->GetTimestampMs();
+		cs_pingpong.clientTimeStamp = client->networkSyncMgr->GetTimestampMs();
 		if (send(*sock, (char*)&cs_pingpong, sizeof(PingpongPacket), 0) == SOCKET_ERROR)
 		{
 			err_display("send()");
@@ -273,7 +257,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 		{
 			memcpy(&client->remain[client->remainOffset], buf, client->remainSize);
 			restBufSize -= client->remainSize;
-			PacketProcessHelper(client->remain[0], client->remain, client);
+			client->PacketProcessHelper(client->remain[0], client->remain);
 			bufOffset += client->remainSize;
 
 			// reset remain
@@ -298,7 +282,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 			}
 
 			// Packet process
-			PacketProcessHelper(packetType, buf + bufOffset, client);
+			client->PacketProcessHelper(packetType, buf + bufOffset);
 			restBufSize -= packetSize;
 			bufOffset += packetSize;
 		}

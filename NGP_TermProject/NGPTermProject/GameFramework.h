@@ -97,5 +97,6 @@ private:
 	_TCHAR						m_pszFrameRate[70];
 
 	Client* client;
+	NetworkSyncManager* networkSyncManager;
 };
 

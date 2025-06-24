@@ -36,8 +36,8 @@ CGameFramework::CGameFramework()
 
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
 
-
-	client = new Client();
+	networkSyncManager = new NetworkSyncManager();
+	client = new Client(networkSyncManager);
 }
 
 CGameFramework::~CGameFramework()
@@ -557,7 +557,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 		//Save ClientFrameData 
 		m_pPlayer->Update(fTimeElapsed);
-		client->frameDataMgr->AddClientFrameData({ client->GetEstimatedServerTimeMs(),
+		client->frameDataMgr->AddClientFrameData({networkSyncManager->GetEstimatedServerTimeMs(),
 			m_pPlayer->GetRealPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
@@ -591,7 +591,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData nextData;
 
 	float value = client->frameDataMgr->
-		GetServerFrameData(prevData, nextData, client->GetDelayedServerTimeMs());
+		GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
 
 	for (int i = 0; i < 4; i++)
 	{

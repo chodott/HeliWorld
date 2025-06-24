@@ -13,7 +13,6 @@
 #include <string>
 #include <iostream>
 #include <fcntl.h>
-#include <chrono>
 #include <algorithm>
 #include <queue>
 #include <concurrent_queue.h>
@@ -31,6 +30,7 @@
 class Client {
 public:
 	Client();
+	Client(NetworkSyncManager* networkSyncMgr);
 	~Client();
 
 	SOCKET* GetClientsock() { return sock; }
@@ -41,9 +41,9 @@ public:
 	void PrepareInputPacket(XMFLOAT3& playerPYR);
 	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
 
-	uint64_t GetTimestampMs();
-	uint64_t GetEstimatedServerTimeMs();
-	uint64_t GetDelayedServerTimeMs();
+	void PacketProcessHelper(char packetType, char* fillTarget);
+	void ReceivePingPongPacket(const PingpongPacket& ppPacket);
+
 
 	
 	FPoint deltaMouse;
@@ -70,7 +70,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"172.30.1.60";
+	char* serverIp = (char*)"192.168.0.9";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010
@@ -83,7 +83,6 @@ private:
 
 
 	deque<PlayerKeyPacket> inputPacket_dq;
-
 };
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
