@@ -8,9 +8,6 @@ public:
 	CMissleObject();
 	virtual ~CMissleObject();
 
-	//virtual void Move(XMFLOAT3& vDirection, float fSpeed);
-	//void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
-
 	virtual void AnimateObject(float fElapsedTime);
 
 	virtual void OnPrepareRender();
@@ -34,15 +31,14 @@ public:
 	inline void SetRealPosition(const XMFLOAT3& xmf3Position) { m_xmf3RealPosition = xmf3Position; }
 	XMFLOAT3 GetRealPosition() { return m_xmf3RealPosition; }
 
-	const int movingSpeed = 500.f;
-	bool bServerLife = false;
+	bool bActiveInServer = false;
 	bool bLocalMissile = false;
 
 private:
 	XMFLOAT3					m_xmf3RealPosition;
 	XMFLOAT3					m_xmf3ServerPosition;
 
-	bool bLocal = false;
+	const int movingSpeed = 500.f;
 	bool m_Collision = false;
 	int m_ID;
 	float m_PressTime = 0;

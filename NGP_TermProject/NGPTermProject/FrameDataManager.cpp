@@ -70,13 +70,15 @@ void FrameDataManager::CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBun
 
 bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
 {
-    auto target =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
-    if (target == clientFrameData_dq.begin() || target == clientFrameData_dq.end()) return false;
-    auto prev = target - 1;
+    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
+    if (nextFrameData == clientFrameData_dq.begin()) return false;
+    if (nextFrameData == clientFrameData_dq.end()) return false;
 
-    XMVECTOR& nextPosition = XMLoadFloat3(&target->position);
-    XMVECTOR& prevPosition = XMLoadFloat3(&prev->position);
-    float t = (timestamp - prev->timestamp) / (target->timestamp - prev->timestamp);
+    auto prevFrameData = nextFrameData - 1;
+
+    XMVECTOR& nextPosition = XMLoadFloat3(&nextFrameData->position);
+    XMVECTOR& prevPosition = XMLoadFloat3(&prevFrameData->position);
+    float t = (timestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
 
     XMVECTOR& curPosition = XMVectorLerp(prevPosition, nextPosition, t);
     XMFLOAT3 clientPosition;
@@ -85,12 +87,15 @@ bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
     XMFLOAT3& serverPosition = currentFrameData.playerInfos[playerNum].position;
 
     float distance = 0.0f;
-    distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + pow((clientPosition.y - serverPosition.y),2) + pow((clientPosition.z - serverPosition.z),2));
-   //cout << "Dist:" <<distance << "\n";
+    distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + 
+                            pow((clientPosition.y - serverPosition.y),2) + 
+                            pow((clientPosition.z - serverPosition.z),2));
     
     float maxDistance = NetworkSyncManager::GetRttAvg() / 2 * 100.0f / 1000.0f;
     maxDistance = 10.0f;
+
     bool bOverMaxDistance = distance >= maxDistance;
+
     position = serverPosition;
     rotation = currentFrameData.playerInfos[0].rotation;
 

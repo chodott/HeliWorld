@@ -205,7 +205,6 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 			missile->SetActive(true);
 			missile->SetRealPosition(GetPosition());
 			missile->SetMovingDirection(GetLookVector());
-			missile->bLocalMissile = true;
 			client->lastLaunchedMissileNum = i;
 			break;
 
@@ -236,9 +235,9 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
 }
 
-void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
+void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float lerpAlpha)
 {
-	if (value > 3.0f)
+	if (lerpAlpha > 3.0f)
 	{
 		SetPosition(GetRealPosition());
 	}
@@ -247,7 +246,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMVECTOR nextPosition = XMLoadFloat3(&prevPacket.position);
 		XMVECTOR prevPosition = XMLoadFloat3(&nextPacket.position);
 
-		XMVECTOR serverPosition = XMVectorLerp(prevPosition, nextPosition, value);
+		XMVECTOR serverPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
 		XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
 
 		XMVECTOR renderPosition = XMVectorLerp(clientPosition, serverPosition, 0.1f);

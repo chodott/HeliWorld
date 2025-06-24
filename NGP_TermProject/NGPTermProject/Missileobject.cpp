@@ -95,21 +95,20 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	else SetPosition(newPosition);*/
 
 }
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value)
+void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float lerpAlpha)
 {
-
 	if (bLocalMissile)
 	{
 		if (!GetActive()) return;
 
 		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		if (value >= 3.0f)
+		if (lerpAlpha >= 3.0f)
 		{
 			SetPosition(GetRealPosition());
 		}
 		else
 		{
-			if (bServerLife == true)
+			if (bActiveInServer == true)
 			{
 				SetActive(prevPacket.active);
 			}
@@ -119,7 +118,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 				XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
 				XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 
-				XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, value);
+				XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
 				XMVECTOR clientPosition = XMLoadFloat3(&GetRealPosition());
 				renderPosition = XMVectorLerp(clientPosition, renderPosition, 0.1f);
 
@@ -131,18 +130,18 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 			{
 				SetPosition(GetRealPosition());
 			}
-			bServerLife = prevPacket.active;
+			bActiveInServer = prevPacket.active;
 		}
 	}
 
 	else
 	{
-		if (value >= 3.0f) return;
+		if (lerpAlpha >= 3.0f) return;
 		SetActive(prevPacket.active);
 		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
 		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 
-		XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, value);
+		XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
 		XMFLOAT3 resultPosition;
 
 		XMStoreFloat3(&resultPosition, renderPosition);
