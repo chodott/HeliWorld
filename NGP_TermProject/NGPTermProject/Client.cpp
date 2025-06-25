@@ -36,19 +36,19 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 	case PACKET::PlayerInfo:
 	{
 		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
-		frameDataMgr->CombinePacket(pkt);
+		frameDataManager->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		frameDataMgr->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
+		frameDataManager->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
 		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
-		frameDataMgr->CombinePacket(pkt);
+		frameDataManager->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::PingpongInfo:
@@ -68,13 +68,12 @@ Client::Client()
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
 	sock = new SOCKET();
-	frameDataMgr = new FrameDataManager();
-	networkSyncMgr = new NetworkSyncManager();
 }
 
-Client::Client(NetworkSyncManager* networkSyncMgr):Client()
+Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr):Client()
 {
 	this->networkSyncMgr = networkSyncMgr;
+	this->frameDataManager = frameDataMgr;
 }
 
 Client::~Client()
@@ -116,7 +115,7 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
-	frameDataMgr->SetPlayerNum(PlayerNum);
+	frameDataManager->SetPlayerNum(PlayerNum);
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);

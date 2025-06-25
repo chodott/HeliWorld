@@ -25,9 +25,9 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
     return value;
 }
 
-pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange(uint64_t timestamp)
+pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
 {
-    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
+    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpTimestamp);
     return make_pair(target, clientFrameData_dq.end());
 }
 
@@ -36,11 +36,11 @@ void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundleP
 {
     std::lock_guard<std::mutex> lock(mtx);
     memcpy(currentFrameData.itemInfos, pkt.itemInfos, sizeof(ItemInfoPacket) * 10);
-    serverframeData_dq.push_back(currentFrameData);
+    AddServerFrameData(currentFrameData);
 
     cutTimeline -= FRAMEDATA_DEADLINE_MS;
 
-    if (CheckPrediction(currentFrameData.timestamp))
+    if (IsPositionOutOfSync(currentFrameData.timestamp))
     {
         RequestResimulation(currentFrameData.timestamp);
     }
@@ -68,7 +68,7 @@ void FrameDataManager::CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBun
     currentFrameData.timestamp = pkt.timestamp;
 }
 
-bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
+bool FrameDataManager::IsPositionOutOfSync(const uint64_t& timestamp)
 {
     auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
     if (nextFrameData == clientFrameData_dq.begin()) return false;
@@ -76,13 +76,8 @@ bool FrameDataManager::CheckPrediction(const uint64_t& timestamp)
 
     auto prevFrameData = nextFrameData - 1;
 
-    XMVECTOR& nextPosition = XMLoadFloat3(&nextFrameData->position);
-    XMVECTOR& prevPosition = XMLoadFloat3(&prevFrameData->position);
     float t = (timestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
-
-    XMVECTOR& curPosition = XMVectorLerp(prevPosition, nextPosition, t);
-    XMFLOAT3 clientPosition;
-    XMStoreFloat3(&clientPosition, curPosition);
+    XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t)
 ;
     XMFLOAT3& serverPosition = currentFrameData.playerInfos[playerNum].position;
 
@@ -110,13 +105,12 @@ void FrameDataManager::RequestResimulation(const uint64_t& timestamp)
     targetTimestamp = timestamp;
 }
 
-bool FrameDataManager::CheckResimulateRequest(uint64_t& timestamp)
+bool FrameDataManager::CheckResimulateRequest()
 {
     std::lock_guard<std::mutex>lock(resimulateLock);
 
     if (!bNeedResimulate) return false;
     bNeedResimulate = false;
-    timestamp = targetTimestamp;
     return true;
 
 }

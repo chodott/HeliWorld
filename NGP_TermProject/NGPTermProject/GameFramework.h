@@ -37,7 +37,7 @@ public:
     void AnimateObjects();
 	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();
-	void Resimulate(uint64_t timestamp);
+	void Resimulate();
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();
@@ -98,5 +98,6 @@ private:
 
 	Client* client;
 	NetworkSyncManager* networkSyncManager;
+	FrameDataManager* frameDataManager;
 };
 

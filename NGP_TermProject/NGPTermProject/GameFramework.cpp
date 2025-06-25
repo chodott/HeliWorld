@@ -37,7 +37,8 @@ CGameFramework::CGameFramework()
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
 
 	networkSyncManager = new NetworkSyncManager();
-	client = new Client(networkSyncManager);
+	frameDataManager = new FrameDataManager();
+	client = new Client(networkSyncManager, frameDataManager);
 }
 
 CGameFramework::~CGameFramework()
@@ -51,8 +52,6 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 
 	client->ConnectServer();
-	//client->FrameAdvanced = CreateEvent(nullptr, true, false, false);
-
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -468,18 +467,17 @@ void CGameFramework::ReleaseObjects()
 	if (m_pScene) delete m_pScene;
 }
 
-void CGameFramework::Resimulate(uint64_t timestamp)
+void CGameFramework::Resimulate()
 {
-	FrameDataManager* frameDataMgr = client->frameDataMgr;
 	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  
-		frameDataMgr->GetSimulateRange(timestamp);
+		frameDataManager->GetSimulateRange();
 	auto begin = range.first; 
 	auto end = range.second;
 
 	//서버 위치로 초기화
-	m_pPlayer->SetServerPosition(frameDataMgr->position);
-	m_pPlayer->SetRealPosition(frameDataMgr->position);
-	m_pPlayer->RotatePYR(frameDataMgr->rotation);
+	m_pPlayer->SetServerPosition(frameDataManager->position);
+	m_pPlayer->SetRealPosition(frameDataManager->position);
+	m_pPlayer->RotatePYR(frameDataManager->rotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
 	{
@@ -557,7 +555,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 		//Save ClientFrameData 
 		m_pPlayer->Update(fTimeElapsed);
-		client->frameDataMgr->AddClientFrameData({networkSyncManager->GetEstimatedServerTimeMs(),
+		frameDataManager->AddClientFrameData({networkSyncManager->GetEstimatedServerTimeMs(),
 			m_pPlayer->GetRealPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
@@ -590,8 +588,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData prevData;
 	static ServerFrameData nextData;
 
-	float value = client->frameDataMgr->
-		GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
+	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -663,10 +660,9 @@ void CGameFramework::FrameAdvance()
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
-	uint64_t targetTimestamp;
-	if (client->frameDataMgr->CheckResimulateRequest(targetTimestamp))
+	if (frameDataManager->CheckResimulateRequest())
 	{
-		Resimulate(targetTimestamp);
+		Resimulate();
 	}
 
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();

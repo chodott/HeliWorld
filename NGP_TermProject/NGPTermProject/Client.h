@@ -30,7 +30,7 @@
 class Client {
 public:
 	Client();
-	Client(NetworkSyncManager* networkSyncMgr);
+	Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr);
 	~Client();
 
 	SOCKET* GetClientsock() { return sock; }
@@ -64,13 +64,13 @@ public:
 
 
 	//Latency Interpolation
-	FrameDataManager* frameDataMgr;
+	FrameDataManager* frameDataManager;
 	NetworkSyncManager* networkSyncMgr;
 
 private:
 	SOCKET* sock = nullptr;
 
-	char* serverIp = (char*)"192.168.0.9";
+	char* serverIp = (char*)"192.168.0.3";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010
