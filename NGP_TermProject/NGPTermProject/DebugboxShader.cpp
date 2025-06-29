@@ -67,6 +67,7 @@ void CDebugboxShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 		if (m_ppObjects[j] && m_ppObjects[j]->GetActive())
 		{
 			m_ppObjects[j]->Render(pd3dCommandList, pCamera);
+			//m_ppObjects[j]->SetActive(false);
 		}
 	}
 }
@@ -75,9 +76,12 @@ void CDebugboxShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 void CDebugboxShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
 	m_pDebugboxTexture = new CTexture(1, RESOURCE_TEXTURE2D, 0, 1);
-	m_pDebugboxTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/Missile2.dds", RESOURCE_TEXTURE2D, 0);
+	m_pDebugboxTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/HealItem.dds", RESOURCE_TEXTURE2D, 0);
 
-	m_pBoxMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.5f, 5.f);
+	m_pMaterial = new CMaterial();
+	m_pMaterial->SetTexture(m_pDebugboxTexture);
+
+	m_pBoxMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 20.f, 20.f, 20.f);
 
 	m_nObjects = 10;
 	m_ppObjects = new CGameObject * [m_nObjects];
@@ -88,6 +92,14 @@ void CDebugboxShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 	CreateConstantBufferViews(pd3dDevice, m_nObjects, m_pd3dcbGameObjects, ncbElementBytes);
 	CreateShaderResourceViews(pd3dDevice, m_pDebugboxTexture, 0, 11);
+
+	for (int i = 0; i < m_nObjects; i++) {
+		m_ppObjects[i] = new CDebugboxObject();
+		m_ppObjects[i]->SetMesh(0, m_pBoxMesh);
+		m_ppObjects[i]->SetMaterial(0, m_pMaterial);
+		m_ppObjects[i]->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * i));
+		m_ppObjects[i]->SetActive(false);
+	}
 }
 
 void CDebugboxShader::CreateShader(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)

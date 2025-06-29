@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "stdafx.h"
 #include "MissileObjectShader.h"
+#include "DebugDrawManager.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CPlayer
@@ -249,6 +250,8 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 		XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
 		SetPosition(renderPosition);
 	}
+
+	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), 0.1f);
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

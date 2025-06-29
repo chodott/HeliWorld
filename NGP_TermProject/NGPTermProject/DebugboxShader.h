@@ -1,10 +1,7 @@
 #pragma once
-#pragma once
 
-#pragma once
-#include"stdafx.h"
-#include"Shader.h"
-
+#include "Shader.h"
+#include "DebugboxObject.h"
 
 class CDebugboxShader : public CObjectsShader
 {
@@ -29,5 +26,6 @@ public:
 
 private:
 	CTexture* m_pDebugboxTexture{ NULL };
+	CMaterial* m_pMaterial{ NULL };
 	CCubeMeshTextured* m_pBoxMesh{ NULL };
 };

@@ -9,6 +9,8 @@
 #include"MissileObjectShader.h"
 #include"MultiSpriteObjectsShader.h"
 #include "HealObjectShader.h"
+#include "DebugDrawManager.h"
+
 
 #define MAX_LIGHTS			16 
 

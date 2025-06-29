@@ -126,11 +126,9 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pHealobjectShader->SetActive(true);
 	m_ppShaders[5] = pHealobjectShader;
 
+	DebugDrawManager::Get().BuildObjects(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature);
+
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
-
-
-
-
 }
 
 void CScene::ReleaseObjects()
@@ -574,6 +572,7 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 	if (m_pWater) m_pWater->Render(pd3dCommandList, pCamera);
 
+	DebugDrawManager::Get().Render(pd3dCommandList, pCamera, 0);
 
 }
 
