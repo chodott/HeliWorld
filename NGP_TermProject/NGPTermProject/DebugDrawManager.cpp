@@ -27,7 +27,7 @@ void DebugDrawManager::AddDebugCube(XMFLOAT3& position, XMFLOAT3& rotation, floa
 {
 	if (m_pDebugboxShader == NULL) return;
 	CGameObject* debugTarget = m_pDebugboxShader->m_ppObjects[count++];
-	debugTarget->SetPosition(position);
-	debugTarget->RotatePYR(rotation);
 	debugTarget->SetActive(true);
+	debugTarget->RotatePYR(rotation);
+	debugTarget->SetPosition(position);
 }

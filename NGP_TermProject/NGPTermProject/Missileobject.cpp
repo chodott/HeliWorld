@@ -119,9 +119,9 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 				XMFLOAT3 prevPosition = ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
 				XMFLOAT3 nextPosition = ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
 
-				XMFLOAT3& renderPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
+				XMFLOAT3& serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
 				XMFLOAT3& clientPosition = GetRealPosition();
-				renderPosition = LerpFloat3(clientPosition, renderPosition, 0.1f);
+				XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
 
 				SetPosition(renderPosition);
 			}
