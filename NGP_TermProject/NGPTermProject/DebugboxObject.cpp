@@ -12,17 +12,15 @@ void CDebugboxObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 {
 	if (m_ppMaterials)
 	{
-		if (m_ppMaterials[0]->m_pShader)//->½¦ÀÌ´õ 
-		{
-			m_ppMaterials[0]->m_pShader->Render(pd3dCommandList, pCamera);
-			m_ppMaterials[0]->m_pShader->UpdateShaderVariables(pd3dCommandList);
-
-			UpdateShaderVariables(pd3dCommandList);
-		}
+		m_ppMaterials[0]->m_xmf4AmbientColor = debugColor;
+		m_ppMaterials[0]->UpdateShaderVariables(pd3dCommandList);
 		if (m_ppMaterials[0]->m_pTexture)
 		{
 			m_ppMaterials[0]->m_pTexture->UpdateShaderVariables(pd3dCommandList);
-			if (m_pcbMappedGameObject) XMStoreFloat4x4(&m_pcbMappedGameObject->m_xmf4x4Texture, XMMatrixTranspose(XMLoadFloat4x4(&m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture)));
+			if (m_pcbMappedGameObject)
+			{
+				XMStoreFloat4x4(&m_pcbMappedGameObject->m_xmf4x4Texture, XMMatrixTranspose(XMLoadFloat4x4(&m_ppMaterials[0]->m_pTexture->m_xmf4x4Texture)));
+			}
 		}
 	}
 

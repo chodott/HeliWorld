@@ -23,11 +23,12 @@ void DebugDrawManager::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComm
 }
 
 
-void DebugDrawManager::AddDebugCube(XMFLOAT3& position, XMFLOAT3& rotation, float color)
+void DebugDrawManager::AddDebugCube(XMFLOAT3& position, XMFLOAT3& rotation, XMFLOAT4 color)
 {
 	if (m_pDebugboxShader == NULL) return;
-	CGameObject* debugTarget = m_pDebugboxShader->m_ppObjects[count++];
+	CDebugboxObject* debugTarget = (CDebugboxObject*)m_pDebugboxShader->m_ppObjects[count++];
 	debugTarget->SetActive(true);
 	debugTarget->RotatePYR(rotation);
+	debugTarget->debugColor = color;
 	debugTarget->SetPosition(position);
 }

@@ -80,8 +80,9 @@ void CDebugboxShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 
 	m_pMaterial = new CMaterial();
 	m_pMaterial->SetTexture(m_pDebugboxTexture);
+	//m_pMaterial->SetShader(this);
 
-	m_pBoxMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 20.f, 20.f, 20.f);
+	m_pBoxMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.f, 10.f);
 
 	m_nObjects = 10;
 	m_ppObjects = new CGameObject * [m_nObjects];
@@ -131,9 +132,9 @@ D3D12_INPUT_LAYOUT_DESC CDebugboxShader::CreateInputLayout()
 }
 D3D12_SHADER_BYTECODE CDebugboxShader::CreateVertexShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSBillBoardTextured", "vs_5_1", &m_pd3dVertexShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "VSDebugbox", "vs_5_1", &m_pd3dVertexShaderBlob));
 }
 D3D12_SHADER_BYTECODE CDebugboxShader::CreatePixelShader()
 {
-	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSBillBoardTextured", "ps_5_1", &m_pd3dPixelShaderBlob));
+	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDebugbox", "ps_5_1", &m_pd3dPixelShaderBlob));
 }

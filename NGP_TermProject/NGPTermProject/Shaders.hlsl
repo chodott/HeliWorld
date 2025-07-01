@@ -23,6 +23,7 @@ struct SPRITEANIMATIONMATERIAL
     int2				gi2TextureTiling;
     float2				gf2TextureOffset;
     float				gf1Deltatime;
+
 };
 cbuffer cbCameraInfo : register(b1)
 {
@@ -262,6 +263,26 @@ float4 PSBillBoardTextured(VS_TEXTURED_OUTPUT input) : SV_TARGET
 	
     return (cColor);
 }
+
+VS_TEXTURED_OUTPUT VSDebugbox(VS_TEXTURED_INPUT input)
+{
+    VS_TEXTURED_OUTPUT output;
+
+    output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxChildGameObject), gmtxView), gmtxProjection);
+    output.uv = input.uv;
+   // output.uv.y += Timer;
+    return (output);
+}
+
+float4 PSDebugbox(VS_TEXTURED_OUTPUT input) : SV_TARGET
+{
+    float4 cColor = gtxtTexture.Sample(gWrapSamplerState, input.uv);
+    
+    cColor = gMaterial.m_cAmbient;
+	
+    return (cColor);
+}
+
 VS_TEXTURED_OUTPUT VSSpriteAnimation(VS_TEXTURED_INPUT input)
 {
     VS_TEXTURED_OUTPUT output;
