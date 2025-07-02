@@ -116,13 +116,12 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 			if (prevPacket.active == true)
 			{
 
-				XMFLOAT3 prevPosition = ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
-				XMFLOAT3 nextPosition = ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
+				XMFLOAT3 prevPosition = ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
+				XMFLOAT3 nextPosition = ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
 
-				XMFLOAT3& serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
+				XMFLOAT3 serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
 				XMFLOAT3& clientPosition = GetRealPosition();
 				XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
-
 				SetPosition(renderPosition);
 			}
 			else
@@ -137,8 +136,8 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 	{
 		if (lerpAlpha >= 3.0f) return;
 		SetActive(prevPacket.active);
-		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt16tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
-		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt16tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
+		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
+		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
 
 		XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
 		XMFLOAT3 resultPosition;
@@ -146,6 +145,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		XMStoreFloat3(&resultPosition, renderPosition);
 		SetPosition(resultPosition);
 	}
+
 }
 
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)

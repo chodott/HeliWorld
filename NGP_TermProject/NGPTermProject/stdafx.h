@@ -314,14 +314,14 @@ namespace Plane
 	}
 }
 
-inline void ConvertFloat3toInt16(XMFLOAT3& position, int16_t& x, int16_t& y, int16_t& z, float scale)
+inline void ConvertFloat3toInt32(XMFLOAT3& position, int32_t& x, int32_t& y, int32_t& z, float scale)
 {
-	x = static_cast<int16_t>(position.x * scale);
-	y = static_cast<int16_t>(position.y * scale);
-	z = static_cast<int16_t>(position.z * scale);
+	x = static_cast<int32_t>(position.x * scale);
+	y = static_cast<int32_t>(position.y * scale);
+	z = static_cast<int32_t>(position.z * scale);
 }
 
-inline XMFLOAT3 ConvertInt16tofloat3( int16_t& x, int16_t& y, int16_t& z, float scale)
+inline XMFLOAT3 ConvertInt32tofloat3( int32_t& x, int32_t& y, int32_t& z, float scale)
 {
 	XMFLOAT3 position;
 	position.x = static_cast<float>(x / scale);

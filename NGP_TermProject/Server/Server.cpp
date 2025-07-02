@@ -249,7 +249,7 @@ void Server::PreparePackets()
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
 			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * player->maxMissileNum + i];
-			ConvertFloat3toInt16(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
+			ConvertFloat3toInt32(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
 			missileInfo.active = missile->IsActive();
 		}
 	}
@@ -261,7 +261,7 @@ void Server::PreparePackets()
 	{
 		CItemObject* item = m_ItemObject[i];
 		ItemInfoPacket& itemInfo = itemBundle.itemInfos[i];
-		ConvertFloat3toInt16(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
+		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
 		itemInfo.active = item->IsActive();
 	}
 	itemBundlePacket_q.push(itemBundle);

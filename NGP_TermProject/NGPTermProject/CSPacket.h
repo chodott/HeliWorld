@@ -52,9 +52,9 @@ struct PlayerKeyPacket {
 };
 
 struct ItemInfoPacket {
-	int16_t positionX;
-	int16_t positionY;
-	int16_t positionZ;
+	int32_t positionX;
+	int32_t positionY;
+	int32_t positionZ;
 	bool active;
 };
 
@@ -67,9 +67,9 @@ struct ItemInfoBundlePacket
 struct MissileInfoPacket {
 
 	bool active;
-	int16_t positionX;  
-	int16_t positionY; 
-	int16_t positionZ; 
+	int32_t positionX;  
+	int32_t positionY; 
+	int32_t positionZ; 
 };
 
 struct MissileInfoBundlePacket
