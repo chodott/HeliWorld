@@ -1,331 +1,58 @@
-# Intro
-원래 싱글플레이어 게임을 목적으로 만든 게임에 소켓 프로그래밍을 붙이는 프로젝트
-프로젝트 기간 동안 클라이언트가 지속해서 업데이트 되고 프로젝트 기간도 짧은 상황이었기 때문에, 기존 설계를 뜯어 고치는 것보다는 네트워크 관련 정보를 담고 있는 클래스를 만들어 기존의 플레이어에게 포함 시키는 것이 더 낫다고 판단
-- 인원: 3인
-- 기간: 2022.11.11 - 2022.12.13 (약 1개월)
-- 사용한 툴 or 라이브러리: Visual Studio, WSA(Windows Sockets API)
+# 🚁 Heliworld - Multiplayer Synchronization
 
-# Table of Contents
-[1. Pipeline](#pipeline) <br />
-[2. Classes](#classes) <br />
-[3. Server Functions](#server-side-functions) <br />
-[4. Client Functions](#client-side-functions) <br />
+## 📡 네트워크 구조
 
-# Pipeline
+- **통신 방식:** TCP 소켓 통신 기반
+- **주기:** 서버는 20ms마다 상태 패킷 전송 (≈60Hz), 클라이언트는 키 입력 변경 시 + 33ms 주기로 입력 전송
 
+## 🔁 동기화 방식
 
-# Classes
-### 서버
-- Singleton 패턴
-- 게임 오브젝트 관리
-- 다음 업데이트 함수 호출 시 제거해야 할 오브젝트들의 배열
+### 1. 위치 및 회전
+- 서버는 authoritative 방식으로 각 클라이언트의 키 입력 정보를 받아 플레이어의 위치를 계산합니다.
+- 클라이언트는 입력 기반으로 예측 이동을 수행한 뒤, 서버로부터 받은 값과 보간하여 렌더링합니다.
+- 회전은 클라이언트 입력을 그대로 반영하여, 자연스러운 조작감을 유지했습니다.
 
-### 클라이언트
-- 서버와 데이터 통신을 위한 클래스
-- 게임 내의 모든 오브젝트들의 정보를 담을 배열
+### 2. 지연 보간
+- 클라이언트는 RTT(Round Trip Time) 평균을 기반으로 서버의 과거 상태를 추정합니다.
+- 보간 시점 계산:  
+  `서버 추정 시각 = 클라이언트 타임스탬프 + 서버-클라이언트 평균 오프셋 - delay`
+- delay는 평균 RTT의 절반에 여윳값(80ms)를 더해 계산하며, 네트워크 지연 시에도 안정적인 보간을 수행합니다.
 
+### 3. 클라이언트 예측
+- 이동, 회전 입력은 즉시 반영하여 조작감을 유지합니다.
 
+### 4. 입력 재적용
+- 클라이언트는 프레임별 입력과 결과값을 저장합니다.
+- 서버 결과와 클라이언트 예측값 사이에 일정 오차 이상 발생 시, 서버 위치로 리셋하고 입력을 순서대로 재적용합니다.
 
-<details><summary>패킷 설계</summary>
-	
-```C++
-#pragma pack(1)
-struct PlayerInfoPacket
-{
-	char packetType;
-	int playerNumber = -1;
-	int playerHP;
-	XMFLOAT3 position;
-	XMFLOAT3 rotation;
-	bool playerActive;
-};
+## 🚀 미사일 동기화
 
-struct PlayerKeyPacket
-{
-	unsigned char playerKeyInput;
-	FPoint deltaMouse;
-};
+### 1. 클라이언트 예측
+- 미사일 발사 입력 시 클라이언트에서 임의로 미사일을 발사하여 위치를 예측합니다.
+- 발사한 미사일 번호를 입력 정보에 포함시켜 전송하며, 서버는 이를 기반으로 위치를 계산할 수 있도록 합니다. 
 
-...
+## 📦 기술 스택
 
-#pragma pack()
-```
-- pragma pack매크로를 사용하여 패킷 구조체의 정보들 사이에 패딩이 생기지 않도록 하였음
-- 플레이어 키와 마우스의 움직임을 담은 패킷을 교환하여 각 플레이어의 움직임과 회전이 되도록 시도하였음
-> **이슈 - 지속적인 오차의 발생**
-마우스의 움직임과 키 입력만 가지고 각 플레이어들의 위치와 회전값을 계속해서 갱신할 경우 오차가 쌓여 1분도 안되는 시간에 실제와 반대 방향을 보는 것처럼 되는 현상이 발생했음
+- TCP 소켓 통신 (멀티스레딩, concurrency-safe 큐 활용)
+- C++
+- DirectX 12
 
-</details>
+## 🧪 테스트 환경
 
-# Server Side Functions
+- 본 프로젝트의 네트워크 동기화 시스템은 실제 지연 환경을 고려하여 설계되었습니다.
+- [**Clumsy**](https://jagt.github.io/clumsy/)를 사용해 인위적인 네트워크 지연을 적용한 상태에서 시스템을 검증하였습니다.
+- 테스트 조건 예시:
+  - 지연 (Latency): 50ms ~ 100ms
+- 해당 환경에서 각 플레이어와 미사일의 위치 및 회전 동기화가 잘 이루어지고 있음을 확인하였습니다.
 
-<details><summary>각 클라이언트로 데이터 전송</summary>
+## 🛠️ 개선 사항 / 회고
 
-```C++
-void Server::SendAllClient()
-{
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)		// client number
-	{
-		if (!clients[i]->IsConnected())
-		{
-			continue;
-		}
+- [ ] **플레이어 위치 오차 개선**  
+  현재 네트워크 지연이 심해질 수록 위치 오차가 점차 누적되어 스냅 + 입력 재적용이 자주 발생 = 끊김 현상
 
-		PlayerInfoPacket scInfo;
+- [ ] **미사일 위치 오차 개선**      
+  위 플레이어 위치 오차로 인해 미사일 발사 위치가 달라, 로컬 플레이어의 미사일이 흔들려 보이는 문제 발생
 
-		Client* client = clients[i];
-		CPlayer* player = client->m_player;
-		int playerNumber = client->GetPlayerNumber();
+  ->클라이언트 발사 시점의 위치를 서버에서 수신해 사용하는 방식 도입 검토 중
 
-		XMFLOAT3 position{ player->m_fxPos, player->m_fyPos, player->m_fzPos };
-
-		// PlayerInfo packet
-		scInfo.packetType = SC_PlayerInfo;
-		scInfo.playerNumber = playerNumber;
-		scInfo.playerHP = player->m_nHp;
-		scInfo.position = position;
-		scInfo.rotation = XMFLOAT3(player->m_fPitch, player->m_fYaw, player->m_fRoll);
-
-		if ((scInfo.playerActive = !client->ShouldDisconnected()) == false)
-		{
-			client->Disconnect();			// disconnect
-		}
-
-		// let each client know the other clients information
-		for (const auto& client : clients)
-		{
-			if (!client->IsConnected())
-			{
-				continue;
-			}
-			send(client->sock, (char*)&scInfo, sizeof(PlayerInfoPacket), 0);
-
-			// sending MissileInfo packet
-			for (int i = 0; i < player->maxMissileNum; ++i)
-			{
-				CMissileObject* missile = player->m_pMissiles[i];
-				if (!missile->IsActive())
-				{
-					continue;
-				}
-
-				MissileInfoPacket scMissile;
-				scMissile.packetType = SC_MissileInfo;
-				scMissile.playerNumber = playerNumber;
-				scMissile.missileNumber = i;
-				if (missile->shouldDeactivated)
-				{
-					trashCan.push(missile);
-					scMissile.active = false;
-				}
-				else
-				{
-					scMissile.active = true;
-				}
-
-				scMissile.position = XMFLOAT3(missile->m_fxPos, missile->m_fyPos, missile->m_fzPos);
-				scMissile.rotation = XMFLOAT3(missile->m_fPitch, missile->m_fYaw, missile->m_fRoll);
-				send(client->sock, (char*)&scMissile, sizeof(MissileInfoPacket), 0);
-			}
-
-			// sending ItemInfo packet
-			for (int i = 0; i < MAX_ITEM_NUM; ++i)
-			{
-				CItemObject* item = m_ItemObject[i];
-				if (!item->IsActive())
-				{
-					continue;
-				}
-
-				ItemInfoPacket scItem;
-				scItem.packetType = SC_ItemInfo;
-				if (item->shouldDeactivated)
-				{
-					trashCan.push(item);
-					scItem.active = false;
-				}
-				else
-				{
-					scItem.active = true;
-				}
-				scItem.itemNum = i;
-				scItem.position = item->GetCurPos();
-				send(client->sock, (char*)&scItem, sizeof(ItemInfoPacket), 0);
-			}
-		}
-	}
-}
-
-```
-> 모든 클라이언트들에게 각 플레이어를 포함한 미사일, 아이템들의 정보를 패킷화하여 보내는 함수
-</details>
-
-
-<details><summary>클라이언트의 정보 수신</summary>
-
-```C++
-DWORD WINAPI ReceiveFromClient(LPVOID arg)
-{
-	Client* client = (Client*)arg;
-
-	int playerNumber = client->GetPlayerNumber();
-	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
-
-	CPlayer* p = client->m_player;
-	p->SetActive(true);
-	p->SetPosition(p->initialPos[playerNumber].x, p->initialPos[playerNumber].y, p->initialPos[playerNumber].z);
-	p->m_fPitch = p->initialRot[playerNumber].x; p->m_fYaw = p->initialRot[playerNumber].y; p->m_fRoll = p->initialRot[playerNumber].z;
-
-	client->Connected();
-	++g_server->connectedClients;
-
-	PlayerKeyPacket keyPacket;
-	while (true)
-	{
-		WaitForSingleObject(g_server->updateDone, INFINITE);
-		// check the client is still connected
-		if (recv(client->sock, (char*)&keyPacket, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
-		{
-			// cut the connection
-			client->Reset();
-			--g_server->connectedClients;
-			break;
-		}
-		CPlayer* player = client->m_player;
-		player->playerKey = keyPacket.playerKeyInput;
-
-		player->m_deltaX = keyPacket.deltaMouse.x;
-		player->m_deltaY = keyPacket.deltaMouse.y;
-	}
-
-	return 0;
-}
-```
-> 스레드 함수로서 동작하며, 플레이어 연결 시 위치 등의 정보를 초기화 하고 매 업데이트 루프마다 할당된 클라이언트의 입력 정보를 받아옴
-</details>
-
-<details><summary>동기화</summary>
-
-```C++
-void Server::Update()
-{
-	ResetEvent(updateDone);
-
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
-	{
-		// is client dead?
-		if (clients[i]->IsConnected() && !clients[i]->m_player->IsActive())
-		{
-			clients[i]->deadTime += elapsedTime;
-			// respawn logic
-			if (clients[i]->deadTime > RESPAWN_TIME)
-			{
-				clients[i]->m_player->SetActive(true);
-				clients[i]->deadTime = 0.f;
-			}
-		}
-		else
-		{
-			// if not dead, call update
-			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
-		}
-	}
-
-	SetEvent(updateDone);
-
-	CheckCollision();
-	SendAllClient();
-	
-	...
-}
-```
-> 플레이어들의 정보가 업데이트 되는 동안에 각 클라이언트로 정보가 송신되면 서로 엇갈린 정보를 받을 수도 있다고 판단하여 업데이트 되는 동안에는 updateDone 이벤트를 통해 다른 함수들과 동기화 시킴
-</details>
-
-
-# Client Side Functions
-<details><summary>서버로부터 데이터 수신</summary>
-
-```C++
-DWORD WINAPI ReceiveFromServer(LPVOID arg)
-{
-	Client* client = (Client*)arg;
-	SOCKET* sock = client->GetClientsock();
-
-	const int bufSize = 512;
-	char buf[bufSize]{};
-	while (true)
-	{
-		const int frameTime = 17;		// 1000ms / 60frame	+ 1
-		WaitForSingleObject(client->FrameAdvanced, (DWORD)frameTime);
-
-		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
-
-		int restBufSize = bufSize;
-		int bufOffset = 0;
-
-		// process remain packet
-		if (client->remainSize > 0)
-		{
-			memcpy(&client->remain[client->remainOffset], buf, client->remainSize);
-			restBufSize -= client->remainSize;
-			PacketProcessHelper(client->remain[0], client->remain, client);
-			bufOffset += client->remainSize;
-
-			// reset remain
-			memset(client->remain, 0, 512);
-			client->remainOffset = 0;
-			client->remainSize = 0;
-		}
-
-		while (restBufSize > 0)
-		{
-			char packetType = buf[bufOffset];
-			int packetSize = PacketSizeHelper(packetType);
-
-			// save remain packet
-			if (restBufSize < packetSize)
-			{
-				client->remainOffset = restBufSize;
-				client->remainSize = packetSize - client->remainOffset;
-				memcpy(&client->remain, buf + bufOffset, restBufSize);
-				restBufSize -= client->remainSize;
-				break;
-			}
-
-			// Packet process
-			PacketProcessHelper(packetType, buf + bufOffset, client);
-			restBufSize -= packetSize;
-			bufOffset += packetSize;
-		}
-	}
-}
-```
-> 서버로부터 다른 개체들의 정보를 수신함
-매 프레임 업데이트를 위해 FrameAdvanced 이벤트가 설정될 때까지 기다림
-또한, 패킷이 분할 되어 넘치거나 부족할 경우  재조립 하는 작업이 포함되어 있음
-</details>
-
-<details><summary>서버로부터 데이터 수신</summary>
-
-```C++
-void CGameFramework::FrameAdvance()
-{
-	ResetEvent(client->FrameAdvanced);
-	m_GameTimer.Tick(0.0f);
-
-	ProcessInput();
-
-	AnimateObjects();
-	client->SendtoServer();
-
-	SetEvent(client->FrameAdvanced);
-
-	...
-}
-```
-> Event(SetEvent / ResetEvent)를 사용해서 동기화
-매 프레임 시에 호출되는 함수에서 서버에서 받은 정보를 통해 AnimateObjects, 서버로 보낼 정보를 SendtoServer 함수로 보냄
-</details>
-
-
+## 🎥 시연 영상

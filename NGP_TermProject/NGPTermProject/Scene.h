@@ -9,6 +9,8 @@
 #include"MissileObjectShader.h"
 #include"MultiSpriteObjectsShader.h"
 #include "HealObjectShader.h"
+#include "DebugDrawManager.h"
+
 
 #define MAX_LIGHTS			16 
 
@@ -70,7 +72,7 @@ public:
 
 	bool ProcessInput(UCHAR* pKeysBuffer);
 	void AnimateObjects(float fTimeElapsed);
-	void AnimateObjects(float fTimeElapsed, PlayerInfoPacket* PlayerInfoPacket);
+	void AnimateObjects(float fTimeElapsed, PlayerInfoPacket& PlayerInfoPacket);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
 	void ReleaseUploadBuffers();

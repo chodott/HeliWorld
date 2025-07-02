@@ -182,7 +182,7 @@ void CMissileObjectsShader::AnimateObjects(float fTimeElapsed)
 			//m_pExplosionParticleShader->Initialize((*iter)->GetPosition());
 
 			// 총알 삭제
-			m_ppObjects[i]->SetActive(false);
+			//m_ppObjects[i]->SetActive(false);
 			//	cout << "플레이어 총알 거리벗어남 삭제" << endl;
 		}
 		else

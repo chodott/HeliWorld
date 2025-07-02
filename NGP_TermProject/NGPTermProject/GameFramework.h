@@ -33,9 +33,11 @@ public:
     void BuildObjects();
     void ReleaseObjects();
 
-    void ProcessInput();
+    void ProcessInput(float fTimeElapsed);
     void AnimateObjects();
+	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();
+	void Resimulate();
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();
@@ -87,6 +89,7 @@ private:
 
 	CScene						*m_pScene = NULL;
 	CPlayer						*m_pPlayer = NULL;
+	CPlayer						*m_pWirePlayer = NULL;
 	CCamera						*m_pCamera = NULL;
 
 	POINT						m_ptOldCursorPos;
@@ -94,5 +97,7 @@ private:
 	_TCHAR						m_pszFrameRate[70];
 
 	Client* client;
+	NetworkSyncManager* networkSyncManager;
+	FrameDataManager* frameDataManager;
 };
 

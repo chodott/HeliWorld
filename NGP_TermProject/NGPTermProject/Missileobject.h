@@ -8,9 +8,6 @@ public:
 	CMissleObject();
 	virtual ~CMissleObject();
 
-	//virtual void Move(XMFLOAT3& vDirection, float fSpeed);
-	//void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
-
 	virtual void AnimateObject(float fElapsedTime);
 
 	virtual void OnPrepareRender();
@@ -18,8 +15,8 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket);
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* MissilePacket);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value);
+	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket);
 
 
 	void SetID(int id) { m_ID = id; }
@@ -30,9 +27,19 @@ public:
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
+	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
+	inline void SetRealPosition(const XMFLOAT3& xmf3Position) { m_xmf3RealPosition = xmf3Position; }
+	XMFLOAT3 GetRealPosition() { return m_xmf3RealPosition; }
+
+	bool bActiveInServer = false;
+	bool bLocalMissile = false;
+
 private:
+	XMFLOAT3					m_xmf3RealPosition;
+	XMFLOAT3					m_xmf3ServerPosition;
+
+	const int movingSpeed = 500.f;
 	bool m_Collision = false;
 	int m_ID;
 	float m_PressTime = 0;
-	//bool b_Active = false;
 };

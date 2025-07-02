@@ -4,6 +4,7 @@
 #include "SCPacket.h"
 #include "GameObject.h"
 
+#include <concurrent_queue.h>
 #include <array>
 #include <chrono>
 #include <queue>
@@ -22,6 +23,8 @@
 #define MIN_BOUNDARY_Y		300
 #define MAX_BOUNDARY_Z		1000
 #define MIN_BOUNDARY_Z		0
+
+#define MAP_SCALE 32.767
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
@@ -50,12 +53,18 @@ public:
 
 	void OpenListenSocket();
 
-	void SendAllClient();
+	//void SendAllClient();
+	void SendPacketAllClient(char* packet, int size, int flag);
+
+	PlayerKeyPacket keyPackets[4];
 
 	// 클라 충돌 및 움직임 송수신
 	void Update();
 	void CheckCollision();
 	void SpawnItem();
+	void PreparePackets();
+
+	uint64_t GetTimestampMs();
 
 	SOCKET* GetSocket() { return &listenSock; }
 
@@ -71,8 +80,20 @@ public:
 
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
+
+
+	//Packet Queue
+	concurrency::concurrent_queue<PlayerInfoBundlePacket> playerBundlePacket_q;
+	concurrency::concurrent_queue<ItemInfoBundlePacket> itemBundlePacket_q;
+	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
+
+	//Fixed Frametime
+	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
+
+
 private:
 	SOCKET listenSock;
+
 };
 
 
@@ -95,6 +116,17 @@ public:
 
 	CPlayer* m_player = nullptr;
 
+
+	//Check RTT
+	char remainBuffer[512]{};
+	int receivedBytes = 0;
+	int remainSize = 0;
+	
+	//Latency
+	PlayerKeyPacket prevKeyPacket;
+
+	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
+	
 	float deadTime = 0.f;
 private:
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
@@ -102,4 +134,7 @@ private:
 	bool m_connected = false;
 	bool shouldDisconnected = false;
 };
+
+
+DWORD WINAPI SendAllClient(LPVOID arg);
 
