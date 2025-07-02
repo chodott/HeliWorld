@@ -313,3 +313,34 @@ namespace Plane
 		return(xmf4Result);
 	}
 }
+
+inline void ConvertFloat3toInt32(XMFLOAT3& position, int32_t& x, int32_t& y, int32_t& z, float scale)
+{
+	x = static_cast<int32_t>(position.x * scale);
+	y = static_cast<int32_t>(position.y * scale);
+	z = static_cast<int32_t>(position.z * scale);
+}
+
+inline XMFLOAT3 ConvertInt32tofloat3( int32_t& x, int32_t& y, int32_t& z, float scale)
+{
+	XMFLOAT3 position;
+	position.x = static_cast<float>(x / scale);
+	position.y = static_cast<float>(y / scale);
+	position.z = static_cast<float>(z / scale);
+	return position;
+}
+
+inline XMFLOAT3 LerpFloat3(const XMFLOAT3& from, const XMFLOAT3& to, float lerpAlpha)
+{
+	lerpAlpha = (lerpAlpha < 0.0f) ? 0.0f : lerpAlpha;
+	lerpAlpha = (lerpAlpha > 1.0f) ? 1.0f : lerpAlpha;
+
+	XMVECTOR fromVector = XMLoadFloat3(&from);
+	XMVECTOR toVector = XMLoadFloat3(&to);
+	XMVECTOR resultVector = XMVectorLerp(fromVector, toVector, lerpAlpha);
+	
+	XMFLOAT3 result;
+	XMStoreFloat3(&result, resultVector);
+
+	return result;
+}

@@ -154,6 +154,7 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader12.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="FrameDataManager.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="HealObjectShader.h" />
     <ClInclude Include="ItemObject.h" />
@@ -181,6 +182,9 @@
     <ClCompile Include="CMultiSpriteObject.cpp" />
     <ClCompile Include="DDSTextureLoader12.cpp" />
     <ClCompile Include="error.cpp" />
+    <ClCompile Include="FrameDataManager.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="GameFramework.cpp" />
     <ClCompile Include="HealObjectShader.cpp" />
     <ClCompile Include="ItemObject.cpp" />

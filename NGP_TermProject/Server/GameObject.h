@@ -2,6 +2,7 @@
 #pragma warning(disable : 26495)
 
 #include "stdafx.h"
+#include "SCPacket.h"
 
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
@@ -46,7 +47,8 @@ public:
 	void ShouldDeactive() { shouldDeactivated = true; }
 	void Deactivate() { m_bActive = false; shouldDeactivated = false; }
 
-	XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
+	inline XMFLOAT3 GetCurPos() { return XMFLOAT3(m_fxPos, m_fyPos, m_fzPos); }
+	inline XMFLOAT3 GetCurRot() { return XMFLOAT3(m_fPitch, m_fYaw, m_fRoll); }
 
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
@@ -79,21 +81,21 @@ public:
 
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
-	void LaunchMissile();
+	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+	void LaunchMissile(int16_t missileNum, float fLatency);
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime, int connectedClients);
 	void Reset(int playerNum);
+	void CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency);
 
-	const float movingSpeed = 1000.f;
 
-	float m_deltaX = 0.f;
-	float m_deltaY = 0.f;
+	const float movingSpeed = 100.f;
 
-	unsigned char playerKey = 0;
+	PlayerKeyPacket keyPacket;
 
-	XMFLOAT3 initialPos[4]{ {100,400,500},{500,400,100},{900,400,500},{500,400,900} };
+	XMFLOAT3 initialPos[4]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
 
-	XMFLOAT3 initialRot[4]{ {0,90,0},{0,0,0},{0,-90,0},{0,180,0} };
+	XMFLOAT3 initialRot[4]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 
 private:
 	// Key bindings
@@ -106,8 +108,8 @@ private:
 	unsigned char option6 = 0x40;	// 0100 0000
 	unsigned char option7 = 0x80;	// 1000 0000
 
-	const float maxPitch = 89.f;
-	const float maxRoll = 20.f;
+	const float maxPitch = 89.0f;
+	const float maxRoll = 20.0f;
 	const float missileLifeSpan = 6.f;
 
 };
@@ -117,10 +119,11 @@ class CMissileObject : public GameObject
 public:
 	int m_playerNumber = 0;
 	int damage = 10;
-	const float movingSpeed = 800.f;
+	const float movingSpeed = 500.f;
+	bool bMustKill = false;
 
 	float m_fLifeSpan = 6.f;
-
+	
 	void Move(float elapsedTime);
 	void Reset();
 };

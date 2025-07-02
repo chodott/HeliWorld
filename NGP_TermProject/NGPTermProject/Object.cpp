@@ -484,11 +484,52 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
     if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->AddRef();
 }
 
+XMFLOAT3 CGameObject::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t)
+{
+    auto LerpAngle = [](float a, float b, float t) -> float
+    {
+        // b - a의 차이를 -180 ~ 180도로 만들어서 가장 짧은 방향으로 회전
+        float delta = fmodf(b - a + 540.0f, 360.0f) - 180.0f;
+        return a + delta * t;
+    };
+
+    XMFLOAT3 result;
+    result.x = LerpAngle(prevRotation.x, nextRotation.x, t); // Pitch
+    result.y = LerpAngle(prevRotation.y, nextRotation.y, t); // Yaw
+    result.z = LerpAngle(prevRotation.z, nextRotation.z, t); // Roll
+    return result;
+}
+
+
+void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
+{
+    if (value > 3.0f)
+    {
+        RotatePYR(GetRotation());
+    }
+
+    else
+    {
+        XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value);
+        RotatePYR(curRotation);
+
+        XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
+        XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
+
+        XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
+
+        XMFLOAT3 resultPosition;
+        XMStoreFloat3(&resultPosition, curPosition);
+        SetPosition(resultPosition);
+    }
+}
+
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)
 {
     //SetShifts(PlayerPacket->movement, PlayerPacket->rotation);
     //Move(PlayerPacket->movement);
     SetActive(PlayerPacket->playerActive);
+    if (b_Active == false) return;
     RotatePYR(PlayerPacket->rotation);
     SetPosition(PlayerPacket->position);
     //SetRotation(PlayerPacket->rotationMatrix);
@@ -625,7 +666,6 @@ void CGameObject::SetPosition(XMFLOAT3 xmf3Position)
 void CGameObject::SetRotation(XMFLOAT3X3 xmf3Rotation)
 {
     m_xmf4x4Transform._11 = xmf3Rotation._11, m_xmf4x4Transform._12 = xmf3Rotation._12, m_xmf4x4Transform._13 = xmf3Rotation._13;
-    //cout << m_xmf4x4Transform._11 << " " << m_xmf4x4Transform._12 << " " << m_xmf4x4Transform._13<<endl;
     m_xmf4x4Transform._21 = xmf3Rotation._21, m_xmf4x4Transform._22 = xmf3Rotation._22, m_xmf4x4Transform._23 = xmf3Rotation._23;
     m_xmf4x4Transform._31 = xmf3Rotation._31, m_xmf4x4Transform._32 = xmf3Rotation._32, m_xmf4x4Transform._33 = xmf3Rotation._33;
 
@@ -725,20 +765,21 @@ void CGameObject::MoveForward(float fDistance)
     CGameObject::SetPosition(xmf3Position);
 }
 
-void CGameObject::Move(ULONG nDirection, float fDistance, bool bVelocity)
-{
-    /*if (dwDirection)
-    {
-       XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
-       if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
-       if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
-       if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
-       if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
-       if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
-       if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
-       Move(xmf3Shift, bUpdateVelocity);
-    }*/
+void CGameObject::Move(ULONG dwDirection, float fDistance, bool bVelocity)
+{
+    if (dwDirection)
+    {
+        XMFLOAT3 xmf3Shift = XMFLOAT3(0, 0, 0);
+        if (dwDirection & DIR_FORWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, fDistance);
+        if (dwDirection & DIR_BACKWARD) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -fDistance);
+        if (dwDirection & DIR_RIGHT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, fDistance);
+        if (dwDirection & DIR_LEFT) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -fDistance);
+        if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
+        if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
+
+        Move(xmf3Shift, bVelocity);
+    }
 }
 
 void CGameObject::Move(const XMFLOAT3& xmf3Shift, bool bVelocity)

@@ -162,6 +162,9 @@
     <ClInclude Include="CMeshIlluminated.h">
       <Filter>Mesh</Filter>
     </ClInclude>
+    <ClInclude Include="FrameDataManager.h">
+      <Filter>Client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">
@@ -232,6 +235,9 @@
     </ClCompile>
     <ClCompile Include="CMeshIlluminated.cpp">
       <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="FrameDataManager.cpp">
+      <Filter>Client</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
