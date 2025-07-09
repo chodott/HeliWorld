@@ -53,8 +53,7 @@ public:
 
 	void OpenListenSocket();
 
-	//void SendAllClient();
-	void SendPacketAllClient(char* packet, int size, int flag);
+	void SendPacketAllClient();
 
 	PlayerKeyPacket keyPackets[4];
 
@@ -81,19 +80,27 @@ public:
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
 
-
-	//Packet Queue
-	concurrency::concurrent_queue<PlayerInfoBundlePacket> playerBundlePacket_q;
-	concurrency::concurrent_queue<ItemInfoBundlePacket> itemBundlePacket_q;
-	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
+	template <typename T>
+	inline void PushPacket(const T& packet){GetQueue<T>().push(packet);}
+	template <typename T>
+	inline bool TryPopPacket(T& outPacket){return GetQueue<T>().try_pop(outPacket);}
+	template<typename T>
+	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
 	//Fixed Frametime
 	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
 
 
 private:
-	SOCKET listenSock;
+	template <typename T>
+	static concurrency::concurrent_queue<T>& GetQueue()
+	{
+		static concurrency::concurrent_queue<T> queue;
+		return queue;
+	}
 
+	SOCKET listenSock;
+	
 };
 
 

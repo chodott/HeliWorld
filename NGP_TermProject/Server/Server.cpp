@@ -237,14 +237,13 @@ void Server::PreparePackets()
 	PlayerInfoBundlePacket playerBundle;
 	MissileInfoBundlePacket missileBundle;
 	ItemInfoBundlePacket itemBundle;
-	playerBundle.packetType = SC_PlayerInfo;
-	missileBundle.packetType = SC_MissileInfo;
-	itemBundle.packetType = SC_ItemInfo;
+
 	for (int clientNum =0; clientNum < MAX_CLIENT_NUM;++clientNum)
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
 		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive()};
+
 		for (int i =0; i < player->maxMissileNum; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
@@ -254,8 +253,7 @@ void Server::PreparePackets()
 		}
 	}
 	playerBundle.timestamp = GetTimestampMs();
-	playerBundlePacket_q.push(playerBundle);
-	missileBundlePacket_q.push(missileBundle);
+
 
 	for (int i=0;i<MAX_ITEM_NUM;++i)
 	{
@@ -264,7 +262,10 @@ void Server::PreparePackets()
 		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
 		itemInfo.active = item->IsActive();
 	}
-	itemBundlePacket_q.push(itemBundle);
+
+	PushPacket(playerBundle);
+	PushPacket(missileBundle);
+	PushPacket(itemBundle);
 }
 
 uint64_t Server::GetTimestampMs()
@@ -275,16 +276,27 @@ uint64_t Server::GetTimestampMs()
 }
 
 
-void Server::SendPacketAllClient(char* packet, int size, int flag)
+void Server::SendPacketAllClient()
 {
-	// send client[i] info to all clients
+	static PlayerInfoBundlePacket playerInfoBundle;
+	static MissileInfoBundlePacket missileInfoBundle;
+	static ItemInfoBundlePacket itemInfoBundle;
+
+	TryPopPacket(playerInfoBundle);
+	TryPopPacket(missileInfoBundle);
+	TryPopPacket(itemInfoBundle);
+
 	for (const auto& client : clients)
 	{
 		if (!client->IsConnected())
 		{
 			continue;
 		}
-		send(client->sock, packet, size, flag);
+
+		SOCKET& recvSock = client->sock;
+		SendPacket(recvSock, playerInfoBundle);
+		SendPacket(recvSock, missileInfoBundle);
+		SendPacket(recvSock, itemInfoBundle);
 	}
 }
 
@@ -418,29 +430,9 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
-	static PlayerInfoBundlePacket scInfoBundle;
-	static MissileInfoBundlePacket msInfoBundle;
-	static ItemInfoBundlePacket ItemInfoBundle;
 	while (1)
 	{
-		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
-		}
-
-
-		if (g_server->missileBundlePacket_q.try_pop(msInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&msInfoBundle, sizeof(MissileInfoBundlePacket), 0);
-
-		}
-
-		//sending ItemInfo Packet
-		if (g_server->itemBundlePacket_q.try_pop(ItemInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&ItemInfoBundle, sizeof(ItemInfoBundlePacket), 0);
-
-		}
+		g_server->SendPacketAllClient();
 	}
 }
 

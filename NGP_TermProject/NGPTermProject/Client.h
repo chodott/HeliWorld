@@ -70,7 +70,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"127.0.0.1";
+	const char* serverIp = (char*)"192.168.0.8";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

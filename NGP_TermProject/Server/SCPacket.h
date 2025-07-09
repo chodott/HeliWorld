@@ -17,7 +17,7 @@ struct FPoint {
 #pragma pack(1)
 struct PingpongPacket
 {
-	char packetType;
+	char packetType = CS_PingpongInfo;
 	uint64_t clientTimeStamp;
 	uint64_t serverSendTimeStamp;
 };
@@ -32,7 +32,7 @@ struct PlayerInfoPacket {
 
 struct PlayerInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_PlayerInfo;
 	PlayerInfoPacket playerInfos[4];
 	uint64_t timestamp;
 };
@@ -56,7 +56,7 @@ struct ItemInfoPacket {
 
 struct ItemInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_ItemInfo;
 	ItemInfoPacket itemInfos[10];
 };
 
@@ -69,7 +69,7 @@ struct MissileInfoPacket {
 
 struct MissileInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_MissileInfo;
 	MissileInfoPacket missileInfos[32];
 };
 
