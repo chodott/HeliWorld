@@ -20,6 +20,16 @@ uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
 	return GetEstimatedServerTimeMs() - delay;
 }
 
+float CalculateAvg(deque<float>& target_dq)
+{
+	while (target_dq.size() > MAX_SYNC_SAMPLE_SIZE)
+	{
+		target_dq.pop_front();
+	}
+	return std::accumulate(target_dq.begin(), target_dq.end(), 0.f) / target_dq.size();
+
+}
+
 void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, const uint64_t serverSendTimestamp)
 {
 	uint64_t rtt = GetTimestampMs() - clientSendTimestamp;
@@ -27,18 +37,8 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, cons
 	scOffset_dq.push_back(offset);
 	rtt_dq.push_back(rtt);
 
-	//Calculate Offset Avg
-	while (scOffset_dq.size() > 10)
-	{
-		scOffset_dq.pop_front();
-	}
-	offsetAvg = std::accumulate(scOffset_dq.begin(), scOffset_dq.end(), 0.f) / scOffset_dq.size();
+	offsetAvg = CalculateAvg(scOffset_dq);
+	rttAvg = CalculateAvg(rtt_dq);
 
-	//Calculate Rtt Avg
-	while (rtt_dq.size() > 10)
-	{
-		rtt_dq.pop_front();
-	}
-	rttAvg = std::accumulate(rtt_dq.begin(), rtt_dq.end(),0.f) / rtt_dq.size();
 	delay = (int)(rttAvg * 0.5f) + DEFAULT_DELAY_MS;
 }
