@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -136,7 +136,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -153,7 +153,11 @@
     <ClInclude Include="CSPacket.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DDSTextureLoader12.h" />
+    <ClInclude Include="DebugboxObject.h" />
+    <ClInclude Include="DebugboxShader.h" />
+    <ClInclude Include="DebugDrawManager.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="FrameData.h" />
     <ClInclude Include="FrameDataManager.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="HealObjectShader.h" />
@@ -162,6 +166,7 @@
     <ClInclude Include="Missileobject.h" />
     <ClInclude Include="MissileObjectShader.h" />
     <ClInclude Include="MultiSpriteObjectsShader.h" />
+    <ClInclude Include="NetworkSyncManager.h" />
     <ClInclude Include="NGPTermProject.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Player.h" />
@@ -181,6 +186,9 @@
     <ClCompile Include="CMeshIlluminated.cpp" />
     <ClCompile Include="CMultiSpriteObject.cpp" />
     <ClCompile Include="DDSTextureLoader12.cpp" />
+    <ClCompile Include="DebugboxObject.cpp" />
+    <ClCompile Include="DebugboxShader.cpp" />
+    <ClCompile Include="DebugDrawManager.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="FrameDataManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
@@ -192,8 +200,11 @@
     <ClCompile Include="Missileobject.cpp" />
     <ClCompile Include="MissileObjectShader.cpp" />
     <ClCompile Include="MultiSpriteObjectsShader.cpp" />
+    <ClCompile Include="NetworkSyncManager.cpp" />
     <ClCompile Include="NGPTermProject.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PacketCombiner.cpp" />
+    <ClCompile Include="PacketCombiner.h" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />

@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include "FrameDataManager.h"
+#include "PacketCombiner.h"
 #include "error.h"
 #include "Missileobject.h"
 
@@ -64,13 +65,14 @@ public:
 
 
 	//Latency Interpolation
+	PacketCombiner* packetCombiner;
 	FrameDataManager* frameDataManager;
 	NetworkSyncManager* networkSyncMgr;
 
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"192.168.0.8";
+	const char* serverIp = (char*)"172.30.1.7";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010

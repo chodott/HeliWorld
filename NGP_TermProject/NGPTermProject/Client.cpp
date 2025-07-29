@@ -38,19 +38,19 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 	case PACKET::PlayerInfo:
 	{
 		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt);
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
+		packetCombiner->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
 		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt);
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::PingpongInfo:
@@ -76,10 +76,13 @@ Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMg
 {
 	this->networkSyncMgr = networkSyncMgr;
 	this->frameDataManager = frameDataMgr;
+	this->packetCombiner = new PacketCombiner(frameDataMgr);
+
 }
 
 Client::~Client()
 {
+	delete packetCombiner;
 	closesocket(*sock);
 	WSACleanup();
 }

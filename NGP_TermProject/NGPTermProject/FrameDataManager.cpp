@@ -4,6 +4,27 @@ auto cmpTimestamp = [](const ClientFrameData& lhs, const uint64_t& value) {
     return lhs.timestamp < value;
 };
 
+void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData, uint64_t cutTimeline)
+{
+    std::lock_guard<std::mutex> lock(mtx);
+    serverframeData_dq.emplace_back(frameData);
+
+    cutTimeline -= FRAMEDATA_DEADLINE_MS;
+
+    //if (IsPositionOutOfSync(frameData.timestamp))
+    //{
+    //    RequestResimulation(frameData.timestamp);
+    //}
+    while (!serverframeData_dq.empty() && serverframeData_dq.front().timestamp < cutTimeline)
+    {
+        serverframeData_dq.pop_front();
+    }
+    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().timestamp < cutTimeline)
+    {
+        clientFrameData_dq.pop_front();
+    }
+}
+
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime)
 {
     std::lock_guard<std::mutex> lock(mtx);
@@ -29,43 +50,6 @@ pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterato
 {
     auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpTimestamp);
     return make_pair(target, clientFrameData_dq.end());
-}
-
-template<>
-void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundlePacket& pkt, uint64_t cutTimeline)
-{
-    std::lock_guard<std::mutex> lock(mtx);
-    memcpy(currentFrameData.itemInfos, pkt.itemInfos, sizeof(ItemInfoPacket) * 10);
-    AddServerFrameData(currentFrameData);
-
-    cutTimeline -= FRAMEDATA_DEADLINE_MS;
-
-    if (IsPositionOutOfSync(currentFrameData.timestamp))
-    {
-        RequestResimulation(currentFrameData.timestamp);
-    }
-    while (!serverframeData_dq.empty() && serverframeData_dq.front().timestamp < cutTimeline)
-    {
-        serverframeData_dq.pop_front();
-    }
-
-    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().timestamp < cutTimeline)
-    {
-        clientFrameData_dq.pop_front();
-    }
-}
-
-template<>
-void FrameDataManager::CombinePacket<MissileInfoBundlePacket>(const MissileInfoBundlePacket& pkt, uint64_t cutTimeline)
-{
-    memcpy(currentFrameData.missileInfos, pkt.missileInfos, sizeof(MissileInfoPacket) * 32);
-}
-
-template<>
-void FrameDataManager::CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBundlePacket& pkt, uint64_t cutTimeline)
-{
-    memcpy(currentFrameData.playerInfos, pkt.playerInfos, sizeof(PlayerInfoPacket) * 4);
-    currentFrameData.timestamp = pkt.timestamp;
 }
 
 bool FrameDataManager::IsPositionOutOfSync(const uint64_t& timestamp)
