@@ -1,23 +1,23 @@
 #include "FrameDataManager.h"
 
-auto cmpTimestamp = [](const ClientFrameData& lhs, const uint64_t& value) {
+auto cmpClientTimestamp = [](const ClientFrameData& lhs, const uint64_t& value) {
+    return lhs.timestamp < value;
+};
+auto cmpServerTimestamp = [](const ServerFrameData& lhs, const uint64_t& value) {
     return lhs.timestamp < value;
 };
 
 void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData, uint64_t cutTimeline)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    serverframeData_dq.emplace_back(frameData);
+    serverFrameData_dq.emplace_back(frameData);
+    serverTimestamp = frameData.timestamp;
 
     cutTimeline -= FRAMEDATA_DEADLINE_MS;
 
-    //if (IsPositionOutOfSync(frameData.timestamp))
-    //{
-    //    RequestResimulation(frameData.timestamp);
-    //}
-    while (!serverframeData_dq.empty() && serverframeData_dq.front().timestamp < cutTimeline)
+    while (!serverFrameData_dq.empty() && serverFrameData_dq.front().timestamp < cutTimeline)
     {
-        serverframeData_dq.pop_front();
+        serverFrameData_dq.pop_front();
     }
     while (!clientFrameData_dq.empty() && clientFrameData_dq.front().timestamp < cutTimeline)
     {
@@ -30,11 +30,11 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
     std::lock_guard<std::mutex> lock(mtx);
     float value = 5.0f;
     bool bCanInterpolate = false;
-    for (int i = 0; i + 1 < serverframeData_dq.size(); ++i) {
-        if (serverframeData_dq[i].timestamp <= serverTime &&
-            serverframeData_dq[i + 1].timestamp >= serverTime) {
-            prevData = serverframeData_dq[i];
-            nextData = serverframeData_dq[i + 1];
+    for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
+        if (serverFrameData_dq[i].timestamp <= serverTime &&
+            serverFrameData_dq[i + 1].timestamp >= serverTime) {
+            prevData = serverFrameData_dq[i];
+            nextData = serverFrameData_dq[i + 1];
             bCanInterpolate = true;
             break;
         }
@@ -48,22 +48,28 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
 
 pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
 {
-    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpTimestamp);
+    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpClientTimestamp);
     return make_pair(target, clientFrameData_dq.end());
 }
 
-bool FrameDataManager::IsPositionOutOfSync(const uint64_t& timestamp)
+bool FrameDataManager::IsPositionOutOfSync()
 {
-    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
+    std::lock_guard<std::mutex> lock(mtx);
+    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), serverTimestamp, cmpClientTimestamp);
     if (nextFrameData == clientFrameData_dq.begin()) return false;
     if (nextFrameData == clientFrameData_dq.end()) return false;
 
     auto prevFrameData = nextFrameData - 1;
 
-    float t = (timestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
-    XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t)
-;
-    XMFLOAT3& serverPosition = currentFrameData.playerInfos[playerNum].position;
+    auto serverFrameData = lower_bound(serverFrameData_dq.begin(), serverFrameData_dq.end(), serverTimestamp, cmpServerTimestamp);
+
+    float t = (serverTimestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
+    XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
+    XMFLOAT3 serverPosition = serverFrameData->playerInfos[playerNum].position;
+    targetTimestamp = serverTimestamp;
+
+    basePosition = serverPosition;
+    baseRotation = serverFrameData->playerInfos[playerNum].rotation;
 
     float distance = 0.0f;
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + 
@@ -75,26 +81,10 @@ bool FrameDataManager::IsPositionOutOfSync(const uint64_t& timestamp)
 
     bool bOverMaxDistance = distance >= maxDistance;
 
-    position = serverPosition;
-    rotation = currentFrameData.playerInfos[0].rotation;
-
     return bOverMaxDistance;
-}
-
-void FrameDataManager::RequestResimulation(const uint64_t& timestamp)
-{
-    std::lock_guard<std::mutex>lock(resimulateLock);
-
-    bNeedResimulate = true;
-    targetTimestamp = timestamp;
 }
 
 bool FrameDataManager::CheckResimulateRequest()
 {
-    std::lock_guard<std::mutex>lock(resimulateLock);
-
-    if (!bNeedResimulate) return false;
-    bNeedResimulate = false;
-    return true;
-
+    return IsPositionOutOfSync();
 }

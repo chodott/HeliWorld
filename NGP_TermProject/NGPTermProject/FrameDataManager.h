@@ -11,7 +11,6 @@
 class FrameDataManager
 {
 public:
-    template<typename PacketType>
     inline void SetPlayerNum(int n) 
     {
         playerNum = n;
@@ -24,23 +23,21 @@ public:
 
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
     pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
-    bool IsPositionOutOfSync(const uint64_t& timestamp);
+    bool IsPositionOutOfSync();
 
-    void RequestResimulation(const uint64_t& timestamp);
     bool CheckResimulateRequest();
 
-    XMFLOAT3 position;
-    XMFLOAT3 rotation;
+    XMFLOAT3 basePosition;
+    XMFLOAT3 baseRotation;
 
 private:
     std::mutex mtx;
-    std::mutex resimulateLock;
-    std::deque<ServerFrameData> serverframeData_dq;
+    std::deque<ServerFrameData> serverFrameData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
 
     uint64_t targetTimestamp;
+    uint64_t serverTimestamp;
     int playerNum = 0;
-    bool bNeedResimulate = false;
 
 };
 
