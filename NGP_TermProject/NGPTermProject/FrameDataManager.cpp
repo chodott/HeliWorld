@@ -55,15 +55,22 @@ pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterato
 bool FrameDataManager::IsPositionOutOfSync()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), serverTimestamp, cmpClientTimestamp);
-    if (nextFrameData == clientFrameData_dq.begin()) return false;
-    if (nextFrameData == clientFrameData_dq.end()) return false;
+    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
+                                        serverTimestamp, cmpClientTimestamp);
+    if (nextFrameData == clientFrameData_dq.begin()
+        ||nextFrameData == clientFrameData_dq.end())
+        {
+            return false;
+        } 
+
 
     auto prevFrameData = nextFrameData - 1;
 
-    auto serverFrameData = lower_bound(serverFrameData_dq.begin(), serverFrameData_dq.end(), serverTimestamp, cmpServerTimestamp);
+    auto serverFrameData = lower_bound(serverFrameData_dq.begin(), serverFrameData_dq.end(), 
+                                        serverTimestamp, cmpServerTimestamp);
 
-    float t = (serverTimestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
+    float t = (serverTimestamp - prevFrameData->timestamp) 
+    / (nextFrameData->timestamp - prevFrameData->timestamp);
     XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
     XMFLOAT3 serverPosition = serverFrameData->playerInfos[playerNum].position;
     targetTimestamp = serverTimestamp;
@@ -72,12 +79,11 @@ bool FrameDataManager::IsPositionOutOfSync()
     baseRotation = serverFrameData->playerInfos[playerNum].rotation;
 
     float distance = 0.0f;
-    distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + 
-                            pow((clientPosition.y - serverPosition.y),2) + 
-                            pow((clientPosition.z - serverPosition.z),2));
+    distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
+                    + pow((clientPosition.y - serverPosition.y),2)
+                    + pow((clientPosition.z - serverPosition.z),2));
     
     float maxDistance = NetworkSyncManager::GetRttAvg() / 2 * 100.0f / 1000.0f;
-    maxDistance = 10.0f;
 
     bool bOverMaxDistance = distance >= maxDistance;
 
