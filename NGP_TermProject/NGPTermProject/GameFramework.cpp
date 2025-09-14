@@ -475,7 +475,7 @@ void CGameFramework::Resimulate()
 	auto end = range.second;
 
 	m_pPlayer->SetServerPosition(frameDataManager->basePosition);
-	m_pPlayer->SetPosition(frameDataManager->basePosition);
+	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
@@ -495,7 +495,7 @@ void CGameFramework::Resimulate()
 
 
 		//Simulation data Update
-		iter->position = m_pPlayer->GetPosition();
+		iter->position = m_pPlayer->GetPredictPosition();
 		iter->rotation = m_pPlayer->GetRotation();
 	}
 }
@@ -553,10 +553,11 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		}
 
 		//Save ClientFrameData 
+
 		m_pPlayer->Update(fTimeElapsed);
 		frameDataManager->AddClientFrameData({
-			networkSyncManager->GetEstimatedServerTimeMs(),
-			m_pPlayer->GetPosition(),
+			networkSyncManager->GetTimestampMs(),
+			m_pPlayer->GetPredictPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
 			{cxDelta, cyDelta},
@@ -658,6 +659,8 @@ void CGameFramework::FrameAdvance()
 {
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
+
+	cout << "Client Time" << networkSyncManager->GetTimestampMs() << "\n";
 
 	if (frameDataManager->CheckResimulateRequest())
 	{

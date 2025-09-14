@@ -28,6 +28,7 @@ protected:
 	XMFLOAT3					m_xmf3Up;
 	XMFLOAT3					m_xmf3Look;
 
+	XMFLOAT3					m_xmf3PredictPosition;
 	XMFLOAT3					m_xmf3ServerPosition;
 
 	float           			m_fPitch;
@@ -61,6 +62,7 @@ public:
 	XMFLOAT3 GetLookVector() { return(m_xmf3Look); }
 	XMFLOAT3 GetUpVector() { return(m_xmf3Up); }
 	XMFLOAT3 GetRightVector() { return(m_xmf3Right); }
+	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
 
 	void SetFriction(float fFriction) { m_fFriction = fFriction; }
 	void SetGravity(const XMFLOAT3& xmf3Gravity) { m_xmf3Gravity = xmf3Gravity; }
@@ -69,6 +71,7 @@ public:
 	void SetVelocity(const XMFLOAT3& xmf3Velocity) { m_xmf3Velocity = xmf3Velocity; }
 	void SetPosition(const XMFLOAT3& xmf3Position) { Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false); }
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
+	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
 	const XMFLOAT3& GetVelocity() const { return(m_xmf3Velocity); }
 	float GetYaw() const { return(m_fYaw); }
 	float GetPitch() const { return(m_fPitch); }

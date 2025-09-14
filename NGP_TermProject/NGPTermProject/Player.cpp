@@ -73,7 +73,7 @@ void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 		if (dwDirection & DIR_UP) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, fDistance);
 		if (dwDirection & DIR_DOWN) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -fDistance);
 
-		XMFLOAT3& position = GetPosition();
+		XMFLOAT3& position = GetPredictPosition();
 
 		if (position.y < MIN_BOUNDARY_Y || position.y > MAX_BOUNDARY_Y ||
 			position.z < MIN_BOUNDARY_Z || position.z > MAX_BOUNDARY_Z ||
@@ -82,7 +82,7 @@ void CPlayer::Move(DWORD dwDirection, float fTimeElapsed, bool bUpdateVelocity)
 			return;
 		}
 		Vector3::ScalarProduct(xmf3Shift, fDistance, true);
-		SetPosition(Vector3::Add(GetPosition(), xmf3Shift));
+		SetPredictPosition(Vector3::Add(GetPredictPosition(), xmf3Shift));
 	}
 }
 
@@ -240,17 +240,26 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 {
 	if (lerpAlpha > 3.0f)
 	{
-		SetPosition(GetPosition());
+		SetPosition(GetPredictPosition());
 	}
 	else
 	{
 		XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
-		XMFLOAT3& clientPosition = GetPosition();
-
-		//XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
-		SetPosition(clientPosition);
 		DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 	}
+
+	// 위치 스무딩
+	XMVECTOR curPosition = XMLoadFloat3(&GetPosition());
+	XMVECTOR targetPosition = XMLoadFloat3(&GetPredictPosition());
+	XMVECTOR delta = XMVectorSubtract(targetPosition, curPosition);
+
+	float alpha = 1.f - std::exp(-fTimeElapsed / 0.012f);
+
+	XMVECTOR step = XMVectorScale(delta, lerpAlpha);
+	XMVECTOR next = XMVectorAdd(curPosition, step);
+	XMFLOAT3 nextPosition;
+	XMStoreFloat3(&nextPosition, next);
+	SetPosition(nextPosition);
 
 	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), {1.f, 0.f, 0.f, 1.f});
 	//DebugDrawManager::Get().AddDebugCube(GetRealPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
