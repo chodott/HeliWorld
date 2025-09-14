@@ -4,7 +4,7 @@
 #include "NetworkSyncManager.h"
 #include <mutex>
 
-#define FRAMEDATA_DEADLINE_MS 5000
+#define FRAMEDATA_DEADLINE_MS 10000
 
 
 

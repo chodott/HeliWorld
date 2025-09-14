@@ -474,9 +474,8 @@ void CGameFramework::Resimulate()
 	auto begin = range.first; 
 	auto end = range.second;
 
-	//서버 위치로 초기화
 	m_pPlayer->SetServerPosition(frameDataManager->basePosition);
-	m_pPlayer->SetRealPosition(frameDataManager->basePosition);
+	m_pPlayer->SetPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
 
 	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
@@ -496,7 +495,7 @@ void CGameFramework::Resimulate()
 
 
 		//Simulation data Update
-		iter->position = m_pPlayer->GetRealPosition();
+		iter->position = m_pPlayer->GetPosition();
 		iter->rotation = m_pPlayer->GetRotation();
 	}
 }
@@ -557,7 +556,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		m_pPlayer->Update(fTimeElapsed);
 		frameDataManager->AddClientFrameData({
 			networkSyncManager->GetEstimatedServerTimeMs(),
-			m_pPlayer->GetRealPosition(),
+			m_pPlayer->GetPosition(),
 			m_pPlayer->GetRotation(),
 			client->sendKey,
 			{cxDelta, cyDelta},
@@ -590,7 +589,6 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData nextData;
 
 	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
-
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->PlayerNum)

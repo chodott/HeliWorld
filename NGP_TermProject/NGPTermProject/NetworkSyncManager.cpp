@@ -18,7 +18,7 @@ T GetDequeAvg(const deque<T>& dq)
 {
 	if(dq.empty())
 	{
-		return;
+		return 0;
 	}
 	T avg = std::accumulate(dq.begin(), dq.end(), 0.f) / dq.size();
 	return avg;
@@ -45,7 +45,7 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp,
 										const uint64_t serverSendTimestamp)
 {
 	uint64_t rtt = GetTimestampMs() - clientSendTimestamp;
-	float offset = serverSendTimestamp - (clientSendTimestamp + rtt / 2);
+	float offset = serverSendTimestamp - (clientSendTimestamp + rtt * 0.5f);
 	scOffset_dq.push_back(offset);
 	rtt_dq.push_back(rtt);
 

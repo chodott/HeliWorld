@@ -82,10 +82,12 @@ bool FrameDataManager::IsPositionOutOfSync()
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
-    
-    float maxDistance = NetworkSyncManager::GetRttAvg() / 2 * 100.0f / 1000.0f;
+
+    float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;
+    float maxDistance = 100 * interpDelaySec;
 
     bool bOverMaxDistance = distance >= maxDistance;
+    cout << distance << ", " << maxDistance << "\n";
 
     return bOverMaxDistance;
 }
