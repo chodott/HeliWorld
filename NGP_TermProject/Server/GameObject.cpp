@@ -285,11 +285,11 @@ void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const floa
 	m_xmf4x4World._43 = m_xmf3Position.z;
 
 	// Attack
-	if (nextKeyInput & option6)
-	{
-		LaunchMissile(keyPacket.launchedMissileNum);
-		keyPacket.playerKeyInput &= ~option6;
-	}
+	//if (nextKeyInput & option6)
+	//{
+	//	LaunchMissile(keyPacket.launchedMissileNum);
+	//	keyPacket.playerKeyInput &= ~option6;
+	//}
 
 }
 

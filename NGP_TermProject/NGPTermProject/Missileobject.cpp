@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Missileobject.h"
+#include "DebugDrawManager.h"
 
 
 CMissleObject::CMissleObject() :CGameObject(1, 1)
@@ -122,12 +123,16 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 				XMFLOAT3 serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
 				XMFLOAT3& clientPosition = GetRealPosition();
 				XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
-				SetPosition(renderPosition);
+				SetPosition(clientPosition);
+				DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
+
 			}
 			else
 			{
 				SetPosition(GetRealPosition());
 			}
+			DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
+
 			bActiveInServer = prevPacket.active;
 		}
 	}
