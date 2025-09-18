@@ -419,7 +419,7 @@ void CGameFramework::BuildObjects()
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
 	pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
-	switch (client->PlayerNum)
+	switch (client->GetPlayerNum())
 	{
 	case 0:
 		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 100));
@@ -439,7 +439,7 @@ void CGameFramework::BuildObjects()
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
 
-	int& playerNum = client->PlayerNum;
+	int playerNum = client->GetPlayerNum();
 
 	for (int i = playerNum * 8; i < (playerNum+1)*8; ++i)
 	{
@@ -592,7 +592,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
 	for (int i = 0; i < 4; i++)
 	{
-		if (i == client->PlayerNum)
+		if (i == client->GetPlayerNum())
 		{
 			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);

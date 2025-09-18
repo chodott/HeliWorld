@@ -15,6 +15,12 @@ struct FPoint {
 }; 
 
 #pragma pack(1)
+struct TimebasePacket
+{
+	int playerNum;
+	int serverTick;
+};
+
 struct PingpongPacket
 {
 	char packetType = CS_PingpongInfo;

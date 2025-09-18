@@ -36,7 +36,6 @@ public:
     {
         memcpy(currentFrameData.playerInfos, pkt.playerInfos, sizeof(PlayerInfoPacket) * 4);
         currentFrameData.serverTick = pkt.serverTick;
-        cout << currentFrameData.serverTick << "\n";
     }
 
 

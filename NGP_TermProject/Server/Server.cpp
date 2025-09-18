@@ -352,11 +352,12 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg)
 {
+
+	//Init Packet
 	Client* client = (Client*)arg;
-
 	int playerNumber = client->GetPlayerNumber();
-
-	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
+	TimebasePacket timebasePacket{ playerNumber, g_serverTick };
+	send(client->sock, (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	CPlayer* p = client->m_player;
 	p->SetActive(true);

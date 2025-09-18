@@ -196,7 +196,7 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 {
-	int num = client->PlayerNum;
+	int num = client->GetPlayerNum();
 	for (int i = 0; i < 8; ++i)
 	{
 		CMissleObject* missile = static_cast<CMissleObject*>(missiles[i + num * 8]);

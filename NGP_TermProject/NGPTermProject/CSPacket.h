@@ -18,6 +18,12 @@ struct FPoint {
 
 
 #pragma pack(1)
+struct InitDataPacket
+{
+	int playerNum;
+	int serverTick;
+};
+
 struct PingpongPacket
 {
 	char packetType;

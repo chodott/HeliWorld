@@ -108,7 +108,7 @@ void Client::ConnectServer()
 	}
 	std::cout << "Socket initalize successful\n";
 
-	if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
+	if (recv(*sock, (char*)&initData, sizeof(InitDataPacket), MSG_WAITALL) == SOCKET_ERROR)
 	{
 		if (WSAGetLastError() == WSAETIMEDOUT)
 		{
@@ -121,7 +121,8 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
-	frameDataManager->SetPlayerNum(PlayerNum);
+	frameDataManager->SetPlayerNum(initData.playerNum);
+	cout << initData.serverTick;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
