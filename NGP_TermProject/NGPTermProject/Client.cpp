@@ -44,7 +44,7 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 	case PACKET::ItemInfo:
 	{
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		packetCombiner->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::MissileInfo:

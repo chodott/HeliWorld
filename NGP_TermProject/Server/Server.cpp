@@ -3,6 +3,9 @@
 #include "SCPacket.h"
 
 Server* g_server;
+std::unordered_map<int, vector<PlayerKeyPacket>> g_playerInputMap;
+int g_serverTick = 0;
+
 
 int PacketSizeHelper(char packetType)
 {
@@ -252,8 +255,8 @@ void Server::PreparePackets()
 			missileInfo.active = missile->IsActive();
 		}
 	}
-	playerBundle.timestamp = GetTimestampMs();
 
+	playerBundle.serverTick = ++g_serverTick;
 
 	for (int i=0;i<MAX_ITEM_NUM;++i)
 	{
@@ -458,16 +461,44 @@ int main()
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
 
+	auto  prev = std::chrono::steady_clock::now();
+	double acc = 0.0;
+
 	while (true)
 	{
 		if (g_server->connectedClients < 1) continue;
-		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
-		if (g_server->elapsedTime >= g_server->FIXED_DELTA_TIME)
+
+		//Tick Base
+		auto now = std::chrono::steady_clock::now();
+		double frameDelta = std::chrono::duration<double>(now - prev).count();
+		prev = now;
+		acc += frameDelta;
+
+		int steps = 0, maxSteps = 6;
+		while (acc >= kDt && steps < maxSteps)
 		{
-			g_server->timer.Record();
+
+			auto iter = g_playerInputMap.find(g_serverTick + 1);
 			g_server->Update();
-			g_server->elapsedTime = g_server->FIXED_DELTA_TIME;
+
+
+			if (iter == g_playerInputMap.end())
+			{//temp
+				continue;
+			}
+			vector<PlayerKeyPacket>& InputsVec = iter->second;
+
+			/*
+			1. 틱 별 입력 구분/수신
+			2. 1프레임 틱 적용
+			3. 결과 스냅샷 클라이언트 전송
+			4. 사용한 입력 제거
+			*/
+
+			acc -= kDt; ++steps;
 		}
 	}
+
+	
 }
 

@@ -16,26 +16,27 @@ public:
     }
 
 	template<typename PacketType>
-	void CombinePacket(const PacketType& packet, uint64_t cutTimeline = 0);
+	void CombinePacket(const PacketType& packet);
 
     template<>
-    void CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundlePacket& pkt, uint64_t cutTimeline)
+    void CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundlePacket& pkt)
     {
         memcpy(currentFrameData.itemInfos, pkt.itemInfos, sizeof(ItemInfoPacket) * 10);
-        frameDataManager->AddServerFrameData(currentFrameData, cutTimeline);
+        frameDataManager->AddServerFrameData(currentFrameData);
     }
 
     template<>
-    void CombinePacket<MissileInfoBundlePacket>(const MissileInfoBundlePacket& pkt, uint64_t cutTimeline)
+    void CombinePacket<MissileInfoBundlePacket>(const MissileInfoBundlePacket& pkt)
     {
         memcpy(currentFrameData.missileInfos, pkt.missileInfos, sizeof(MissileInfoPacket) * 32);
     }
 
     template<>
-    void CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBundlePacket& pkt, uint64_t cutTimeline)
+    void CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBundlePacket& pkt)
     {
         memcpy(currentFrameData.playerInfos, pkt.playerInfos, sizeof(PlayerInfoPacket) * 4);
-        currentFrameData.timestamp = pkt.timestamp;
+        currentFrameData.serverTick = pkt.serverTick;
+        cout << currentFrameData.serverTick << "\n";
     }
 
 

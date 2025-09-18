@@ -4,9 +4,6 @@
 #include "NetworkSyncManager.h"
 #include <mutex>
 
-#define FRAMEDATA_DEADLINE_MS 10000
-
-
 
 class FrameDataManager
 {
@@ -19,10 +16,10 @@ public:
     {
         clientFrameData_dq.emplace_back(frameData);
     }
-    void AddServerFrameData(const ServerFrameData& frameData, uint64_t cutTimeline);
+    void AddServerFrameData(const ServerFrameData& frameData);
 
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
-    pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
+    //pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
     bool IsPositionOutOfSync();
 
     bool CheckResimulateRequest();
@@ -36,7 +33,7 @@ private:
     std::deque<ClientFrameData> clientFrameData_dq;
 
     uint64_t targetTimestamp;
-    uint64_t serverTimestamp;
+    int serverTick;
     int playerNum = 0;
 
 };

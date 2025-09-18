@@ -1,6 +1,6 @@
 #pragma once
 struct ServerFrameData {
-    uint64_t timestamp;
+    int serverTick;
     PlayerInfoPacket playerInfos[4];
     ItemInfoPacket itemInfos[10];
     MissileInfoPacket missileInfos[32];

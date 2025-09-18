@@ -1,28 +1,21 @@
 #include "FrameDataManager.h"
 
-auto cmpClientTimestamp = [](const ClientFrameData& lhs, const uint64_t& value) {
-    return lhs.timestamp < value;
-};
-auto cmpServerTimestamp = [](const ServerFrameData& lhs, const uint64_t& value) {
-    return lhs.timestamp < value;
-};
-
-void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData, uint64_t cutTimeline)
+void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 {
     std::lock_guard<std::mutex> lock(mtx);
     serverFrameData_dq.emplace_back(frameData);
-    serverTimestamp = frameData.timestamp;
+    serverTick = frameData.serverTick;
 
-    cutTimeline -= FRAMEDATA_DEADLINE_MS;
+    int cutLine = serverTick - 100;
 
-    while (!serverFrameData_dq.empty() && serverFrameData_dq.front().timestamp < cutTimeline)
+    while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < cutLine)
     {
         serverFrameData_dq.pop_front();
     }
-    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().timestamp < cutTimeline)
-    {
-        clientFrameData_dq.pop_front();
-    }
+    //while (!clientFrameData_dq.empty() && clientFrameData_dq.front().serverTick < cutTimeline)
+    //{
+    //    clientFrameData_dq.pop_front();
+    //}
 }
 
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime)
@@ -30,32 +23,32 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
     std::lock_guard<std::mutex> lock(mtx);
     float value = 5.0f;
     bool bCanInterpolate = false;
-    for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
-        if (serverFrameData_dq[i].timestamp <= serverTime &&
-            serverFrameData_dq[i + 1].timestamp >= serverTime) {
-            prevData = serverFrameData_dq[i];
-            nextData = serverFrameData_dq[i + 1];
-            bCanInterpolate = true;
-            break;
-        }
-    }
-    if (bCanInterpolate)
-    {
-        value = float(serverTime - prevData.timestamp) / float(nextData.timestamp - prevData.timestamp);
-    }
+    //for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
+    //    if (serverFrameData_dq[i].timestamp <= serverTime &&
+    //        serverFrameData_dq[i + 1].timestamp >= serverTime) {
+    //        prevData = serverFrameData_dq[i];
+    //        nextData = serverFrameData_dq[i + 1];
+    //        bCanInterpolate = true;
+    //        break;
+    //    }
+    //}
+    //if (bCanInterpolate)
+    //{
+    //    value = float(serverTime - prevData.timestamp) / float(nextData.timestamp - prevData.timestamp);
+    //}
     return value;
 }
 
-pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
-{
-    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpClientTimestamp);
-    return make_pair(target, clientFrameData_dq.end());
-}
+//pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
+//{
+//    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpClientTimestamp);
+//    return make_pair(target, clientFrameData_dq.end());
+//}
 
 bool FrameDataManager::IsPositionOutOfSync()
 {
     std::lock_guard<std::mutex> lock(mtx);
-    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
+ /*   auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
                                         serverTimestamp, cmpClientTimestamp);
     if (nextFrameData == clientFrameData_dq.begin()
         ||nextFrameData == clientFrameData_dq.end())
@@ -87,9 +80,10 @@ bool FrameDataManager::IsPositionOutOfSync()
     float maxDistance = 100 * interpDelaySec;
 
     bool bOverMaxDistance = distance >= maxDistance;
-    cout << distance << ", " << maxDistance << "\n";
+    cout << distance << ", " << maxDistance << "\n";*/
 
-    return bOverMaxDistance;
+    //return bOverMaxDistance;
+    return false;
 }
 
 bool FrameDataManager::CheckResimulateRequest()

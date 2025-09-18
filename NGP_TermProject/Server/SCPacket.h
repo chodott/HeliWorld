@@ -34,7 +34,7 @@ struct PlayerInfoBundlePacket
 {
 	char packetType = SC_PlayerInfo;
 	PlayerInfoPacket playerInfos[4];
-	uint64_t timestamp;
+	int serverTick;
 };
 
 

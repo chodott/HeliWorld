@@ -469,35 +469,35 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate()
 {
-	pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  
-		frameDataManager->GetSimulateRange();
-	auto begin = range.first; 
-	auto end = range.second;
+	//pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator>& range =  
+	//	frameDataManager->GetSimulateRange();
+	//auto begin = range.first; 
+	//auto end = range.second;
 
-	m_pPlayer->SetServerPosition(frameDataManager->basePosition);
-	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
-	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
+	//m_pPlayer->SetServerPosition(frameDataManager->basePosition);
+	//m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
+	//m_pPlayer->RotatePYR(frameDataManager->baseRotation);
 
-	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
-	{
-		//Input Simulation
-		DWORD dwDirection = 0;
-		if (iter->playerKeyInput & 0x01) dwDirection |= DIR_FORWARD;
-		if (iter->playerKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
-		if (iter->playerKeyInput & 0x04) dwDirection |= DIR_LEFT;
-		if (iter->playerKeyInput & 0x08) dwDirection |= DIR_RIGHT;
-		if (iter->playerKeyInput & 0x10) dwDirection |= DIR_UP;
-		if (iter->playerKeyInput & 0x20) dwDirection |= DIR_DOWN;
+	//for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
+	//{
+	//	//Input Simulation
+	//	DWORD dwDirection = 0;
+	//	if (iter->playerKeyInput & 0x01) dwDirection |= DIR_FORWARD;
+	//	if (iter->playerKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+	//	if (iter->playerKeyInput & 0x04) dwDirection |= DIR_LEFT;
+	//	if (iter->playerKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+	//	if (iter->playerKeyInput & 0x10) dwDirection |= DIR_UP;
+	//	if (iter->playerKeyInput & 0x20) dwDirection |= DIR_DOWN;
 
-		m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
-		if (dwDirection) m_pPlayer->Move(dwDirection, iter->deltaTime, false);
-		m_pPlayer->Update(iter->deltaTime);
+	//	m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
+	//	if (dwDirection) m_pPlayer->Move(dwDirection, iter->deltaTime, false);
+	//	m_pPlayer->Update(iter->deltaTime);
 
 
-		//Simulation data Update
-		iter->position = m_pPlayer->GetPredictPosition();
-		iter->rotation = m_pPlayer->GetRotation();
-	}
+	//	//Simulation data Update
+	//	iter->position = m_pPlayer->GetPredictPosition();
+	//	iter->rotation = m_pPlayer->GetRotation();
+	//}
 }
 
 void CGameFramework::ProcessInput(float fTimeElapsed)
@@ -659,8 +659,6 @@ void CGameFramework::FrameAdvance()
 {
 	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
-
-	cout << "Client Time" << networkSyncManager->GetTimestampMs() << "\n";
 
 	if (frameDataManager->CheckResimulateRequest())
 	{
