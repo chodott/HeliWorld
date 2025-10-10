@@ -122,6 +122,7 @@ void Client::ConnectServer()
 		}
 	}
 	frameDataManager->SetPlayerNum(initData.playerNum);
+	networkSyncMgr->SetBaseTick(initData.serverTick);
 	cout << initData.serverTick;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
@@ -168,13 +169,12 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
-	uint64_t serverTimestamp = networkSyncMgr->GetEstimatedServerTimeMs();
 
 	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
 	cs_key.playerKeyInput = sendKey;
 	cs_key.rotation = playerPYR;
-	cs_key.timestamp = serverTimestamp;
+	cs_key.estimatedTick = networkSyncMgr->GetEstimatedServerTick();
 
 	if (prevKey != sendKey)
 	{
@@ -232,7 +232,7 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 	{
 		{
 			std::unique_lock<std::mutex> lock(client->inputPacketLock);
-			client->inputChangedCV.wait_for(lock, std::chrono::milliseconds(33));
+			client->inputChangedCV.wait(lock);
 			client->GetKeyPacketToSend(cs_keyInput);
 		}
 

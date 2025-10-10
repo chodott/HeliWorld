@@ -14,7 +14,9 @@ public:
 	uint64_t GetTimestampMs();
 	uint64_t GetEstimatedServerTimeMs();
 	uint64_t GetDelayedServerTimeMs();
+	uint64_t GetEstimatedServerTick();
 	void UpdateSyncData(const uint64_t clientSendTimestamp, const uint64_t serverSendTimestamp);
+	void SetBaseTick(uint64_t tick) { baseTick = tick;}
 	inline static float GetRttAvg() { return rttAvg; }
 	int GetDelay() { return delay; }
 
@@ -25,6 +27,7 @@ private:
 	static float offsetAvg;
 	static float rttAvg;
 	int delay;
+	uint64_t baseTick;
 
 };
 

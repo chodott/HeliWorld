@@ -3,6 +3,9 @@
 float NetworkSyncManager::offsetAvg = 0.f;
 float NetworkSyncManager::rttAvg = 0.f;
 
+constexpr double kDt = 1.0 / 60.0;
+constexpr double kDtMs = kDt * 1000.0;
+
 template<class T> 
 void KeepDequeSize(deque<T>& dq)
 {
@@ -39,6 +42,13 @@ uint64_t NetworkSyncManager::GetEstimatedServerTimeMs()
 uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
 {
 	return GetEstimatedServerTimeMs() - delay;
+}
+
+uint64_t NetworkSyncManager::GetEstimatedServerTick()
+{
+	uint64_t serverTimestamp = GetEstimatedServerTimeMs();
+	uint64_t serverTick = (uint64_t)floor(serverTimestamp / kDtMs);
+	return serverTick;
 }
 
 void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, 

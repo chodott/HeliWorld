@@ -45,10 +45,12 @@ public:
 	void PacketProcessHelper(char packetType, char* fillTarget);
 	void ReceivePingPongPacket(const PingpongPacket& ppPacket);
 
+	inline int GetPlayerNum() { return initData.playerNum; }
+
 
 	
 	FPoint deltaMouse;
-	int PlayerNum = 0;
+	InitDataPacket initData;
 
 	HANDLE FrameAdvanced;
 
@@ -72,7 +74,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.7";
+	const char* serverIp = (char*)"172.30.1.66";
 
 	unsigned char option0 = 0x01;   // 0000 0001 
 	unsigned char option1 = 0x02;   // 0000 0010
