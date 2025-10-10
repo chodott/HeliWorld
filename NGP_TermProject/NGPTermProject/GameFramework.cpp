@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 
+constexpr double kDt = 1.0 / 60.0;
+constexpr double kDtMs = kDt * 1000.0;
+double accumulatedSecond;
+
 CGameFramework::CGameFramework()
 {
 	m_pdxgiFactory = NULL;
@@ -441,7 +445,7 @@ void CGameFramework::BuildObjects()
 
 	int playerNum = client->GetPlayerNum();
 
-	for (int i = playerNum * 8; i < (playerNum+1)*8; ++i)
+	for (int i = playerNum * 8; i < (playerNum + 1) * 8; ++i)
 	{
 		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
 		missile->bLocalMissile = true;
@@ -500,6 +504,25 @@ void CGameFramework::Resimulate()
 	//}
 }
 
+void CGameFramework::MergeInput()
+{
+	float cxDelta = 0.00f, cyDelta = 0.00f;
+	POINT ptCursorPos;
+	(char*)&ptCursorPos;
+
+	if (GetCapture() == m_hWnd)
+	{
+		SetCursor(NULL);
+		GetCursorPos(&ptCursorPos);
+
+		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
+		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
+		client->deltaMouse.x += cxDelta;
+		client->deltaMouse.y += cyDelta;
+	}
+}
+
 void CGameFramework::ProcessInput(float fTimeElapsed)
 {
 	static UCHAR pKeysBuffer[256];
@@ -518,58 +541,29 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		if (pKeysBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
-		float cxDelta = 0.00f, cyDelta = 0.00f;
-		POINT ptCursorPos;
-		(char*)&ptCursorPos;
-
-		if (GetCapture() == m_hWnd)
+		if ((client->deltaMouse.x != 0.0f) || (client->deltaMouse.y != 0.0f))
 		{
-			SetCursor(NULL);
-			GetCursorPos(&ptCursorPos);
-
-			cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
-			cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
-			SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-			client->deltaMouse.x += cxDelta;
-			client->deltaMouse.y += cyDelta;
+			m_pPlayer->Rotate(client->deltaMouse.y, client->deltaMouse.x, 0.f);
+		}
+		if (dwDirection)
+		{
+			m_pPlayer->Move(dwDirection, fTimeElapsed, false);
 		}
 
-
-		if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
-		{
-			if (cxDelta || cyDelta)
-			{
-				if (pKeysBuffer[VK_RBUTTON] & 0xF0)
-				{
-					//m_pPlayer->Rotate(cyDelta, 0.0f, -cxDelta);
-				}
-				else
-				{
-
-					   m_pPlayer->Rotate(cyDelta, cxDelta, 0.f);
-				}
-			}
-			if (dwDirection) m_pPlayer->Move(dwDirection, fTimeElapsed, false);
-		}
-
-		//Save ClientFrameData 
-
-		m_pPlayer->Update(fTimeElapsed);
-		frameDataManager->AddClientFrameData({
-			networkSyncManager->GetTimestampMs(),
-			m_pPlayer->GetPredictPosition(),
-			m_pPlayer->GetRotation(),
-			client->sendKey,
-			{cxDelta, cyDelta},
-			fTimeElapsed
-			});
 	}
-
 	if (client->sendKey & 0x40)
 	{
 		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
 	}
 
+	frameDataManager->AddClientFrameData(/{
+	networkSyncManager->GetTimestampMs(),
+	m_pPlayer->GetPredictPosition(),
+	m_pPlayer->GetRotation(),
+	client->sendKey,
+	client->deltaMouse,
+	kDt
+		});
 }
 
 void CGameFramework::AnimateObjects()
@@ -594,9 +588,12 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	{
 		if (i == client->GetPlayerNum())
 		{
+
 			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
+
 			if (value > 3.0f) continue;
+			//Update HUD
 			for (int j = 1; j < 11; ++j)
 			{
 				if (j <= (prevData.playerInfos[i].playerHP) / 10)
@@ -657,20 +654,26 @@ void CGameFramework::MoveToNextFrame()
 
 void CGameFramework::FrameAdvance()
 {
-	std::chrono::steady_clock::time_point curTime = std::chrono::steady_clock::now();
+	auto now = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
 	if (frameDataManager->CheckResimulateRequest())
 	{
 		Resimulate();
 	}
-
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	ProcessInput(fTimeElapsed);
+	accumulatedSecond += fTimeElapsed;
+	MergeInput();
 
-	AnimateObjects();
-	client->PrepareInputPacket(m_pPlayer->GetRotation());
+	while (accumulatedSecond >= kDt)
+	{
 
+		accumulatedSecond -= kDt;
+
+		ProcessInput(fTimeElapsed);
+		AnimateObjects();
+		client->PrepareInputPacket(m_pPlayer->GetRotation());
+	}
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);

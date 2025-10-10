@@ -33,6 +33,7 @@ public:
     void BuildObjects();
     void ReleaseObjects();
 
+	void MergeInput();
     void ProcessInput(float fTimeElapsed);
     void AnimateObjects();
 	void AnimatePlayers(float fTimeElapsed);
