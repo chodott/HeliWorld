@@ -12,13 +12,14 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
     {
         serverFrameData_dq.pop_front();
     }
-    //while (!clientFrameData_dq.empty() && clientFrameData_dq.front().serverTick < cutTimeline)
-    //{
-    //    clientFrameData_dq.pop_front();
-    //}
+
+    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().estimatedServerTick < cutLine)
+    {
+        clientFrameData_dq.pop_front();
+    }
 }
 
-float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime)
+float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(mtx);
     float value = 5.0f;

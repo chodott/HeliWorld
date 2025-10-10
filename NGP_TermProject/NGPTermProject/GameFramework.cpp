@@ -423,6 +423,7 @@ void CGameFramework::BuildObjects()
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
 	pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
+	pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 500));
 	switch (client->GetPlayerNum())
 	{
 	case 0:
@@ -556,8 +557,8 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
 	}
 
-	frameDataManager->AddClientFrameData(/{
-	networkSyncManager->GetTimestampMs(),
+	frameDataManager->AddClientFrameData({
+	networkSyncManager->GetEstimatedServerTick(),
 	m_pPlayer->GetPredictPosition(),
 	m_pPlayer->GetRotation(),
 	client->sendKey,
@@ -657,17 +658,17 @@ void CGameFramework::FrameAdvance()
 	auto now = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
-	if (frameDataManager->CheckResimulateRequest())
+	/*if (frameDataManager->CheckResimulateRequest())
 	{
 		Resimulate();
-	}
+	}*/
+
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
 	accumulatedSecond += fTimeElapsed;
 	MergeInput();
 
 	while (accumulatedSecond >= kDt)
 	{
-
 		accumulatedSecond -= kDt;
 
 		ProcessInput(fTimeElapsed);

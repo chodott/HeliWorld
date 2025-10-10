@@ -18,7 +18,7 @@ public:
     }
     void AddServerFrameData(const ServerFrameData& frameData);
 
-    float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
+    float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     //pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
     bool IsPositionOutOfSync();
 
