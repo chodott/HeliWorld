@@ -122,7 +122,7 @@ void Client::ConnectServer()
 		}
 	}
 	frameDataManager->SetPlayerNum(initData.playerNum);
-	networkSyncMgr->SetBaseTick(initData.serverTick);
+	networkSyncMgr->SetBase(initData.serverTick, initData.serverTimestamp);
 	cout << initData.serverTick;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);

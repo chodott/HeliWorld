@@ -356,7 +356,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	//Init Packet
 	Client* client = (Client*)arg;
 	int playerNumber = client->GetPlayerNumber();
-	TimebasePacket timebasePacket{ playerNumber, g_serverTick };
+	TimebasePacket timebasePacket{ playerNumber, g_serverTick, g_server->GetTimestampMs() };
 	send(client->sock, (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	CPlayer* p = client->m_player;
@@ -482,6 +482,8 @@ int main()
 			auto iter = g_playerInputMap.find(g_serverTick + 1);
 			g_server->Update();
 
+			acc -= kDt; ++steps;
+			cout << g_serverTick << "\n";
 
 			if (iter == g_playerInputMap.end())
 			{//temp
@@ -496,7 +498,7 @@ int main()
 			4. 사용한 입력 제거
 			*/
 
-			acc -= kDt; ++steps;
+
 		}
 	}
 

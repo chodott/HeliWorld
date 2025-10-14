@@ -30,7 +30,7 @@ T GetDequeAvg(const deque<T>& dq)
 uint64_t NetworkSyncManager::GetTimestampMs()
 {
 	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
 
@@ -46,8 +46,8 @@ uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
 
 uint64_t NetworkSyncManager::GetEstimatedServerTick()
 {
-	uint64_t serverTimestamp = GetEstimatedServerTimeMs();
-	uint64_t serverTick = (uint64_t)floor(serverTimestamp / kDtMs);
+	uint64_t elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
+	uint64_t serverTick = baseTick + (uint64_t)floor(elapsed / kDtMs);
 	return serverTick;
 }
 

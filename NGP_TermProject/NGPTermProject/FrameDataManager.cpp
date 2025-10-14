@@ -13,7 +13,7 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
     serverFrameData_dq.emplace_back(frameData);
     serverTick = frameData.serverTick;
 
-    int cutLine = serverTick - 100;
+    int cutLine = 0;
 
     while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < cutLine)
     {

@@ -96,7 +96,7 @@ public:
 	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
 	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
+	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
 
 
 private:

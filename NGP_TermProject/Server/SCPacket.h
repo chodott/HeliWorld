@@ -18,7 +18,8 @@ struct FPoint {
 struct TimebasePacket
 {
 	int playerNum;
-	int serverTick;
+	uint64_t serverTick;
+	uint64_t serverTimestamp;
 };
 
 struct PingpongPacket

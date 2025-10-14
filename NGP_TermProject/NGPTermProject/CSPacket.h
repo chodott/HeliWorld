@@ -21,7 +21,8 @@ struct FPoint {
 struct InitDataPacket
 {
 	int playerNum;
-	int serverTick;
+	uint64_t serverTick;
+	uint64_t serverTimestamp;
 };
 
 struct PingpongPacket
