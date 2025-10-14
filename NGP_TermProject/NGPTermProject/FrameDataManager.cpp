@@ -1,5 +1,12 @@
 #include "FrameDataManager.h"
 
+auto cmpClientTick = [](const ClientFrameData& lhs, const uint64_t& value) {
+    return lhs.estimatedServerTick < value;
+};
+auto cmpServerTick = [](const ServerFrameData& lhs, const uint64_t& value) {
+    return lhs.serverTick < value;
+};
+
 void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 {
     std::lock_guard<std::mutex> lock(mtx);
@@ -17,6 +24,8 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
     {
         clientFrameData_dq.pop_front();
     }
+
+    bool isOutOfSync = IsPositionOutOfSync();
 }
 
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
@@ -48,29 +57,24 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
 
 bool FrameDataManager::IsPositionOutOfSync()
 {
-    std::lock_guard<std::mutex> lock(mtx);
- /*   auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
-                                        serverTimestamp, cmpClientTimestamp);
-    if (nextFrameData == clientFrameData_dq.begin()
-        ||nextFrameData == clientFrameData_dq.end())
+    auto serverSnapData = serverFrameData_dq.back();
+    targetTick = serverSnapData.serverTick;
+    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
+                                        targetTick, cmpClientTick);
+    if (nextFrameData == clientFrameData_dq.begin() || nextFrameData == clientFrameData_dq.end())
+    {
+        if (!clientFrameData_dq.empty())
         {
-            return false;
-        } 
-
-
+            cout << "Tick:" << targetTick << ", " << clientFrameData_dq.back().estimatedServerTick << "\n";
+        }
+        return false;
+    } 
     auto prevFrameData = nextFrameData - 1;
 
-    auto serverFrameData = lower_bound(serverFrameData_dq.begin(), serverFrameData_dq.end(), 
-                                        serverTimestamp, cmpServerTimestamp);
-
-    float t = (serverTimestamp - prevFrameData->timestamp) 
-    / (nextFrameData->timestamp - prevFrameData->timestamp);
+    float t = (targetTick - prevFrameData->estimatedServerTick)/ 
+                (nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
     XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
-    XMFLOAT3 serverPosition = serverFrameData->playerInfos[playerNum].position;
-    targetTimestamp = serverTimestamp;
-
-    basePosition = serverPosition;
-    baseRotation = serverFrameData->playerInfos[playerNum].rotation;
+    XMFLOAT3 serverPosition = serverSnapData.playerInfos[playerNum].position;
 
     float distance = 0.0f;
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
@@ -80,11 +84,10 @@ bool FrameDataManager::IsPositionOutOfSync()
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;
     float maxDistance = 100 * interpDelaySec;
 
-    bool bOverMaxDistance = distance >= maxDistance;
-    cout << distance << ", " << maxDistance << "\n";*/
+    bool bOverMaxDistance = (distance >= maxDistance);
+    cout << distance << ", " << maxDistance << "\n";
 
-    //return bOverMaxDistance;
-    return false;
+    return bOverMaxDistance;
 }
 
 bool FrameDataManager::CheckResimulateRequest()

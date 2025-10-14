@@ -32,7 +32,7 @@ private:
     std::deque<ServerFrameData> serverFrameData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
 
-    uint64_t targetTimestamp;
+    uint64_t targetTick;
     int serverTick;
     int playerNum = 0;
 
