@@ -55,7 +55,6 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 	m_hWnd = hMainWnd;
 
 
-	client->ConnectServer();
 
 	CreateDirect3DDevice();
 	CreateCommandQueueAndList();
@@ -66,6 +65,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 	CoInitialize(NULL);
 
 	BuildObjects();
+	client->ConnectServer();
 
 	return(true);
 }
@@ -563,7 +563,6 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 	m_pPlayer->GetRotation(),
 	client->sendKey,
 	client->deltaMouse,
-	kDt
 		});
 }
 
@@ -655,7 +654,6 @@ void CGameFramework::MoveToNextFrame()
 
 void CGameFramework::FrameAdvance()
 {
-	auto now = std::chrono::steady_clock::now();
 	m_GameTimer.Tick(0.0f);
 
 	/*if (frameDataManager->CheckResimulateRequest())

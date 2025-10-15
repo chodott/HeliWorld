@@ -274,7 +274,7 @@ void Server::PreparePackets()
 uint64_t Server::GetTimestampMs()
 {
 	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
 
@@ -467,8 +467,6 @@ int main()
 
 	while (true)
 	{
-		if (g_server->connectedClients < 1) continue;
-
 		//Tick Base
 		auto now = std::chrono::steady_clock::now();
 		double frameDelta = std::chrono::duration<double>(now - prev).count();

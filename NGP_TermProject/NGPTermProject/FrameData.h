@@ -13,5 +13,4 @@ struct ClientFrameData
     XMFLOAT3 rotation;
     unsigned char playerKeyInput;
     FPoint deltaMouse;
-    float deltaTime;
 };

@@ -61,12 +61,9 @@ bool FrameDataManager::IsPositionOutOfSync()
     targetTick = serverSnapData.serverTick;
     auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
                                         targetTick, cmpClientTick);
+
     if (nextFrameData == clientFrameData_dq.begin() || nextFrameData == clientFrameData_dq.end())
     {
-        if (!clientFrameData_dq.empty())
-        {
-            cout << "Tick:" << targetTick << ", " << clientFrameData_dq.back().estimatedServerTick << "\n";
-        }
         return false;
     } 
     auto prevFrameData = nextFrameData - 1;
