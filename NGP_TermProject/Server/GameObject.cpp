@@ -146,7 +146,7 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 	}
 }
 
-void CPlayer::Update(float elapsedTime, int connectedClients)
+void CPlayer::Update(float elapsedTime)
 {
 	RecalculateLook();
 	RecalculateRight();
@@ -193,10 +193,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		// Attack
 		if (keyPacket.playerKeyInput & option6)
 		{
-			if (connectedClients >= 1)
-			{
-				LaunchMissile(keyPacket.launchedMissileNum, elapsedTime);			// if not alone in the server
-			}
+			LaunchMissile(keyPacket.launchedMissileNum, elapsedTime);
 			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;

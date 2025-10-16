@@ -47,7 +47,7 @@ uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
 uint64_t NetworkSyncManager::GetEstimatedServerTick()
 {
 	uint64_t elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
-	uint64_t serverTick = baseTick + (uint64_t)floor(elapsed / kDtMs);
+	uint64_t serverTick = baseTick + (uint64_t)round(elapsed / kDtMs);
 	return serverTick;
 }
 

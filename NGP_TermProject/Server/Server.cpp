@@ -171,36 +171,34 @@ void Server::CheckCollision()
 
 void Server::Update()
 {
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	uint64_t resimulateStartTick = ReturnResimulateStart();
+	ResetToSnapshot(resiulateStartTick);
+	for (int tick = resimulateStartTick; tick <= g_serverTick; ++tick)
 	{
-		CPlayer* player = clients[i]->m_player;
-		if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
-		// connected, but dead
-		if (clients[i]->IsConnected() && !player->IsActive())
+		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 		{
-			clients[i]->deadTime += elapsedTime;
-			if (clients[i]->deadTime > RESPAWN_TIME)
-			{
-				player->SetActive(true);
-				clients[i]->deadTime = 0.f;
-			}
+			CPlayer* player = clients[i]->m_player;
+			player->keyPacket = InputLogMaps[i][tick];
+			clients[i]->m_player->Update(kDt);
 		}
-		else
-		{
-			float curServerTime = GetTimestampMs();
-			float clientEstimatedTime = clients[i]->m_player->keyPacket.timestamp;
-			bool bKeyChanged = player->keyPacket.bKeyChanged;
-			if (bKeyChanged && curServerTime > clientEstimatedTime)
-			{
-				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
-				clients[i]->m_player->CompensateLatency(clients[i]->prevKeyPacket, timeOffset);
-				player->keyPacket.bKeyChanged = false;
-			}
-			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
-			clients[i]->prevKeyPacket = player->keyPacket;
-		}
+		CheckCollision();
 	}
-	CheckCollision();
+
+	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	//{
+	//	CPlayer* player = clients[i]->m_player;
+	//	if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
+	//	// connected, but dead
+	//	if (clients[i]->IsConnected() && !player->IsActive())
+	//	{
+	//		clients[i]->deadTime += elapsedTime;
+	//		if (clients[i]->deadTime > RESPAWN_TIME)
+	//		{
+	//			player->SetActive(true);
+	//			clients[i]->deadTime = 0.f;
+	//		}
+	//	}
+	//}
 
 	itemSpawnTime += elapsedTime;
 	if (itemSpawnTime > itemRespawnTime)
@@ -278,6 +276,32 @@ uint64_t Server::GetTimestampMs()
 	using namespace std::chrono;
 	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
+}
+
+void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
+{
+	InputBuffers[index].push(keyPacket);
+}
+
+uint64_t Server::ReturnResimulateStart()
+{
+	int startTick = g_serverTick;
+	for (int index = 0; index < MAX_CLIENT_NUM; ++index)
+	{
+		while (!InputBuffers[index].empty())
+		{
+			uint64_t tick = InputBuffers[index].front().estimatedTick;
+			if (tick > g_serverTick)
+			{
+				break;
+			}
+
+			InputLogMaps[index][tick] = InputBuffers[index].front();
+			InputBuffers[index].pop();
+			startTick = min(startTick, tick);
+		}
+	}
+	return startTick;
 }
 
 
@@ -421,6 +445,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
 				client->keyPacket_q.push(keyPacket);
+				g_server->PushInputData(client->GetPlayerNumber(), keyPacket);
 				break;
 			}
 			case CS_PingpongInfo:
@@ -487,27 +512,8 @@ int main()
 		int steps = 0, maxSteps = 6;
 		while (acc >= kDt && steps < maxSteps)
 		{
-
-			auto iter = g_playerInputMap.find(g_serverTick + 1);
 			g_server->Update();
-
 			acc -= kDt; ++steps;
-			cout << g_serverTick << "\n";
-
-			if (iter == g_playerInputMap.end())
-			{//temp
-				continue;
-			}
-			vector<PlayerKeyPacket>& InputsVec = iter->second;
-
-			/*
-			1. 틱 별 입력 구분/수신
-			2. 1프레임 틱 적용
-			3. 결과 스냅샷 클라이언트 전송
-			4. 사용한 입력 제거
-			*/
-
-
 		}
 	}
 

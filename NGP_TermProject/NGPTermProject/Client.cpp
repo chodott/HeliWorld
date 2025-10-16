@@ -123,7 +123,6 @@ void Client::ConnectServer()
 	}
 	frameDataManager->SetPlayerNum(initData.playerNum);
 	networkSyncMgr->SetBase(initData.serverTick, initData.serverTimestamp);
-	cout << initData.serverTick;
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
@@ -169,7 +168,6 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
-
 	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
 	cs_key.playerKeyInput = sendKey;

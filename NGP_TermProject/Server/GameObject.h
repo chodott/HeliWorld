@@ -84,7 +84,7 @@ public:
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	void LaunchMissile(int16_t missileNum, float fLatency);
 	void UpdateMissiles(float elapsedTime);
-	void Update(float elapsedTime, int connectedClients);
+	void Update(float elapsedTime);
 	void Reset(int playerNum);
 	void CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency);
 

@@ -3,6 +3,7 @@
 #include "Socket.h"
 #include "SCPacket.h"
 #include "GameObject.h"
+#include "Snapshot.h"
 
 #include <concurrent_queue.h>
 #include <array>
@@ -96,8 +97,9 @@ public:
 	template<typename T>
 	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
-	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
+	void PushInputData(int index, const PlayerKeyPacket& keyPacket);
+	void ResetToSnapshot(uint64_t targetTick)
+	uint64_t ReturnResimulateStart();
 
 
 private:
@@ -109,9 +111,16 @@ private:
 	}
 
 	SOCKET listenSock;
+
+	//Fixed Frametime
+	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
 	
 	std::mutex packetQueueLock;
 	std::condition_variable packetReadyCV;
+
+	queue<PlayerKeyPacket> InputBuffers[4];
+	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[4];
+	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMaps[4];
 };
 
 
@@ -141,8 +150,6 @@ public:
 	int remainSize = 0;
 	
 	//Latency
-	PlayerKeyPacket prevKeyPacket;
-
 	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 	
 	float deadTime = 0.f;

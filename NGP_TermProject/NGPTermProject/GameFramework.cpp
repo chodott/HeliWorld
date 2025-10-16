@@ -564,6 +564,8 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 	client->sendKey,
 	client->deltaMouse,
 		});
+
+	cout << networkSyncManager->GetEstimatedServerTick() << endl;
 }
 
 void CGameFramework::AnimateObjects()
@@ -669,7 +671,7 @@ void CGameFramework::FrameAdvance()
 	{
 		accumulatedSecond -= kDt;
 
-		ProcessInput(fTimeElapsed);
+		ProcessInput(kDt);
 		AnimateObjects();
 		client->PrepareInputPacket(m_pPlayer->GetRotation());
 	}
