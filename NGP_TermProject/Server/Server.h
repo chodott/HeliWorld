@@ -9,6 +9,7 @@
 #include <chrono>
 #include <queue>
 #include <unordered_map>
+#include <mutex>
 
 #define SERVERPORT		9000
 #define BUFSIZE			512
@@ -109,6 +110,8 @@ private:
 
 	SOCKET listenSock;
 	
+	std::mutex packetQueueLock;
+	std::condition_variable packetReadyCV;
 };
 
 

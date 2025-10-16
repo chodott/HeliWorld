@@ -217,6 +217,7 @@ void Server::Update()
 	}
 
 	PreparePackets();
+	packetReadyCV.notify_one();
 }
 
 void Server::SpawnItem()
@@ -266,6 +267,7 @@ void Server::PreparePackets()
 		itemInfo.active = item->IsActive();
 	}
 
+	std::lock_guard<std::mutex> lock(packetQueueLock);
 	PushPacket(playerBundle);
 	PushPacket(missileBundle);
 	PushPacket(itemBundle);
@@ -281,9 +283,18 @@ uint64_t Server::GetTimestampMs()
 
 void Server::SendPacketAllClient()
 {
-	static PlayerInfoBundlePacket playerInfoBundle;
-	static MissileInfoBundlePacket missileInfoBundle;
-	static ItemInfoBundlePacket itemInfoBundle;
+	PlayerInfoBundlePacket playerInfoBundle;
+	MissileInfoBundlePacket missileInfoBundle;
+	ItemInfoBundlePacket itemInfoBundle;
+
+	{
+		std::unique_lock<std::mutex> lock(packetQueueLock);
+		packetReadyCV.wait(lock, [this] {
+			return !GetQueue<PlayerInfoBundlePacket>().empty() ||
+				!GetQueue<MissileInfoBundlePacket>().empty() ||
+				!GetQueue<ItemInfoBundlePacket>().empty();
+			});
+	}
 
 	TryPopPacket(playerInfoBundle);
 	TryPopPacket(missileInfoBundle);
