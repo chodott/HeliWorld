@@ -36,7 +36,7 @@ uint64_t NetworkSyncManager::GetTimestampMs()
 
 uint64_t NetworkSyncManager::GetEstimatedServerTimeMs()
 {
-	return GetTimestampMs() + offsetAvg;
+	return GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
 }
 
 uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
