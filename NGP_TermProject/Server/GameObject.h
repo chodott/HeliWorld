@@ -89,6 +89,7 @@ public:
 	void Reset(int playerNum);
 	void CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency);
 
+	inline void SetHp(int hp) { m_nHp = hp; }
 
 	const float movingSpeed = 100.f;
 
@@ -127,6 +128,7 @@ public:
 	
 	void Move(float elapsedTime);
 	void Reset();
+	inline void SetLifeTime(float lifeTime) { m_fLifeSpan = lifeTime; }
 };
 
 class CItemObject : public GameObject

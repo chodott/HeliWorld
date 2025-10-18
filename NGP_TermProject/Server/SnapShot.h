@@ -2,8 +2,30 @@
 
 #include "SCPacket.h"
 
-struct ServerSnapshot {
-    PlayerInfoPacket playerInfos[4];
-    ItemInfoPacket itemInfos[10];
-    MissileInfoPacket missileInfos[32];
+struct PlayerSnapshot
+{
+    XMFLOAT3 position;
+    XMFLOAT3 rotation;
+    int hp;
 };
+
+struct MissileSnapshot
+{
+    XMFLOAT3 position;
+    XMFLOAT3 rotation;
+    float lifeTime;
+};
+
+struct ItemSnapshot
+{
+    XMFLOAT3 position;
+    float lifeTime;
+};
+
+struct ServerSnapshot 
+{
+    PlayerSnapshot playerSnapshots[4];
+    ItemSnapshot itemSnapshots[10];
+    MissileSnapshot missileSnapshots[32];
+};
+

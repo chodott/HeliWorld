@@ -285,33 +285,24 @@ void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 
 void Server::ResetToSnapshot(uint64_t targetTick)
 {
-	//Item, Player, Missile Initialize
-
 	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
-
-	//Get SnapshotData
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		CPlayer* player = clients[i]->m_player;
-		player->SetPosition(snapshot.playerInfos[i].position);
-		player->RotatePYR(snapshot.playerInfos[i].rotation);
+		player->SetPosition(snapshot.playerSnapshots[i].position);
+		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
+		player->SetHp(snapshot.playerSnapshots[i].hp);
 		for (int j = 0; j < 8; ++j)
 		{
-			player->m_pMissiles[j]->SetPosition(snapshot.missileInfos[i *j].positionX,
-																		snapshot.missileInfos[i*j].positionY,
-																		snapshot.missileInfos[i * j].positionZ);
-
-			//Reset Missile Lifetime
-
+			CMissileObject* missile = player->m_pMissiles[j];
+			missile->SetPosition(snapshot.missileSnapshots[i*j].position);
+			missile->SetLifeTime(snapshot.missileSnapshots[i * j].lifeTime);
 		}
 	}
 	
 	for (int i = 0; i < MAX_ITEM_NUM; ++i)
 	{
-		m_ItemObject[i]->SetPosition(snapshot.itemInfos[i].positionX,
-			snapshot.itemInfos[i].positionY,
-			snapshot.itemInfos[i].positionZ);
-		
+		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
 	}
 
 }
