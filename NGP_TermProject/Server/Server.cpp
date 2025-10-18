@@ -172,7 +172,7 @@ void Server::CheckCollision()
 void Server::Update()
 {
 	uint64_t resimulateStartTick = ReturnResimulateStart();
-	ResetToSnapshot(resiulateStartTick);
+	ResetToSnapshot(resimulateStartTick);
 	for (int tick = resimulateStartTick; tick <= g_serverTick; ++tick)
 	{
 		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
@@ -281,6 +281,39 @@ uint64_t Server::GetTimestampMs()
 void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 {
 	InputBuffers[index].push(keyPacket);
+}
+
+void Server::ResetToSnapshot(uint64_t targetTick)
+{
+	//Item, Player, Missile Initialize
+
+	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
+
+	//Get SnapshotData
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	{
+		CPlayer* player = clients[i]->m_player;
+		player->SetPosition(snapshot.playerInfos[i].position);
+		player->RotatePYR(snapshot.playerInfos[i].rotation);
+		for (int j = 0; j < 8; ++j)
+		{
+			player->m_pMissiles[j]->SetPosition(snapshot.missileInfos[i *j].positionX,
+																		snapshot.missileInfos[i*j].positionY,
+																		snapshot.missileInfos[i * j].positionZ);
+
+			//Reset Missile Lifetime
+
+		}
+	}
+	
+	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	{
+		m_ItemObject[i]->SetPosition(snapshot.itemInfos[i].positionX,
+			snapshot.itemInfos[i].positionY,
+			snapshot.itemInfos[i].positionZ);
+		
+	}
+
 }
 
 uint64_t Server::ReturnResimulateStart()

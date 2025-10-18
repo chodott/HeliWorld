@@ -52,6 +52,7 @@ public:
 
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
+	void SetPosition(XMFLOAT3 position);
 	void SetActive(bool active) { m_bActive = active; }
 	bool IsActive() { return m_bActive; }
 

@@ -48,6 +48,20 @@ void GameObject::SetPosition(float x, float y, float z)
 	MoveOOBB(m_xmf3Position);
 }
 
+void GameObject::SetPosition(XMFLOAT3 position)
+{
+	m_xmf4x4World._41 = position.x;
+	m_xmf4x4World._42 = position.y;
+	m_xmf4x4World._43 = position.z;
+
+	m_fxPos = position.x;
+	m_fyPos = position.y;
+	m_fzPos = position.z;
+
+	m_xmf3Position = position;
+	MoveOOBB(m_xmf3Position);
+}
+
 void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 {
 	m_fOldxPos = m_xmf3Position.x;

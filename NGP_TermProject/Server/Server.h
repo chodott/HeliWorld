@@ -98,7 +98,7 @@ public:
 	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
 	void PushInputData(int index, const PlayerKeyPacket& keyPacket);
-	void ResetToSnapshot(uint64_t targetTick)
+	void ResetToSnapshot(uint64_t targetTick);
 	uint64_t ReturnResimulateStart();
 
 
@@ -120,7 +120,7 @@ private:
 
 	queue<PlayerKeyPacket> InputBuffers[4];
 	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[4];
-	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMaps[4];
+	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 };
 
 
