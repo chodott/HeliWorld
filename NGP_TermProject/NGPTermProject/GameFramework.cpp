@@ -422,21 +422,26 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
-	pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 500));
-	pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 500));
 	switch (client->GetPlayerNum())
 	{
 	case 0:
 		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 100));
+		pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 100));
 		break;
 	case 1:
 		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 900));
+		pAirplanePlayer->SetPredictPosition(XMFLOAT3(900, 400, 900));
+
 		break;
 	case 2:
-		pAirplanePlayer->SetPosition(XMFLOAT3(900.0f, 400.0f, 100.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 100));
+		pAirplanePlayer->SetPredictPosition(XMFLOAT3(900, 400, 100));
+
 		break;
 	case 3:
-		pAirplanePlayer->SetPosition(XMFLOAT3(100.0f, 400.0f, 900.0f));
+		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 900));
+		pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 900));
+
 		break;
 	default:
 		break;

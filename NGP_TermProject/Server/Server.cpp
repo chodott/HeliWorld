@@ -181,12 +181,14 @@ void Server::Update()
 		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 		{
 			CPlayer* player = clients[i]->m_player;
-			player->keyPacket = InputLogMaps[i][tick];
+			if (InputLogMaps[i].find(tick) != InputLogMaps[i].end())
+			{
+				player->keyPacket = InputLogMaps[i][tick];
+			}
 			player->Update(kDt);
 		}
 		CheckCollision();
 		UpdateSnapshot(tick);
-
 	}
 
 	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
