@@ -59,27 +59,32 @@ bool FrameDataManager::IsPositionOutOfSync()
 {
     auto serverSnapData = serverFrameData_dq.back();
     targetTick = serverSnapData.serverTick;
-    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), 
-                                        targetTick, cmpClientTick);
+    auto nextFrameData = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(),
+        targetTick, cmpClientTick);
 
-    if (nextFrameData == clientFrameData_dq.begin() || nextFrameData == clientFrameData_dq.end())
+    if (nextFrameData == clientFrameData_dq.begin() || clientFrameData_dq.size() <= 1)
     {
         return false;
-    } 
+    }
+    else if (nextFrameData == clientFrameData_dq.end())
+    {
+        nextFrameData--;
+    }
     auto prevFrameData = nextFrameData - 1;
 
     float t = (targetTick - prevFrameData->estimatedServerTick)/ 
                 (nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
     XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
     XMFLOAT3 serverPosition = serverSnapData.playerInfos[playerNum].position;
+    clientPosition = prevFrameData->position;
 
     float distance = 0.0f;
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
 
-    /*cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
-    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;*/
+    cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
+    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;
 
 
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;

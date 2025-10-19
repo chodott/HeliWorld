@@ -533,6 +533,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 {
 	static UCHAR pKeysBuffer[256];
 	bool bProcessedByScene = false;
+
 	if (GetKeyboardState(pKeysBuffer) && m_pScene)
 	{
 		bProcessedByScene = m_pScene->ProcessInput(pKeysBuffer);
@@ -562,8 +563,9 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
 	}
 
+
 	frameDataManager->AddClientFrameData({
-	networkSyncManager->GetEstimatedServerTick(),
+	networkSyncManager->GetUpdatedTick(),
 	m_pPlayer->GetPredictPosition(),
 	m_pPlayer->GetRotation(),
 	client->sendKey,
@@ -673,8 +675,12 @@ void CGameFramework::FrameAdvance()
 
 	while (accumulatedSecond >= kDt)
 	{
+		bool isDuplication = networkSyncManager->UpdateServerTick();
+		if (isDuplication == false)
+		{
+			break;
+		}
 		accumulatedSecond -= kDt;
-
 		ProcessInput(kDt);
 		AnimateObjects();
 		client->PrepareInputPacket(m_pPlayer->GetRotation());

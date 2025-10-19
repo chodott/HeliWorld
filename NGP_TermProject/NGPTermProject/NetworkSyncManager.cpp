@@ -51,6 +51,18 @@ uint64_t NetworkSyncManager::GetEstimatedServerTick()
 	return serverTick;
 }
 
+bool NetworkSyncManager::UpdateServerTick()
+{
+	uint64_t newTick = GetEstimatedServerTick();
+	if (updatedTick >= newTick)
+	{
+		return false;
+	}
+
+	updatedTick = newTick;
+	return true;
+}
+
 void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, 
 										const uint64_t serverSendTimestamp)
 {

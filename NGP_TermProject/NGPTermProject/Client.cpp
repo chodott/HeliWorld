@@ -172,7 +172,7 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
 	cs_key.playerKeyInput = sendKey;
 	cs_key.rotation = playerPYR;
-	cs_key.estimatedTick = networkSyncMgr->GetEstimatedServerTick();
+	cs_key.estimatedTick = networkSyncMgr->GetUpdatedTick();
 
 	if (prevKey != sendKey)
 	{
