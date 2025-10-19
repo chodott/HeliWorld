@@ -167,7 +167,6 @@ void CPlayer::Update(float elapsedTime)
 	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
 	RotatePYR(keyPacket.rotation);
-	//Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
 
 	if (keyPacket.playerKeyInput)
 	{

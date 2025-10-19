@@ -99,6 +99,7 @@ public:
 
 	void PushInputData(int index, const PlayerKeyPacket& keyPacket);
 	void ResetToSnapshot(uint64_t targetTick);
+	void UpdateSnapshot(uint64_t targetTick);
 	uint64_t ReturnResimulateStart();
 
 

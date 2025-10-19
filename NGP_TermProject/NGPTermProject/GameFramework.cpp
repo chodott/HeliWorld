@@ -565,7 +565,6 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 	client->deltaMouse,
 		});
 
-	cout << networkSyncManager->GetEstimatedServerTick() << endl;
 }
 
 void CGameFramework::AnimateObjects()

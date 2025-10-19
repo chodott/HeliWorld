@@ -33,6 +33,9 @@ Server::Server()
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		clients[i] = new Client;
+		CPlayer* player = clients[i]->m_player;
+		player->SetPosition(player->initialPos[i]);
+		player->RotatePYR(player->initialRot[i]);
 	}
 	for (int i = 0; i < MAX_ITEM_NUM; i++)
 	{
@@ -179,9 +182,11 @@ void Server::Update()
 		{
 			CPlayer* player = clients[i]->m_player;
 			player->keyPacket = InputLogMaps[i][tick];
-			clients[i]->m_player->Update(kDt);
+			player->Update(kDt);
 		}
 		CheckCollision();
+		UpdateSnapshot(tick);
+
 	}
 
 	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
@@ -285,6 +290,11 @@ void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 
 void Server::ResetToSnapshot(uint64_t targetTick)
 {
+	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
+	{
+		return;
+	}
+
 	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
@@ -292,6 +302,7 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 		player->SetPosition(snapshot.playerSnapshots[i].position);
 		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
 		player->SetHp(snapshot.playerSnapshots[i].hp);
+
 		for (int j = 0; j < 8; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
@@ -305,6 +316,36 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
 	}
 
+}
+
+void Server::UpdateSnapshot(uint64_t targetTick)
+{
+	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
+	{
+		ServerSnapshot empty;
+		SnapshotLogMap.insert(make_pair(targetTick, empty));
+	}
+
+	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	{
+		CPlayer* player = clients[i]->m_player;
+		snapshot.playerSnapshots[i].position =  player->GetCurPos();
+		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
+		snapshot.playerSnapshots[i].hp = player->GetHp();
+
+		for (int j = 0; j < 8; ++j)
+		{
+			CMissileObject* missile = player->m_pMissiles[j];
+			snapshot.missileSnapshots[i * j].position = missile->GetCurPos();
+			snapshot.missileSnapshots[i * j].lifeTime = missile->GetLifeTime();
+		}
+	}
+
+	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	{
+		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
+	}
 }
 
 uint64_t Server::ReturnResimulateStart()
