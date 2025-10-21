@@ -78,6 +78,10 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 void CPlayer::Rotate(float x, float y, float z)
 {
 
+	RecalculateLook();
+	RecalculateRight();
+	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
+
 	if (x != 0.0f)
 	{
 		m_fPitch += x;
@@ -96,7 +100,8 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (m_fRoll > +maxRoll) { z -= (m_fRoll - maxRoll); m_fRoll = +maxRoll; }
 		if (m_fRoll < -maxRoll) { z -= (m_fRoll + maxRoll); m_fRoll = -maxRoll; }
 	}
-
+	//cout << m_xmf3Look.x << "," << m_xmf3Look.y<<","<< m_xmf3Look.z << "\n";
+	//cout << m_xmf3Right.x << "," << m_xmf3Right.y << "," << m_xmf3Right.z << "\n";
 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
 	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();
@@ -162,11 +167,13 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 
 void CPlayer::Update(float elapsedTime)
 {
-	RecalculateLook();
-	RecalculateRight();
-	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
-
 	RotatePYR(keyPacket.rotation);
+
+	//if ((keyPacket.deltaMouse.x != 0.0f) || (keyPacket.deltaMouse.y != 0.0f))
+	//{
+	//	Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
+	//}
+	//cout << keyPacket.deltaMouse.x << "," << keyPacket.deltaMouse.y << "\n";
 
 	if (keyPacket.playerKeyInput)
 	{

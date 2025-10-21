@@ -131,43 +131,10 @@ void CPlayer::Rotate(float x, float y, float z)
 			if (m_fRoll < -20.0f) { z -= (m_fRoll + 20.0f); m_fRoll = -20.0f; }
 		}
 		m_pCamera->Rotate(x, y, z);
-		/*if (y != 0.0f)
-		{
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
-			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
-		}
-		if (x != 0.0f)
-		{
-
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
-			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
-		}*/
 	}
-	else if (nCurrentCameraMode == SPACESHIP_CAMERA)
-	{
-		m_pCamera->Rotate(x, y, z);
-		if (x != 0.0f)
-		{
 
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Right), XMConvertToRadians(x));
-			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
-		}
-		if (y != 0.0f)
-		{
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Up), XMConvertToRadians(y));
-			m_xmf3Look = Vector3::TransformNormal(m_xmf3Look, xmmtxRotate);
-			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
-		}
-		if (z != 0.0f)
-		{
-			XMMATRIX xmmtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3Look), XMConvertToRadians(z));
-			m_xmf3Up = Vector3::TransformNormal(m_xmf3Up, xmmtxRotate);
-			m_xmf3Right = Vector3::TransformNormal(m_xmf3Right, xmmtxRotate);
-		}
-	}
+	//cout << m_xmf3Look.x << "," << m_xmf3Look.y << "," << m_xmf3Look.z << "\n";
+	//cout << m_xmf3Right.x << "," << m_xmf3Right.y << "," << m_xmf3Right.z << "\n";
 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
 	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();

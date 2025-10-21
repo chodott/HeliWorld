@@ -173,13 +173,16 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 	cs_key.playerKeyInput = sendKey;
 	cs_key.rotation = playerPYR;
 	cs_key.estimatedTick = networkSyncMgr->GetUpdatedTick();
+	//cout << deltaMouse.x << "," << deltaMouse.y << "\n";
 
-	if (prevKey != sendKey)
+	if (prevKey != sendKey || deltaMouse.x != 0.0f || deltaMouse.y != 0.0f)
 	{
 		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
 		inputChangedCV.notify_one();
+
 	}
+
 	prevKey = sendKey;
 	sendKey &= (~option6);
 	lastLaunchedMissileNum = -1;

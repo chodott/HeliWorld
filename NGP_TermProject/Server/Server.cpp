@@ -512,6 +512,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
 				client->keyPacket_q.push(keyPacket);
+				cout << keyPacket.estimatedTick << ": " << keyPacket.rotation.x << ", "
+					<< keyPacket.rotation.y << ", " << keyPacket.rotation.z << ", " << "\n";
 				g_server->PushInputData(client->GetPlayerNumber(), keyPacket);
 				break;
 			}
