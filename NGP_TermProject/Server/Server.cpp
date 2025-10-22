@@ -175,8 +175,13 @@ void Server::CheckCollision()
 void Server::Update()
 {
 	uint64_t resimulateStartTick = ReturnResimulateStart();
-	ResetToSnapshot(resimulateStartTick);
-	for (int tick = resimulateStartTick; tick <= g_serverTick; ++tick)
+	uint64_t resetTick = resimulateStartTick;
+	if (resimulateStartTick > 0)
+	{
+		resetTick--;
+	}
+	ResetToSnapshot(resetTick);
+	for (uint64_t tick = resimulateStartTick; tick <= g_serverTick; ++tick)
 	{
 		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 		{
@@ -381,8 +386,8 @@ void Server::SendPacketAllClient()
 	{
 		std::unique_lock<std::mutex> lock(packetQueueLock);
 		packetReadyCV.wait(lock, [this] {
-			return !GetQueue<PlayerInfoBundlePacket>().empty() ||
-				!GetQueue<MissileInfoBundlePacket>().empty() ||
+			return !GetQueue<PlayerInfoBundlePacket>().empty() &&
+				!GetQueue<MissileInfoBundlePacket>().empty() &&
 				!GetQueue<ItemInfoBundlePacket>().empty();
 			});
 	}
@@ -512,8 +517,6 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
 				client->keyPacket_q.push(keyPacket);
-				cout << keyPacket.estimatedTick << ": " << keyPacket.rotation.x << ", "
-					<< keyPacket.rotation.y << ", " << keyPacket.rotation.z << ", " << "\n";
 				g_server->PushInputData(client->GetPlayerNumber(), keyPacket);
 				break;
 			}
@@ -530,7 +533,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 		}
 		int remainSize = combinedSize - offset;
-		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); // ¾ÈÀüÇÏ°Ô ¿Å±â±â
+		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); // ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Å±ï¿½ï¿½
 		combinedSize = remainSize;
 	}
 
