@@ -9,7 +9,7 @@ auto cmpServerTick = [](const ServerFrameData& lhs, const uint64_t& value) {
 
 void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(frameDataLock);
     serverFrameData_dq.emplace_back(frameData);
     serverTick = frameData.serverTick;
 
@@ -25,12 +25,12 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
         clientFrameData_dq.pop_front();
     }
 
-    bool isOutOfSync = IsPositionOutOfSync();
+    CheckPositionOutOfSync();
 }
 
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(frameDataLock);
     float value = 5.0f;
     bool bCanInterpolate = false;
     //for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
@@ -49,22 +49,22 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
     return value;
 }
 
-//pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
-//{
-//    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpClientTimestamp);
-//    return make_pair(target, clientFrameData_dq.end());
-//}
+pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
+{
+   auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTick, cmpClientTick);
+   return make_pair(target, clientFrameData_dq.end());
+}
 
-bool FrameDataManager::IsPositionOutOfSync()
+void FrameDataManager::CheckPositionOutOfSync()
 {
     auto serverSnapData = serverFrameData_dq.back();
-    targetTick = serverSnapData.serverTick;
+    uint64_t serverTick = serverSnapData.serverTick;
     auto nextFrameData = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(),
-        targetTick, cmpClientTick);
+        serverTick, cmpClientTick);
 
     if (nextFrameData == clientFrameData_dq.begin() || clientFrameData_dq.size() <= 1)
     {
-        return false;
+        return;
     }
     else if (nextFrameData == clientFrameData_dq.end())
     {
@@ -72,7 +72,7 @@ bool FrameDataManager::IsPositionOutOfSync()
     }
     auto prevFrameData = nextFrameData - 1;
 
-    float t = (targetTick - prevFrameData->estimatedServerTick)/ 
+    float t = (serverTick - prevFrameData->estimatedServerTick)/ 
                 (nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
     XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
     XMFLOAT3 serverPosition = serverSnapData.playerInfos[playerNum].position;
@@ -83,8 +83,8 @@ bool FrameDataManager::IsPositionOutOfSync()
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
 
-  /*  cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
-    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;*/
+    cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
+    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;
 
 
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;
@@ -93,10 +93,16 @@ bool FrameDataManager::IsPositionOutOfSync()
     bool bOverMaxDistance = (distance >= maxDistance);
    // cout << distance << ", " << maxDistance << "\n";
 
-    return bOverMaxDistance;
+   if(bOverMaxDistance)
+   {
+        lock_guard<std::mutex> lock(resimulateLock);
+        needResimulate = true;
+        targetTick = serverTick;
+   }
 }
 
-bool FrameDataManager::CheckResimulateRequest()
+bool FrameDataManager::IsNeedResimulation()
 {
-    return IsPositionOutOfSync();
+    lock_guard<std::mutex> lock(resimulateLock);
+    return needResimulate;
 }

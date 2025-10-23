@@ -18,23 +18,24 @@ public:
     }
     void AddServerFrameData(const ServerFrameData& frameData);
 
+    pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
-    //pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
-    bool IsPositionOutOfSync();
-
-    bool CheckResimulateRequest();
+    void CheckPositionOutOfSync();
+    bool IsNeedResimulation();
 
     XMFLOAT3 basePosition;
     XMFLOAT3 baseRotation;
 
 private:
-    std::mutex mtx;
+    std::mutex resimulateLock;
+    std::mutex frameDataLock;
     std::deque<ServerFrameData> serverFrameData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
 
     uint64_t targetTick;
     int serverTick;
     int playerNum = 0;
+    bool needResimulate = false;
 
 };
 

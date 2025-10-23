@@ -44,7 +44,7 @@ Server::Server()
 	}
 
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
-
+	UpdateSnapshot(0);
 }
 
 Server::~Server()
