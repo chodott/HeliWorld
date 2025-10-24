@@ -482,6 +482,9 @@ void CGameFramework::Resimulate()
 
 	if(!frameDataManager->IsNeedResimulation())
 	{
+		XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
+		XMFLOAT3& currentPos = m_pPlayer->GetPosition();
+		m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
 		return;
 	}
 

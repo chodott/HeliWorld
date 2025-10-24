@@ -44,6 +44,13 @@ ClientFrameData* FrameDataManager::GetClientFrameData(uint64_t targetTick)
     return nullptr;
 }
 
+XMFLOAT3 FrameDataManager::GetCorrectionPos()
+{
+    XMFLOAT3 correctionPos; 
+    PosCorrectionDataQueue.try_pop(correctionPos);
+    return correctionPos;
+}
+
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
@@ -106,12 +113,14 @@ void FrameDataManager::CheckPositionOutOfSync()
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
 
-    /*cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
-    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;*/
+    cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
+    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;
 
 
-    float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;
-    float maxDistance = 100 * interpDelaySec;
+
+
+    float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
+    float maxDistance = 150 * interpDelaySec;
 
     bool bOverMaxDistance = (distance >= maxDistance);
    // cout << distance << ", " << maxDistance << "\n";
@@ -124,6 +133,12 @@ void FrameDataManager::CheckPositionOutOfSync()
         int index = serverFrameData_dq.size() - 2;
         basePosition = serverFrameData_dq[index].playerInfos[playerNum].position;
         baseRotation = serverFrameData_dq[index].playerInfos[playerNum].rotation;
+   }
+   else
+   {
+       PosCorrectionDataQueue.push(XMFLOAT3(serverPosition.x - clientPosition.x,
+                                                                            serverPosition.y - clientPosition.y, 
+                                                                        serverPosition.z - clientPosition.z));
    }
 }
 
