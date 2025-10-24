@@ -485,33 +485,45 @@ void CGameFramework::Resimulate()
 		return;
 	}
 
-
-	auto& range =  frameDataManager->GetSimulateRange();
-	auto begin = range.first; 
-	auto end = range.second;
+	auto& tickRange =  frameDataManager->GetSimulateTickRange();
+	const uint64_t startTick = tickRange.first; 
+	const uint64_t endTick = tickRange.second;
 
 	m_pPlayer->SetServerPosition(frameDataManager->basePosition);
 	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
 
-	for (std::deque<ClientFrameData>::iterator iter = begin; iter != end; ++iter)
+	unsigned char curKeyInput = 0;
+	XMFLOAT3 curRotation;
+
+	for (uint64_t currentTick = startTick; currentTick <= endTick; ++currentTick)
 	{
+		ClientFrameData* currentFrameData =  frameDataManager->GetClientFrameData(currentTick);
+	
+		if (currentFrameData != nullptr)
+		{
+			curKeyInput = currentFrameData->playerKeyInput;
+			curRotation = currentFrameData->rotation;
+		}
 		//Input Simulation
 		DWORD dwDirection = 0;
-		if (iter->playerKeyInput & 0x01) dwDirection |= DIR_FORWARD;
-		if (iter->playerKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
-		if (iter->playerKeyInput & 0x04) dwDirection |= DIR_LEFT;
-		if (iter->playerKeyInput & 0x08) dwDirection |= DIR_RIGHT;
-		if (iter->playerKeyInput & 0x10) dwDirection |= DIR_UP;
-		if (iter->playerKeyInput & 0x20) dwDirection |= DIR_DOWN;
+		if (curKeyInput& 0x01) dwDirection |= DIR_FORWARD;
+		if (curKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+		if (curKeyInput & 0x04) dwDirection |= DIR_LEFT;
+		if (curKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+		if (curKeyInput & 0x10) dwDirection |= DIR_UP;
+		if (curKeyInput & 0x20) dwDirection |= DIR_DOWN;
 
-		m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
+		m_pPlayer->RotatePYR(curRotation);
 		if (dwDirection) m_pPlayer->Move(dwDirection, kDt, false);
 
-
 		//Simulation data Update
-		iter->position = m_pPlayer->GetPredictPosition();
-		iter->rotation = m_pPlayer->GetRotation();
+		if (currentFrameData != nullptr)
+		{
+			currentFrameData->position = m_pPlayer->GetPredictPosition();
+			currentFrameData->rotation = m_pPlayer->GetRotation();
+
+		}
 	}
 }
 
@@ -605,7 +617,6 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 
-			if (value > 3.0f) continue;
 			//Update HUD
 			for (int j = 1; j < 11; ++j)
 			{

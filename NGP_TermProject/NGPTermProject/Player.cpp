@@ -133,8 +133,6 @@ void CPlayer::Rotate(float x, float y, float z)
 		m_pCamera->Rotate(x, y, z);
 	}
 
-	//cout << m_xmf3Look.x << "," << m_xmf3Look.y << "," << m_xmf3Look.z << "\n";
-	//cout << m_xmf3Right.x << "," << m_xmf3Right.y << "," << m_xmf3Right.z << "\n";
 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
 	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();
@@ -213,7 +211,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 
 	XMFLOAT3 renderPosition = LerpFloat3(GetPredictPosition(), serverPosition, lerpAlpha);
 	SetPosition(renderPosition);
-	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
+	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 1.f, 1.f });
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 

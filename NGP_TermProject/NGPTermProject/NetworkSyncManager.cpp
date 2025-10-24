@@ -79,7 +79,4 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp,
 	rttAvg = GetDequeAvg(rtt_dq);
 	float delay = (int)(rttAvg * 0.5f) + DEFAULT_DELAY_MS;
 	delayTick = delay / kDtMs;
-	cout << delayTick << "\n";
-
-
 }

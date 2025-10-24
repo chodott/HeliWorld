@@ -18,7 +18,8 @@ public:
     }
     void AddServerFrameData(const ServerFrameData& frameData);
 
-    pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
+    pair<uint64_t, uint64_t> GetSimulateTickRange();
+    ClientFrameData* GetClientFrameData(uint64_t targetTick);
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     void CheckPositionOutOfSync();
     bool IsNeedResimulation();

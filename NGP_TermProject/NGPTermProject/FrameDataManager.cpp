@@ -28,6 +28,22 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
     CheckPositionOutOfSync();
 }
 
+ClientFrameData* FrameDataManager::GetClientFrameData(uint64_t targetTick)
+{
+    auto it = std::lower_bound(
+        clientFrameData_dq.begin(),
+        clientFrameData_dq.end(),
+        targetTick,
+        cmpClientTick
+    );
+
+    if (it != clientFrameData_dq.end() && it->estimatedServerTick == targetTick) {
+        return &(*it);
+    }
+
+    return nullptr;
+}
+
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
@@ -46,11 +62,21 @@ float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFram
     return value;
 }
 
-pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
+pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
 {
-   auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTick, cmpClientTick);
-   return make_pair(target, clientFrameData_dq.end());
+    uint64_t startTick = targetTick;
+    uint64_t endTick = clientFrameData_dq.back().estimatedServerTick;
+
+
+    if (startTick > endTick)
+    {
+        return std::make_pair(endTick, endTick);
+    }
+
+   return std::make_pair(targetTick, endTick);
 }
+
+
 
 void FrameDataManager::CheckPositionOutOfSync()
 {
@@ -95,6 +121,9 @@ void FrameDataManager::CheckPositionOutOfSync()
         lock_guard<std::mutex> lock(resimulateLock);
         needResimulate = true;
         targetTick = serverTick;
+        int index = serverFrameData_dq.size() - 2;
+        basePosition = serverFrameData_dq[index].playerInfos[playerNum].position;
+        baseRotation = serverFrameData_dq[index].playerInfos[playerNum].rotation;
    }
 }
 
