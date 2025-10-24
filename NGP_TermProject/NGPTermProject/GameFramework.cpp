@@ -507,7 +507,6 @@ void CGameFramework::Resimulate()
 
 		m_pPlayer->Rotate(iter->deltaMouse.y, iter->deltaMouse.x, 0.0f);
 		if (dwDirection) m_pPlayer->Move(dwDirection, kDt, false);
-		m_pPlayer->Update(kDt);
 
 
 		//Simulation data Update
@@ -597,7 +596,7 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 	static ServerFrameData prevData;
 	static ServerFrameData nextData;
 
-	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTimeMs());
+	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTick());
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->GetPlayerNum())

@@ -31,21 +31,18 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
-    float value = 5.0f;
     bool bCanInterpolate = false;
-    //for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
-    //    if (serverFrameData_dq[i].timestamp <= serverTime &&
-    //        serverFrameData_dq[i + 1].timestamp >= serverTime) {
-    //        prevData = serverFrameData_dq[i];
-    //        nextData = serverFrameData_dq[i + 1];
-    //        bCanInterpolate = true;
-    //        break;
-    //    }
-    //}
-    //if (bCanInterpolate)
-    //{
-    //    value = float(serverTime - prevData.timestamp) / float(nextData.timestamp - prevData.timestamp);
-    //}
+    float value = 1.0f;
+    for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
+        if (serverFrameData_dq[i].serverTick < tick &&
+            serverFrameData_dq[i + 1].serverTick >= tick) {
+            prevData = serverFrameData_dq[i];
+            nextData = serverFrameData_dq[i + 1];
+            bCanInterpolate = true;
+            break;
+        }
+    }
+
     return value;
 }
 
@@ -83,8 +80,8 @@ void FrameDataManager::CheckPositionOutOfSync()
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
 
-    cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
-    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;
+    /*cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
+    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;*/
 
 
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 20.0f) * 0.001f;

@@ -205,31 +205,15 @@ void CPlayer::Update(float fTimeElapsed)
 
 void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float lerpAlpha)
 {
-	if (lerpAlpha > 3.0f)
-	{
-		SetPosition(GetPredictPosition());
-	}
-	else
-	{
-		XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
-		DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
-	}
+	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
+	DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 
-	// 위치 스무딩
-	XMVECTOR curPosition = XMLoadFloat3(&GetPosition());
-	XMVECTOR targetPosition = XMLoadFloat3(&GetPredictPosition());
-	XMVECTOR delta = XMVectorSubtract(targetPosition, curPosition);
+	// Smoothing
+	DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
 
-	float alpha = 1.f - std::exp(-fTimeElapsed / 0.012f);
-
-	XMVECTOR step = XMVectorScale(delta, lerpAlpha);
-	XMVECTOR next = XMVectorAdd(curPosition, step);
-	XMFLOAT3 nextPosition;
-	XMStoreFloat3(&nextPosition, next);
-	SetPosition(nextPosition);
-
-	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), {1.f, 0.f, 0.f, 1.f});
-	//DebugDrawManager::Get().AddDebugCube(GetRealPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
+	XMFLOAT3 renderPosition = LerpFloat3(GetPredictPosition(), serverPosition, lerpAlpha);
+	SetPosition(renderPosition);
+	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
