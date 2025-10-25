@@ -103,7 +103,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		if (!GetActive()) return;
 
 		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		SetPosition(GetRealPosition());
+		SetPosition(GetPredictPosition());
 
 		if (bActiveInServer == true)
 		{
@@ -117,7 +117,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 				XMFLOAT3 nextPosition = ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
 
 				XMFLOAT3 serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
-				XMFLOAT3& clientPosition = GetRealPosition();
+				XMFLOAT3& clientPosition = GetPredictPosition();
 				XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
 				SetPosition(clientPosition);
 				DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
@@ -125,7 +125,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		}
 		else
 			{
-				SetPosition(GetRealPosition());
+				SetPosition(GetPredictPosition());
 			}
 			DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
 
@@ -149,9 +149,9 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 
 void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
-	m_xmf3RealPosition.x += vDirection.x * fSpeed;
-	m_xmf3RealPosition.y += vDirection.y * fSpeed;
-	m_xmf3RealPosition.z += vDirection.z * fSpeed;
+	m_xmf3PredictPosition.x += vDirection.x * fSpeed;
+	m_xmf3PredictPosition.z += vDirection.z * fSpeed;
+	m_xmf3PredictPosition.y += vDirection.y * fSpeed;
 
 	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }

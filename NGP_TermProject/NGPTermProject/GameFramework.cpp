@@ -66,6 +66,7 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 	BuildObjects();
 	client->ConnectServer();
+	Initialize();
 
 	return(true);
 }
@@ -422,40 +423,9 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer* pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
-	switch (client->GetPlayerNum())
-	{
-	case 0:
-		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 100));
-		pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 100));
-		break;
-	case 1:
-		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 900));
-		pAirplanePlayer->SetPredictPosition(XMFLOAT3(900, 400, 900));
 
-		break;
-	case 2:
-		pAirplanePlayer->SetPosition(XMFLOAT3(900, 400, 100));
-		pAirplanePlayer->SetPredictPosition(XMFLOAT3(900, 400, 100));
-
-		break;
-	case 3:
-		pAirplanePlayer->SetPosition(XMFLOAT3(100, 400, 900));
-		pAirplanePlayer->SetPredictPosition(XMFLOAT3(100, 400, 900));
-
-		break;
-	default:
-		break;
-	}
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
-
-	int playerNum = client->GetPlayerNum();
-
-	for (int i = playerNum * 8; i < (playerNum + 1) * 8; ++i)
-	{
-		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
-		missile->bLocalMissile = true;
-	}
 
 	m_pd3dCommandList->Close();
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
@@ -467,6 +437,43 @@ void CGameFramework::BuildObjects()
 	if (m_pPlayer) m_pPlayer->ReleaseUploadBuffers();
 
 	m_GameTimer.Reset();
+}
+
+void CGameFramework::Initialize()
+{
+
+	int playerNum = client->GetPlayerNum();
+	cout << playerNum << "\n";
+	switch (playerNum)
+	{
+	case 0:
+		m_pPlayer->SetPosition(XMFLOAT3(100, 400, 100));
+		m_pPlayer->SetPredictPosition(XMFLOAT3(100, 400, 100));
+		break;
+	case 1:
+		m_pPlayer->SetPosition(XMFLOAT3(900, 400, 900));
+		m_pPlayer->SetPredictPosition(XMFLOAT3(900, 400, 900));
+
+		break;
+	case 2:
+		m_pPlayer->SetPosition(XMFLOAT3(900, 400, 100));
+		m_pPlayer->SetPredictPosition(XMFLOAT3(900, 400, 100));
+
+		break;
+	case 3:
+		m_pPlayer->SetPosition(XMFLOAT3(100, 400, 900));
+		m_pPlayer->SetPredictPosition(XMFLOAT3(100, 400, 900));
+		break;
+	default:
+		break;
+	}
+
+	for (int i = playerNum * 8; i < (playerNum + 1) * 8; ++i)
+	{
+		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
+		missile->bLocalMissile = true;
+	}
+
 }
 
 void CGameFramework::ReleaseObjects()

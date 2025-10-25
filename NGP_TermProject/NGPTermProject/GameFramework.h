@@ -31,6 +31,7 @@ public:
 	void ChangeSwapChainState();
 
     void BuildObjects();
+	void Initialize();
     void ReleaseObjects();
 
 	void MergeInput();

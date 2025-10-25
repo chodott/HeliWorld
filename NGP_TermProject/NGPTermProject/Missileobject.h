@@ -28,14 +28,14 @@ public:
 	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
 
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
-	inline void SetRealPosition(const XMFLOAT3& xmf3Position) { m_xmf3RealPosition = xmf3Position; }
-	XMFLOAT3 GetRealPosition() { return m_xmf3RealPosition; }
+	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
+	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
 
 	bool bActiveInServer = false;
 	bool bLocalMissile = false;
 
 private:
-	XMFLOAT3					m_xmf3RealPosition;
+	XMFLOAT3					m_xmf3PredictPosition;
 	XMFLOAT3					m_xmf3ServerPosition;
 
 	const int movingSpeed = 500.f;
