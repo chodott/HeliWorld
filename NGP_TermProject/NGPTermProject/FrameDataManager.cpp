@@ -113,17 +113,11 @@ void FrameDataManager::CheckPositionOutOfSync()
                     + pow((clientPosition.y - serverPosition.y),2)
                     + pow((clientPosition.z - serverPosition.z),2));
 
-    cout << "client:" << clientPosition.x << ", "<<clientPosition.y << "," << clientPosition.z << endl;
-    cout << "server:" << serverPosition.x << ", "<<serverPosition.y << "," << serverPosition.z << endl;
-
-
-
-
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
     float maxDistance = 150 * interpDelaySec;
+    
 
     bool bOverMaxDistance = (distance >= maxDistance);
-   // cout << distance << ", " << maxDistance << "\n";
 
    if(bOverMaxDistance)
    {

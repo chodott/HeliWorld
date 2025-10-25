@@ -700,6 +700,8 @@ void CGameFramework::FrameAdvance()
 		client->PrepareInputPacket(m_pPlayer->GetRotation());
 	}
 
+	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
+
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
 

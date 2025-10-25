@@ -89,6 +89,7 @@ public:
 
 	void Update(float fTimeElapsed);
 	virtual void Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket,float lerpAlpha);
+	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
 	void SetPlayerUpdatedContext(LPVOID pContext) { m_pPlayerUpdatedContext = pContext; }
