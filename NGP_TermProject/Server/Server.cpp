@@ -315,6 +315,7 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 			CMissileObject* missile = player->m_pMissiles[j];
 			missile->SetPosition(snapshot.missileSnapshots[i*j].position);
 			missile->SetLifeTime(snapshot.missileSnapshots[i * j].lifeTime);
+			missile->SetActive(snapshot.missileSnapshots[i * j].active);
 		}
 	}
 	
@@ -346,6 +347,7 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 			CMissileObject* missile = player->m_pMissiles[j];
 			snapshot.missileSnapshots[i * j].position = missile->GetCurPos();
 			snapshot.missileSnapshots[i * j].lifeTime = missile->GetLifeTime();
+			snapshot.missileSnapshots[i * j].active = missile->IsActive();
 		}
 	}
 

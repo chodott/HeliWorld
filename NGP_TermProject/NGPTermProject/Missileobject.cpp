@@ -103,19 +103,15 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		if (!GetActive()) return;
 
 		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		if (lerpAlpha >= 3.0f)
-		{
-			SetPosition(GetRealPosition());
-		}
-		else
-		{
-			if (bActiveInServer == true)
-			{
-				SetActive(prevPacket.active);
-			}
+		SetPosition(GetRealPosition());
 
-			if (prevPacket.active == true)
-			{
+		if (bActiveInServer == true)
+		{
+			SetActive(prevPacket.active);
+		}
+
+		if (prevPacket.active == true)
+		{
 
 				XMFLOAT3 prevPosition = ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
 				XMFLOAT3 nextPosition = ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
@@ -126,20 +122,18 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 				SetPosition(clientPosition);
 				DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 
-			}
-			else
+		}
+		else
 			{
 				SetPosition(GetRealPosition());
 			}
 			DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
 
 			bActiveInServer = prevPacket.active;
-		}
 	}
 
 	else
 	{
-		if (lerpAlpha >= 3.0f) return;
 		SetActive(prevPacket.active);
 		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
 		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));

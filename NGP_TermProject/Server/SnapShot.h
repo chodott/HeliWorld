@@ -14,6 +14,7 @@ struct MissileSnapshot
     XMFLOAT3 position;
     XMFLOAT3 rotation;
     float lifeTime;
+    bool active;
 };
 
 struct ItemSnapshot
