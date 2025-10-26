@@ -35,8 +35,8 @@ DWORD WINAPI AcceptClient(LPVOID arg);
 
 
 // 틱 동기화 용 공용 유틸
-constexpr double kDt = 1.0 / 60.0;
-constexpr int		kDt_ms = 16;
+constexpr double kDt = 1.0 / 30.0;
+constexpr int		kDt_ms = 33;
 
 
 

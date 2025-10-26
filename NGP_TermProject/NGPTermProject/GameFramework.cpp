@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "GameFramework.h"
 
-constexpr double kDt = 1.0 / 60.0;
+constexpr double kDt = 1.0 / 30.0;
 constexpr double kDtMs = kDt * 1000.0;
 double accumulatedSecond;
 
@@ -487,13 +487,13 @@ void CGameFramework::ReleaseObjects()
 void CGameFramework::Resimulate()
 {
 
-	if(!frameDataManager->IsNeedResimulation())
-	{
-		XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
-		XMFLOAT3& currentPos = m_pPlayer->GetPosition();
-		m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
-		return;
-	}
+    if(!frameDataManager->IsNeedResimulation())
+    {
+        XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
+        XMFLOAT3& currentPos = m_pPlayer->GetPosition();
+        m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
+        return;
+    }
 
 	auto& tickRange =  frameDataManager->GetSimulateTickRange();
 	const uint64_t startTick = tickRange.first; 
@@ -533,8 +533,10 @@ void CGameFramework::Resimulate()
 			currentFrameData->position = m_pPlayer->GetPredictPosition();
 			currentFrameData->rotation = m_pPlayer->GetRotation();
 
-		}
-	}
+        }
+    }
+	// 재시뮬레이션이 완료되었으므로 플래그 해제
+	frameDataManager->FinishResimulation();
 }
 
 void CGameFramework::MergeInput()

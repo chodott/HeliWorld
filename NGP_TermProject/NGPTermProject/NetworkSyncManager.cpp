@@ -3,7 +3,7 @@
 float NetworkSyncManager::offsetAvg = 0.f;
 float NetworkSyncManager::rttAvg = 0.f;
 
-constexpr double kDt = 1.0 / 60.0;
+constexpr double kDt = 1.0 / 30.0;
 constexpr double kDtMs = kDt * 1000.0;
 
 template<class T> 

@@ -193,6 +193,13 @@ void Server::Update()
 			player->Update(kDt);
 		}
 		CheckCollision();
+
+		while (!trashCan.empty())
+		{
+			trashCan.front()->Deactivate();
+			trashCan.pop();
+		}
+
 		UpdateSnapshot(tick);
 	}
 
@@ -218,12 +225,6 @@ void Server::Update()
 		itemSpawnTime -= itemRespawnTime;
 		if (connectedClients >= 2)
 			SpawnItem();
-	}
-
-	while (!trashCan.empty())
-	{
-		trashCan.front()->Deactivate();
-		trashCan.pop();
 	}
 
 	PreparePackets();

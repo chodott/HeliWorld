@@ -8,7 +8,7 @@
 
 class FrameDataManager
 {
-public:
+  public:
     inline void SetPlayerNum(int n) 
     {
         playerNum = n;
@@ -24,7 +24,14 @@ public:
     XMFLOAT3 GetCorrectionPos();
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     void CheckPositionOutOfSync();
-    bool IsNeedResimulation();
+      bool IsNeedResimulation();
+
+      // 롤백 재시뮬레이션이 완료되었을 때 플래그를 해제한다.
+      inline void FinishResimulation()
+      {
+          std::lock_guard<std::mutex> lock(resimulateLock);
+          needResimulate = false;
+      }
 
     XMFLOAT3 basePosition;
     XMFLOAT3 baseRotation;
