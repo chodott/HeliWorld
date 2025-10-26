@@ -74,9 +74,9 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.66";
+	const char* serverIp = (char*)"192.168.219.66";
 
-	unsigned char option0 = 0x01;   // 0000 0001 
+	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010
 	unsigned char option2 = 0x04;   // 0000 0100
 	unsigned char option3 = 0x08;   // 0000 1000

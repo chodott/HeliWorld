@@ -17,6 +17,7 @@
 
 #define MAX_CLIENT_NUM		4
 #define MAX_ITEM_NUM		10
+#define MAX_MISSILE_NUM 8
 
 #define RESPAWN_TIME		5.f
 

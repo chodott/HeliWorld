@@ -310,12 +310,13 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
 		player->SetHp(snapshot.playerSnapshots[i].hp);
 
+		int startMissileIndex = i * MAX_MISSILE_NUM;
 		for (int j = 0; j < 8; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
-			missile->SetPosition(snapshot.missileSnapshots[i*j].position);
-			missile->SetLifeTime(snapshot.missileSnapshots[i * j].lifeTime);
-			missile->SetActive(snapshot.missileSnapshots[i * j].active);
+			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex +j].position);
+			missile->SetLifeTime(snapshot.missileSnapshots[startMissileIndex + j].lifeTime);
+			missile->SetActive(snapshot.missileSnapshots[startMissileIndex + j].active);
 		}
 	}
 	
@@ -342,12 +343,13 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
 		snapshot.playerSnapshots[i].hp = player->GetHp();
 
-		for (int j = 0; j < 8; ++j)
+		int startMissileIndex = i * MAX_MISSILE_NUM;
+		for (int j = 0; j < MAX_MISSILE_NUM; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
-			snapshot.missileSnapshots[i * j].position = missile->GetCurPos();
-			snapshot.missileSnapshots[i * j].lifeTime = missile->GetLifeTime();
-			snapshot.missileSnapshots[i * j].active = missile->IsActive();
+			snapshot.missileSnapshots[startMissileIndex + j].position = missile->GetCurPos();
+			snapshot.missileSnapshots[startMissileIndex + j].lifeTime = missile->GetLifeTime();
+			snapshot.missileSnapshots[startMissileIndex + j].active = missile->IsActive();
 		}
 	}
 
