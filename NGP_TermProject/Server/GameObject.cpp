@@ -133,13 +133,14 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-void CPlayer::LaunchMissile(int16_t missileNum, float fLatency = 0)
+void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 {
 	if (missileNum < 0) return;
 	CMissileObject* missile = m_pMissiles[missileNum];
 	if (!missile->IsActive())
 	{
 		missile->m_bActive = true;
+		missile->SetID(missileNum);
 		missile->m_xmf3Look = m_xmf3Look;
 		missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
 											m_fyPos + m_xmf3Look.y * fLatency,
@@ -168,12 +169,6 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 void CPlayer::Update(float elapsedTime)
 {
 	RotatePYR(keyPacket.rotation);
-
-	//if ((keyPacket.deltaMouse.x != 0.0f) || (keyPacket.deltaMouse.y != 0.0f))
-	//{
-	//	Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
-	//}
-	//cout << keyPacket.deltaMouse.x << "," << keyPacket.deltaMouse.y << "\n";
 
 	if (keyPacket.playerKeyInput)
 	{

@@ -168,10 +168,11 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 		if (missile->GetActive()) continue;
 		else
 		{
+
 			missile->SetActive(true);
 			missile->SetPredictPosition(GetPosition());
 			missile->SetMovingDirection(GetLookVector());
-			client->lastLaunchedMissileNum = i;
+			++client->lastLaunchedMissileNum;
 			break;
 
 		}
@@ -210,7 +211,7 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
 {
 
-	XMFLOAT3 renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.2f);
+	XMFLOAT3 renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
 	SetPosition(renderPosition);
 
 

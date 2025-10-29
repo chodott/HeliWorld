@@ -263,7 +263,8 @@ void Server::PreparePackets()
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
 			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * player->maxMissileNum + i];
-			ConvertFloat3toInt32(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
+			missileInfo.position = missile->GetCurPos();
+			//ConvertFloat3toInt32(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
 			missileInfo.active = missile->IsActive();
 		}
 	}

@@ -83,7 +83,7 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	void LaunchMissile(int16_t missileNum, float fLatency);
+	void LaunchMissile(uint64_t missileNum, float fLatency);
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime);
 	void Reset(int playerNum);
@@ -130,6 +130,10 @@ public:
 	void Reset();
 	inline void SetLifeTime(float lifeTime) { m_fLifeSpan = lifeTime; }
 	inline float GetLifeTime() { return m_fLifeSpan; }
+	inline void SetID(uint64_t id) { m_netID = id; }
+
+private:
+	uint64_t m_netID = 0;
 };
 
 class CItemObject : public GameObject

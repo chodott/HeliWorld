@@ -115,7 +115,7 @@ private:
 	SOCKET listenSock;
 
 	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 60.0f;
+	const float FIXED_DELTA_TIME = 1.0f / 30.0f;
 	
 	std::mutex packetQueueLock;
 	std::condition_variable packetReadyCV;
