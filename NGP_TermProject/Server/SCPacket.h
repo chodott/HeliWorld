@@ -86,6 +86,7 @@ struct LocalMissileEventPacket
 	XMFLOAT3 rotation;
 	uint64_t missileNum;
 	uint64_t eventTick;
+	int playerNum;
 	bool active;
 };
 

@@ -73,6 +73,7 @@ public:
 	void CheckCollision();
 	void SpawnItem();
 	void PreparePackets();
+	void GenerateEvents(uint64_t tick, int playerNum);
 
 	uint64_t GetTimestampMs();
 
