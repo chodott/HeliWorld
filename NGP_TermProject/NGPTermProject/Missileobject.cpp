@@ -19,11 +19,11 @@ void CMissleObject::AnimateObject(float fElapsedTime)
 	//{
 	//	if (m_fRotationSpeed != 0.0f)
 	//		Rotate(m_xmf3RotationAxis, m_fRotationSpeed * fElapsedTime);
-	//	// ÃÑ¾ËÀÇ ÀÌµ¿¼Óµµ°¡ 0ÀÌ ¾Æ´Ï¸é ÀÌµ¿À» ÇÑ´Ù.
+	//	// ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Óµï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	//	m_fMovingSpeed = 100;
 	//	if (m_fMovingSpeed != 0.0f)
 	//		Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
-	//	// ÃÑ¾ËÀÇ Ãæµ¹¹Ú½º¸¦ °è¼Ó ¾Ö´Ï¸ÞÀÌÆ® ÇØÁÖ¾î¾ß ÃÑ¾ËÀÇ À§Ä¡°¡ º¯ÇÔ¿¡µû¶ó Ãæµ¹ ¹Ú½ºµµ °°ÀÌ À§Ä¡°¡ º¯ÇÑ´Ù.
+	//	// ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½æµ¹ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 	//	SetOOBB(GetPosition(), XMFLOAT3(5, 5, 5), XMFLOAT4(0., 0., 0., 1.));
 	//	//XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 	//}
@@ -39,7 +39,7 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 	if (!GetActive()) return;
 	if (m_ppMaterials)
 	{
-		if (m_ppMaterials[0]->m_pShader)//->½¦ÀÌ´õ 
+		if (m_ppMaterials[0]->m_pShader)//->ï¿½ï¿½ï¿½Ì´ï¿½ 
 		{
 			m_ppMaterials[0]->m_pShader->Render(pd3dCommandList, pCamera);
 			m_ppMaterials[0]->m_pShader->UpdateShaderVariables(pd3dCommandList);
@@ -132,10 +132,9 @@ void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
-void CMissleObject::ApplyServerResult(const XMFLOAT3& newPosition, float timeElapsed, int tick)
+void CMissleObject::ApplyServerResult(float fTimeElapsed, int tick)
 {
-	SetPredictPosition(newPosition);
-	Move(GetMovingDirection(), timeElapsed* movingSpeed);
+	Move(GetMovingDirection(), fTimeElapsed * tick * movingSpeed);
 }
 
 void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)

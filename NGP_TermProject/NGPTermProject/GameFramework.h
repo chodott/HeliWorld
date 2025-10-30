@@ -40,6 +40,7 @@ public:
 	void AnimatePlayers(float fTimeElapsed);
     void FrameAdvance();
 	void Resimulate();
+	void ApplyMissileEvents();
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();

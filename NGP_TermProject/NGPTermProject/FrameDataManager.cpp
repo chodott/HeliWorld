@@ -51,24 +51,6 @@ XMFLOAT3 FrameDataManager::GetCorrectionPos()
     return correctionPos;
 }
 
-MissileCorrectionData* FrameDataManager::GetMissileCorrectionData(uint64_t targetTick)
-{
-    if (MissilePosCorrectionDataQueue.empty() == true)
-    {
-        return NULL;
-    }
-
-    MissileCorrectionData temp;
-    if (MissilePosCorrectionDataQueue.unsafe_begin()->targetTick <= targetTick)
-    {
-        MissilePosCorrectionDataQueue.try_pop(temp);
-        return &temp;
-    }
-
-
-    return NULL;
-}
-
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
@@ -101,7 +83,10 @@ pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
    return std::make_pair(targetTick, endTick);
 }
 
-
+void FrameDataManager::ReceiveMissileEvent(const LocalMissileEventPacket& pkt)
+{
+    MissileEventQueue.push(pkt);
+}
 
 void FrameDataManager::CheckPositionOutOfSync()
 {
@@ -153,52 +138,6 @@ void FrameDataManager::CheckPositionOutOfSync()
                                                                             serverPosition.y - clientPosition.y, 
                                                                         serverPosition.z - clientPosition.z));
    }
-
-
-   // Check Missile Sync
-  /* for (int i = 0; i < 8; ++i)
-   {
-       bool serverMissileAcitve = serverSnapData.missileInfos[playerNum * 8 + i].active;
-       bool clientMissileActive = prevFrameData->missilesActive[i];
-       if (serverMissileAcitve == clientMissileActive)
-       {
-           if (serverMissileAcitve == false)
-           {
-               continue;
-           }
-
-           clientPosition = LerpFloat3(prevFrameData->missilesPosition[i], nextFrameData->missilesPosition[i], t);
-           serverPosition = serverSnapData.missileInfos[playerNum * 8 + i].position;
-
-           MissilePosCorrectionDataQueue.push({
-               i,
-               serverPosition,
-               targetTick,
-               true,
-               });
-       }
-       else
-       {
-           if (serverMissileAcitve == true)
-           {
-               MissilePosCorrectionDataQueue.push({
-               i,
-               serverPosition,
-               targetTick,
-               true,
-                   });
-           }
-           else
-           {
-               MissilePosCorrectionDataQueue.push({
-               i,
-               serverPosition,
-               targetTick,
-               false,
-                   });
-           }
-       }
-   }*/
 }
 
 bool FrameDataManager::IsNeedResimulation()

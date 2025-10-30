@@ -200,7 +200,7 @@ void Server::Update()
 			trashCan.pop();
 		}
 
-		GenerateEvents(tick, i);
+		GenerateEvents(tick);
 
 		UpdateSnapshot(tick);
 	}
@@ -286,32 +286,35 @@ void Server::PreparePackets()
 	PushPacket(itemBundle);
 }
 
-void Server::GenerateEvents(uint64_t tick, int playerNum)
+void Server::GenerateEvents(uint64_t tick)
 {
-	CPlayer* player = clients[playerNum]->m_player;
-	ServerSnapshot& snapshot = SnapshotLogMap[tick-1];
 
-	for (int i = 0; i < MAX_MISSILE_NUM; ++i)
+	for (int playerNum = 0; playerNum < MAX_CLIENT_NUM; ++playerNum)
 	{
-		CMissileObject* missile = player->m_pMissiles[i];
-		bool prevMissileActive = snapshot.missileSnapshots[playerNum * MAX_MISSILE_NUM + i].active;
-		bool curMissileActive = missile->IsActive();
-		if (prevMissileActive == curMissileActive)
+		CPlayer* player = clients[playerNum]->m_player;
+		ServerSnapshot& snapshot = SnapshotLogMap[tick - 1];
+		for (int i = 0; i < MAX_MISSILE_NUM; ++i)
 		{
-			continue;
-		}
-
-		GetQueue<LocalMissileEventPacket>().push(
+			CMissileObject* missile = player->m_pMissiles[i];
+			bool prevMissileActive = snapshot.missileSnapshots[playerNum * MAX_MISSILE_NUM + i].active;
+			bool curMissileActive = missile->IsActive();
+			if (prevMissileActive == curMissileActive)
 			{
-				CS_LocalMissileEvent,
-				missile->GetCurPos(),
-				missile->GetCurRot(),
-				missile->GetID(),
-				tick,
-				playerNum,
-				missile->IsActive()
+				continue;
 			}
-		);
+
+			GetQueue<LocalMissileEventPacket>().push(
+				{
+					CS_LocalMissileEvent,
+					missile->GetCurPos(),
+					missile->GetMovingDirection(),
+					missile->GetID(),
+					tick,
+					playerNum,
+					missile->IsActive()
+				}
+			);
+		}
 	}
 }
 

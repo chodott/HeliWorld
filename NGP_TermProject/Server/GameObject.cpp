@@ -133,7 +133,7 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-bool CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
+void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 {
 	if (missileNum < 0) return;
 	CMissileObject* missile = m_pMissiles[missileNum];
@@ -145,7 +145,6 @@ bool CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 		missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
 											m_fyPos + m_xmf3Look.y * fLatency,
 											m_fzPos + m_xmf3Look.z * fLatency);
-		return true;
 	}
 }
 

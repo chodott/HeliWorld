@@ -83,7 +83,7 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	bool LaunchMissile(uint64_t missileNum, float fLatency);
+	void LaunchMissile(uint64_t missileNum, float fLatency);
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime);
 	void Reset(int playerNum);
@@ -132,6 +132,7 @@ public:
 	inline float GetLifeTime() { return m_fLifeSpan; }
 	inline void SetID(uint64_t id) { m_netID = id; }
 	inline uint64_t GetID() { return m_netID; }
+	inline XMFLOAT3 GetMovingDirection() { return m_xmf3MovingDirection; }
 
 private:
 	uint64_t m_netID = 0;

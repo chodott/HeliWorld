@@ -488,23 +488,8 @@ void CGameFramework::Resimulate()
 {
 	XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
 	XMFLOAT3& currentPos = m_pPlayer->GetPosition();
-	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
-
-
-	uint64_t targetTick = networkSyncManager->GetEstimatedServerTick();
-	MissileCorrectionData* missileCorrectionData = NULL;
-	
-	//while (true)
-	//{
-	//	missileCorrectionData = frameDataManager->GetMissileCorrectionData(targetTick);
-	//	if (missileCorrectionData == NULL)
-	//	{
-	//		break;
-	//	}
-	//	CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + missileCorrectionData->slotIndex]);
-	//	int tickGap = targetTick - missileCorrectionData->targetTick;
-	//	missile->ApplyServerResult(missileCorrectionData->correctionPos, kDt, tickGap);
-	//}
+	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));	
+	ApplyMissileEvents();
 
     if(!frameDataManager->IsNeedResimulation())
     {
@@ -553,6 +538,25 @@ void CGameFramework::Resimulate()
     }
 	// 재시뮬레이션이 완료되었으므로 플래그 해제
 	frameDataManager->FinishResimulation();
+}
+
+void CGameFramework::ApplyMissileEvents()
+{
+	uint64_t targetTick = networkSyncManager->GetEstimatedServerTick();
+
+	LocalMissileEventPacket missileEvent;
+	while(true)
+	{
+		if (frameDataManager->TryGetMissileEvent(missileEvent) == false)
+		{
+			return;
+		}
+		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileEvent.playerNum * 8 + missileEvent.missileNum]);
+		missile->SetActive(missileEvent.active);
+		missile->SetPredictPosition(missileEvent.position);
+		missile->SetMovingDirection(missileEvent.rotation);
+		missile->ApplyServerResult(kDt, targetTick - missileEvent.eventTick);
+	}
 }
 
 void CGameFramework::MergeInput()

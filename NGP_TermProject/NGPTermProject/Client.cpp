@@ -59,6 +59,12 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 		ReceivePingPongPacket(pkt);
 		break;
 	}
+
+	case PACKET::LocalMissileEvent:
+	{
+		auto& pkt = *reinterpret_cast<const LocalMissileEventPacket*>(fillTarget);
+		frameDataManager->ReceiveMissileEvent(pkt);
+	}
 	default:
 		break;
 	}

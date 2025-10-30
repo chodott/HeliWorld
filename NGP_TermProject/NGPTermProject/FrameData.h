@@ -17,10 +17,3 @@ struct ClientFrameData
     bool missilesActive[8];
 };
 
-struct MissileCorrectionData
-{
-    int slotIndex;
-    XMFLOAT3 correctionPos;
-    uint64_t targetTick;
-    bool active;
-};

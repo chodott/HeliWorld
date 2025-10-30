@@ -30,7 +30,7 @@ public:
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
-	void ApplyServerResult(const XMFLOAT3& newPosition, float timeElapsed, int tick);
+	void ApplyServerResult(float fTimeElapsed, int tick);
 	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	bool bActiveInServer = false;
