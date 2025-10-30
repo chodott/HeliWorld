@@ -8,6 +8,8 @@ namespace PACKET {
 	const char MissileInfo = 2;
 	const char KeyInfo = 3;
 	const char PingpongInfo = 4;
+	const char LocalMissileEvent = 5;
+
 };
 
 
@@ -82,6 +84,16 @@ struct MissileInfoBundlePacket
 {
 	char packetType;
 	MissileInfoPacket missileInfos[32];
+};
+
+struct LocalMissileEventPacket
+{
+	char packetType;
+	XMFLOAT3 position;
+	XMFLOAT3 rotation;
+	uint64_t missileNum;
+	uint64_t eventTick;
+	bool active;
 };
 
 #pragma pack()

@@ -8,6 +8,7 @@ const char SC_ItemInfo = 1;
 const char SC_MissileInfo = 2;
 const char CS_KeyInfo = 3;
 const char CS_PingpongInfo = 4;
+const char CS_LocalMissileEvent = 5;
 
 struct FPoint {
 	float x;
@@ -77,6 +78,17 @@ struct MissileInfoBundlePacket
 	char packetType = SC_MissileInfo;
 	MissileInfoPacket missileInfos[32];
 };
+
+struct LocalMissileEventPacket
+{
+	char packetType;
+	XMFLOAT3 position;
+	XMFLOAT3 rotation;
+	uint64_t missileNum;
+	uint64_t eventTick;
+	bool active;
+};
+
 
 #pragma pack()
 
