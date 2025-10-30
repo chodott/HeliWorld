@@ -22,9 +22,10 @@ class FrameDataManager
     pair<uint64_t, uint64_t> GetSimulateTickRange();
     ClientFrameData* GetClientFrameData(uint64_t targetTick);
     XMFLOAT3 GetCorrectionPos();
+    MissileCorrectionData* GetMissileCorrectionData(uint64_t targetTick);
     float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     void CheckPositionOutOfSync();
-      bool IsNeedResimulation();
+    bool IsNeedResimulation();
 
       // 롤백 재시뮬레이션이 완료되었을 때 플래그를 해제한다.
       inline void FinishResimulation()
@@ -42,6 +43,7 @@ private:
     std::deque<ServerFrameData> serverFrameData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
     Concurrency::concurrent_queue<XMFLOAT3> PosCorrectionDataQueue;
+    Concurrency::concurrent_queue<MissileCorrectionData> MissilePosCorrectionDataQueue;
 
     uint64_t targetTick;
     int serverTick;

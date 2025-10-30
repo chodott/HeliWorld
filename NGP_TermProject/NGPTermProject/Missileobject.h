@@ -30,6 +30,8 @@ public:
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
+	void ApplyServerResult(const XMFLOAT3& newPosition, float timeElapsed, int tick);
+	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	bool bActiveInServer = false;
 	bool bLocalMissile = false;
@@ -42,4 +44,5 @@ private:
 	bool m_Collision = false;
 	int m_ID;
 	float m_PressTime = 0;
+	uint64_t m_netID = 0;
 };

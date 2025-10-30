@@ -486,13 +486,29 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate()
 {
+	XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
+	XMFLOAT3& currentPos = m_pPlayer->GetPosition();
+	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
+
+
+	uint64_t targetTick = networkSyncManager->GetEstimatedServerTick();
+	MissileCorrectionData* missileCorrectionData = NULL;
+	
+	//while (true)
+	//{
+	//	missileCorrectionData = frameDataManager->GetMissileCorrectionData(targetTick);
+	//	if (missileCorrectionData == NULL)
+	//	{
+	//		break;
+	//	}
+	//	CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + missileCorrectionData->slotIndex]);
+	//	int tickGap = targetTick - missileCorrectionData->targetTick;
+	//	missile->ApplyServerResult(missileCorrectionData->correctionPos, kDt, tickGap);
+	//}
 
     if(!frameDataManager->IsNeedResimulation())
     {
-        XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
-        XMFLOAT3& currentPos = m_pPlayer->GetPosition();
-        m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
-        return;
+           return;
     }
 
 	auto& tickRange =  frameDataManager->GetSimulateTickRange();
@@ -592,14 +608,21 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
 	}
 
+	static ClientFrameData clientFrameData;
+	clientFrameData.position = m_pPlayer->GetPredictPosition();
+	clientFrameData.rotation = m_pPlayer->GetRotation();
+	clientFrameData.estimatedServerTick = networkSyncManager->GetUpdatedTick();
+	clientFrameData.playerKeyInput = client->sendKey;
+	clientFrameData.deltaMouse = client->deltaMouse;
+	for (int i = 0; i < 8; ++i)
+	{
+		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + i]);
+		
+		clientFrameData.missilesActive[i] = missile->GetActive();
+		clientFrameData.missilesPosition[i] = missile->GetPredictPosition();
+	}
 
-	frameDataManager->AddClientFrameData({
-	networkSyncManager->GetUpdatedTick(),
-	m_pPlayer->GetPredictPosition(),
-	m_pPlayer->GetRotation(),
-	client->sendKey,
-	client->deltaMouse,
-		});
+	frameDataManager->AddClientFrameData(clientFrameData);
 
 }
 

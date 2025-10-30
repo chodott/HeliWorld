@@ -184,7 +184,6 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 
 	prevKey = sendKey;
 	sendKey &= (~option6);
-	lastLaunchedMissileNum = -1;
 	deltaMouse = { 0.0f, 0.0f };
 }
 

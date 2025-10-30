@@ -59,7 +59,7 @@ public:
 	int remainSize = 0;
 
 	//Add
-	int16_t lastLaunchedMissileNum = -1;
+	uint64_t lastLaunchedMissileNum = 0;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;
 	mutex inputPacketLock;
@@ -74,7 +74,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.66";
+	const char* serverIp = (char*)"192.168.35.3";
 
 	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010
