@@ -132,16 +132,27 @@ void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
-void CMissleObject::ApplyServerResult(float fTimeElapsed, int tick)
+void CMissleObject::ApplyServerResult(float fTimeElapsed, int tick, bool active)
 {
 	Move(GetMovingDirection(), fTimeElapsed * tick * movingSpeed);
+	SetPosition(GetPredictPosition());
+	bActiveInServer = active;
 }
 
 void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)
 {
 	if (!GetActive()) return;
-	XMFLOAT3 renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
+	XMFLOAT3 renderPosition;
+	if (bActiveInServer)
+	{
+		renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
+	}
+	else
+	{
+		renderPosition = GetPredictPosition();
+	}
 	SetPosition(renderPosition);
+
 }
 
 void CMissleObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)

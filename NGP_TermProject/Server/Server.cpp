@@ -199,11 +199,11 @@ void Server::Update()
 			trashCan.front()->Deactivate();
 			trashCan.pop();
 		}
-
-		GenerateEvents(tick);
-
 		UpdateSnapshot(tick);
 	}
+
+	GenerateEvents(g_serverTick);
+
 
 	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	//{

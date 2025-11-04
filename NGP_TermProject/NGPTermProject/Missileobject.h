@@ -22,6 +22,9 @@ public:
 	void SetID(int id) { m_ID = id; }
 	int GetID()	const { return m_ID; }
 
+	void SetNetID(int id) { m_netID = id; }
+	int GetNetID()	const { return m_netID; }
+
 	virtual void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
 	void Rotate(float fPitch, float fYaw, float fRoll);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
@@ -30,7 +33,7 @@ public:
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
-	void ApplyServerResult(float fTimeElapsed, int tick);
+	void ApplyServerResult(float fTimeElapsed, int tick, bool active);
 	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	bool bActiveInServer = false;

@@ -15,6 +15,7 @@ CPlayer::CPlayer()
 	m_pCamera = NULL;
 
 	m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	m_xmf3PredictPosition = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_xmf3Right = XMFLOAT3(1.0f, 0.0f, 0.0f);
 	m_xmf3Up = XMFLOAT3(0.0f, 1.0f, 0.0f);
 	m_xmf3Look = XMFLOAT3(0.0f, 0.0f, 1.0f);
@@ -172,7 +173,7 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 			missile->SetActive(true);
 			missile->SetPredictPosition(GetPosition());
 			missile->SetMovingDirection(GetLookVector());
-			++client->lastLaunchedMissileNum;
+			missile->SetNetID(++client->lastLaunchedMissileNum);
 			break;
 
 		}
@@ -210,7 +211,6 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 
 void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
 {
-
 	XMFLOAT3 renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
 	SetPosition(renderPosition);
 

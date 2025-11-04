@@ -486,9 +486,15 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate()
 {
-	XMFLOAT3& correctionPos = frameDataManager->GetCorrectionPos();
-	XMFLOAT3& currentPos = m_pPlayer->GetPosition();
-	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));	
+	//XMFLOAT3 currentPos = m_pPlayer->GetPosition();
+	//cout << currentPos.x << ", " << currentPos.y << ", " << currentPos.z << "\n";
+	//XMFLOAT3 correctionPos = currentPos;
+	//bool result = frameDataManager->GetCorrectionPos(correctionPos);
+	//if (result)
+	//{
+	//	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
+	//}
+	
 	ApplyMissileEvents();
 
     if(!frameDataManager->IsNeedResimulation())
@@ -551,11 +557,20 @@ void CGameFramework::ApplyMissileEvents()
 		{
 			return;
 		}
-		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileEvent.playerNum * 8 + missileEvent.missileNum]);
-		missile->SetActive(missileEvent.active);
-		missile->SetPredictPosition(missileEvent.position);
-		missile->SetMovingDirection(missileEvent.rotation);
-		missile->ApplyServerResult(kDt, targetTick - missileEvent.eventTick);
+
+		for (int i = 0; i < 8; ++i)
+		{
+			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileEvent.playerNum * 8 + i]);
+			if (missile->GetNetID() != missileEvent.missileNum)
+			{
+				continue;
+			}
+
+			missile->SetActive(missileEvent.active);
+			missile->SetPredictPosition(missileEvent.position);
+			missile->SetMovingDirection(missileEvent.rotation);
+			missile->ApplyServerResult(kDt, targetTick - missileEvent.eventTick, missileEvent.active);
+		}
 	}
 }
 
@@ -737,6 +752,12 @@ void CGameFramework::FrameAdvance()
 	}
 
 	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
+	for (int i = 0; i < 8; ++i)
+	{
+		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[i + 8 * client->GetPlayerNum()]);
+		missile->ApplyVisualSmoothing(fTimeElapsed);
+
+	}
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);

@@ -24,6 +24,8 @@ int PacketSizeHelper(char packetType)
 	case PACKET::PingpongInfo:
 		packetSize = sizeof(PingpongPacket);
 		break;
+	case PACKET::LocalMissileEvent:
+		packetSize = sizeof(LocalMissileEventPacket);
 	default:
 		packetSize = -1;
 		break;
@@ -185,12 +187,11 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
 		inputChangedCV.notify_one();
-
+		prevKey = sendKey;
+		sendKey &= (~option6);
+		deltaMouse = { 0.0f, 0.0f };
 	}
 
-	prevKey = sendKey;
-	sendKey &= (~option6);
-	deltaMouse = { 0.0f, 0.0f };
 }
 
 void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)

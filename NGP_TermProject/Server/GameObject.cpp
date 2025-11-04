@@ -135,16 +135,20 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 {
-	if (missileNum < 0) return;
-	CMissileObject* missile = m_pMissiles[missileNum];
-	if (!missile->IsActive())
+	if (missileNum == 0) return;
+	for (int i = 0; i < maxMissileNum; ++i)
 	{
-		missile->m_bActive = true;
-		missile->SetID(missileNum);
-		missile->m_xmf3Look = m_xmf3Look;
-		missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
-											m_fyPos + m_xmf3Look.y * fLatency,
-											m_fzPos + m_xmf3Look.z * fLatency);
+		CMissileObject* missile = m_pMissiles[i];
+		if (!missile->IsActive())
+		{
+			missile->m_bActive = true;
+			missile->SetID(missileNum);
+			missile->m_xmf3Look = m_xmf3Look;
+			missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
+				m_fyPos + m_xmf3Look.y * fLatency,
+				m_fzPos + m_xmf3Look.z * fLatency);
+			break;
+		}
 	}
 }
 
@@ -233,7 +237,7 @@ void CPlayer::Reset(int playerNum)
 	m_fOldyPos = 0.f;
 	m_fOldzPos = 0.f;
 
-	SetPosition(initialPos[playerNum].x, initialPos[playerNum].y, initialPos[playerNum].z);
+	SetPosition(initialPos[playerNum]);
 
 	m_bActive = false;
 

@@ -44,11 +44,9 @@ ClientFrameData* FrameDataManager::GetClientFrameData(uint64_t targetTick)
     return nullptr;
 }
 
-XMFLOAT3 FrameDataManager::GetCorrectionPos()
+bool FrameDataManager::GetCorrectionPos(XMFLOAT3& correctionPos)
 {
-    XMFLOAT3 correctionPos; 
-    PosCorrectionDataQueue.try_pop(correctionPos);
-    return correctionPos;
+    return (PosCorrectionDataQueue.try_pop(correctionPos));
 }
 
 float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
