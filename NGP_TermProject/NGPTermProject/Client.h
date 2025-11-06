@@ -54,7 +54,7 @@ public:
 
 	HANDLE FrameAdvanced;
 
-	char remain[512]{};
+	char remainBuffer[512]{};
 	int remainOffset = 0;
 	int remainSize = 0;
 
@@ -74,7 +74,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.66";
+	const char* serverIp = (char*)"172.30.1.78";
 
 	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010

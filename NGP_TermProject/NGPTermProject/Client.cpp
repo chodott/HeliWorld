@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include <thread>
 #include "Client.h"
 #include <fstream>
@@ -257,46 +257,38 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	SOCKET* sock = client->GetClientsock();
 
 	const int bufSize = 512;
+	int combinedSize = 0;
+	int remainOffset = 0;
+	int receivedBytes;
 	char buf[bufSize]{};
 	while (true)
 	{
-		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
+		receivedBytes = recv(*sock, (char*)&buf, bufSize, 0);
 
 		int restBufSize = bufSize;
-		int bufOffset = 0;
-		// process remain packet
-		if (client->remainSize > 0)
-		{
-			memcpy(&client->remain[client->remainOffset], buf, client->remainSize);
-			restBufSize -= client->remainSize;
-			client->PacketProcessHelper(client->remain[0], client->remain);
-			bufOffset += client->remainSize;
+		int offset = 0;
 
-			// reset remain
-			memset(client->remain, 0, 512);
-			client->remainOffset = 0;
-			client->remainSize = 0;
-		}
-
-		while (restBufSize > 0)
+		memcpy(client->remainBuffer + remainOffset, buf, receivedBytes);
+		combinedSize += receivedBytes;
+	
+		while (offset < combinedSize)
 		{
-			char packetType = buf[bufOffset];
+			char packetType = buf[offset];
 			int packetSize = PacketSizeHelper(packetType);
 
-			// save remain packet
-			if (restBufSize < packetSize)
+			if (offset + packetSize > combinedSize)
 			{
-				client->remainOffset = restBufSize;
-				client->remainSize = packetSize - client->remainOffset;
-				memcpy(&client->remain, buf + bufOffset, restBufSize);
-				restBufSize -= client->remainSize;
+				//next packet
 				break;
 			}
-
+	
 			// Packet process
-			client->PacketProcessHelper(packetType, buf + bufOffset);
+			client->PacketProcessHelper(packetType, buf + offset);
 			restBufSize -= packetSize;
-			bufOffset += packetSize;
+			offset += packetSize;
 		}
+		int remainSize = combinedSize - offset;
+		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
+		combinedSize = remainSize;
 	}
 }
