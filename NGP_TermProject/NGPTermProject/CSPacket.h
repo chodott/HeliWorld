@@ -58,6 +58,7 @@ struct PlayerKeyPacket
 	XMFLOAT3 rotation;
 	uint64_t launchedMissileNum = 0;
 	uint64_t estimatedTick;
+	XMFLOAT3 missilePosition;
 	bool bKeyChanged = false;
 };
 

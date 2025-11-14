@@ -186,6 +186,7 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 	{
 		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
+		cs_key.missilePosition = lastLaunchedMissilePos;
 		inputChangedCV.notify_one();
 		prevKey = sendKey;
 		sendKey &= (~option6);

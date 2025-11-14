@@ -174,6 +174,7 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 			missile->SetPredictPosition(GetPosition());
 			missile->SetMovingDirection(GetLookVector());
 			missile->SetNetID(++client->lastLaunchedMissileNum);
+			client->lastLaunchedMissilePos = GetPosition();
 			break;
 
 		}

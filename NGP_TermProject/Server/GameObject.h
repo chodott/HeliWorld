@@ -83,7 +83,7 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	void LaunchMissile(uint64_t missileNum, float fLatency);
+	void LaunchMissile(PlayerKeyPacket& keyPacket, float fLatency);
 	void UpdateMissiles(float elapsedTime);
 	void Update(float elapsedTime);
 	void Reset(int playerNum);

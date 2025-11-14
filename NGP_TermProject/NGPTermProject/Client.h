@@ -59,6 +59,7 @@ public:
 	int remainSize = 0;
 
 	//Add
+	XMFLOAT3  lastLaunchedMissilePos;
 	uint64_t lastLaunchedMissileNum = 0;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;

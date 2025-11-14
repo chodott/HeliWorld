@@ -133,8 +133,10 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
+void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket, float fLatency = 0)
 {
+	uint64_t missileNum = keyPacket.launchedMissileNum;
+
 	if (missileNum == 0) return;
 	for (int i = 0; i < maxMissileNum; ++i)
 	{
@@ -144,7 +146,7 @@ void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 			missile->m_bActive = true;
 			missile->SetID(missileNum);
 			missile->SetMovingDirection(m_xmf3Look);
-			missile->SetPosition(m_xmf3Position);
+			missile->SetPosition(keyPacket.missilePosition);
 			break;
 		}
 	}
@@ -210,7 +212,7 @@ void CPlayer::Update(float elapsedTime)
 		// Attack
 		if (keyPacket.playerKeyInput & option6)
 		{
-			LaunchMissile(keyPacket.launchedMissileNum, elapsedTime);
+			LaunchMissile(keyPacket, elapsedTime);
 			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
