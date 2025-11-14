@@ -551,16 +551,11 @@ void CGameFramework::ApplyMissileEvents()
 	uint64_t targetTick = networkSyncManager->GetEstimatedServerTick();
 
 	LocalMissileEventPacket missileEvent;
-	while(true)
+	while(frameDataManager->TryGetMissileEvent(missileEvent) == true)
 	{
-		if (frameDataManager->TryGetMissileEvent(missileEvent) == false)
-		{
-			return;
-		}
-
 		for (int i = 0; i < 8; ++i)
 		{
-			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileEvent.playerNum * 8 + i]);
+			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + i]);
 			if (missile->GetNetID() != missileEvent.missileNum)
 			{
 				continue;
@@ -633,13 +628,6 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 	clientFrameData.estimatedServerTick = networkSyncManager->GetUpdatedTick();
 	clientFrameData.playerKeyInput = client->sendKey;
 	clientFrameData.deltaMouse = client->deltaMouse;
-	for (int i = 0; i < 8; ++i)
-	{
-		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + i]);
-		
-		clientFrameData.missilesActive[i] = missile->GetActive();
-		clientFrameData.missilesPosition[i] = missile->GetPredictPosition();
-	}
 
 	frameDataManager->AddClientFrameData(clientFrameData);
 

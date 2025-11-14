@@ -146,7 +146,8 @@ void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)
 	if (bActiveInServer)
 	{
 		renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
-	}
+
+}
 	else
 	{
 		renderPosition = GetPredictPosition();

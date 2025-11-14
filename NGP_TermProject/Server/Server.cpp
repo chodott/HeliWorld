@@ -449,13 +449,10 @@ void Server::SendPacketAllClient()
 	}
 
 	LocalMissileEventPacket missileEventPacket;
-	while (!GetQueue<LocalMissileEventPacket>().empty())
+	while (TryPopPacket(missileEventPacket) == true)
 	{
-		if (TryPopPacket(missileEventPacket) == true)
-		{
-			SOCKET& recvSock = clients[missileEventPacket.playerNum]->sock;
-			SendPacket(recvSock, missileEventPacket);
-		}
+		SOCKET& recvSock = clients[missileEventPacket.playerNum]->sock;
+		SendPacket(recvSock, missileEventPacket);
 	}
 }
 

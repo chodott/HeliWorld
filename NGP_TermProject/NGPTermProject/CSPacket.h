@@ -56,7 +56,7 @@ struct PlayerKeyPacket
 	char packetType = PACKET::KeyInfo;
 	unsigned char playerKeyInput;
 	XMFLOAT3 rotation;
-	int16_t launchedMissileNum = -1;
+	uint64_t launchedMissileNum = 0;
 	uint64_t estimatedTick;
 	bool bKeyChanged = false;
 };

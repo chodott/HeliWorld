@@ -143,10 +143,8 @@ void CPlayer::LaunchMissile(uint64_t missileNum, float fLatency = 0)
 		{
 			missile->m_bActive = true;
 			missile->SetID(missileNum);
-			missile->m_xmf3Look = m_xmf3Look;
-			missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
-				m_fyPos + m_xmf3Look.y * fLatency,
-				m_fzPos + m_xmf3Look.z * fLatency);
+			missile->SetMovingDirection(m_xmf3Look);
+			missile->SetPosition(m_xmf3Position);
 			break;
 		}
 	}

@@ -50,7 +50,7 @@ struct PlayerKeyPacket {
 	char packetType;
 	unsigned char playerKeyInput;
 	XMFLOAT3 rotation;
-	int16_t launchedMissileNum = -1;
+	uint64_t launchedMissileNum;
 	uint64_t estimatedTick;
 	bool bKeyChanged = false;
 };

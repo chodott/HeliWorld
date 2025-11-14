@@ -133,6 +133,7 @@ public:
 	inline void SetID(uint64_t id) { m_netID = id; }
 	inline uint64_t GetID() { return m_netID; }
 	inline XMFLOAT3 GetMovingDirection() { return m_xmf3MovingDirection; }
+	inline void SetMovingDirection(XMFLOAT3& direction) { m_xmf3MovingDirection = direction; }
 
 private:
 	uint64_t m_netID = 0;
