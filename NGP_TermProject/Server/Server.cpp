@@ -200,9 +200,9 @@ void Server::Update()
 			trashCan.pop();
 		}
 		UpdateSnapshot(tick);
+		GenerateEvents(g_serverTick);
 	}
 
-	GenerateEvents(g_serverTick);
 
 
 	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
@@ -291,7 +291,8 @@ void Server::GenerateEvents(uint64_t tick)
 
 	for (int playerNum = 0; playerNum < MAX_CLIENT_NUM; ++playerNum)
 	{
-		CPlayer* player = clients[playerNum]->m_player;
+		Client* client = clients[playerNum];
+		CPlayer* player = client->m_player;
 		ServerSnapshot& snapshot = SnapshotLogMap[tick - 1];
 		for (int i = 0; i < MAX_MISSILE_NUM; ++i)
 		{
@@ -299,6 +300,11 @@ void Server::GenerateEvents(uint64_t tick)
 			bool prevMissileActive = snapshot.missileSnapshots[playerNum * MAX_MISSILE_NUM + i].active;
 			bool curMissileActive = missile->IsActive();
 			if (prevMissileActive == curMissileActive)
+			{
+				continue;
+			}
+
+			if (client->ShouldSendEvent(missile->GetID()) == false)
 			{
 				continue;
 			}
@@ -592,6 +598,15 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 	{
 		g_server->SendPacketAllClient();
 	}
+}
+
+bool Client::ShouldSendEvent(uint64_t id)
+{
+	if (lastLaunchedMissileID >= id)
+	{
+		return false;
+	}
+	return true;
 }
 
 void Client::Reset()

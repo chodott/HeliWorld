@@ -138,7 +138,6 @@ void CMissleObject::ApplyServerResult(float fTimeElapsed, int tick, bool active)
 	{
 		Move(GetMovingDirection(), fTimeElapsed * tick * movingSpeed);
 	}
-	SetPosition(GetPredictPosition());
 	bActiveInServer = active;
 }
 

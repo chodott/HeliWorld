@@ -141,6 +141,7 @@ public:
 
 	bool ShouldDisconnected() { return shouldDisconnected; }
 	void Disconnect() { m_connected = false; shouldDisconnected = false; }
+	bool ShouldSendEvent(uint64_t id);
 
 	void Reset();
 
@@ -157,6 +158,7 @@ public:
 	
 	float deadTime = 0.f;
 private:
+	uint64_t lastLaunchedMissileID = 0;
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
 
 	bool m_connected = false;

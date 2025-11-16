@@ -41,6 +41,7 @@ public:
     void FrameAdvance();
 	void Resimulate();
 	void ApplyMissileEvents();
+	void VisualSmoothing(float fTimeElapsed);
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();

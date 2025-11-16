@@ -569,6 +569,17 @@ void CGameFramework::ApplyMissileEvents()
 	}
 }
 
+void CGameFramework::VisualSmoothing(float fTimeElapsed)
+{
+	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
+	for (int i = 0; i < 8; ++i)
+	{
+		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[i + 8 * client->GetPlayerNum()]);
+		missile->ApplyVisualSmoothing(fTimeElapsed);
+
+	}
+}
+
 void CGameFramework::MergeInput()
 {
 	float cxDelta = 0.00f, cyDelta = 0.00f;
@@ -739,13 +750,7 @@ void CGameFramework::FrameAdvance()
 		client->PrepareInputPacket(m_pPlayer->GetRotation());
 	}
 
-	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
-	for (int i = 0; i < 8; ++i)
-	{
-		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[i + 8 * client->GetPlayerNum()]);
-		missile->ApplyVisualSmoothing(fTimeElapsed);
-
-	}
+	VisualSmoothing(fTimeElapsed);
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
