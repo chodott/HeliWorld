@@ -132,13 +132,15 @@ void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
-void CMissleObject::ApplyServerResult(float fTimeElapsed, int tick, bool active)
+void CMissleObject::ApplyServerResult(float fTimeElapsed, int targetTick, LocalMissileEventPacket& missileEvent, XMFLOAT3& posDiff)
 {
-	if (tick > 0)
+	SetPredictPosition(Vector3::Add(GetPredictPosition(), posDiff));
+	int tickDiff = targetTick - missileEvent.eventTick;
+	if (tickDiff > 0)
 	{
-		Move(GetMovingDirection(), fTimeElapsed * tick * movingSpeed);
+		Move(GetMovingDirection(), fTimeElapsed * tickDiff * movingSpeed);
 	}
-	bActiveInServer = active;
+	bActiveInServer = missileEvent.active;
 }
 
 void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)

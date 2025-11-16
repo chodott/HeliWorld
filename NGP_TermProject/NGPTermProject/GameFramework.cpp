@@ -561,10 +561,17 @@ void CGameFramework::ApplyMissileEvents()
 				continue;
 			}
 
+			ClientFrameData* frameData = frameDataManager->GetClientFrameData(missileEvent.eventTick);
+			XMFLOAT3 posDiff{
+			frameData->position.x- missileEvent.position.x,
+			frameData->position.y - missileEvent.position.y,
+			frameData->position.z - missileEvent.position.z
+			};
+
 			missile->SetActive(missileEvent.active);
-			missile->SetPredictPosition(missileEvent.position);
+			missile->SetServerPosition(missileEvent.position);
 			missile->SetMovingDirection(missileEvent.rotation);
-			missile->ApplyServerResult(kDt, targetTick - missileEvent.eventTick, missileEvent.active);
+			missile->ApplyServerResult(kDt, targetTick, missileEvent, posDiff);
 		}
 	}
 }

@@ -200,7 +200,7 @@ void Server::Update()
 			trashCan.pop();
 		}
 		UpdateSnapshot(tick);
-		GenerateEvents(g_serverTick);
+		GenerateEvents(tick);
 	}
 
 
@@ -304,7 +304,7 @@ void Server::GenerateEvents(uint64_t tick)
 				continue;
 			}
 
-			if (client->ShouldSendEvent(missile->GetID()) == false)
+			if (curMissileActive == true && client->ShouldSendEvent(missile->GetID()) == false)
 			{
 				continue;
 			}
@@ -606,6 +606,7 @@ bool Client::ShouldSendEvent(uint64_t id)
 	{
 		return false;
 	}
+	lastLaunchedMissileID = id;
 	return true;
 }
 
