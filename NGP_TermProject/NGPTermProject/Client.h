@@ -26,7 +26,7 @@
 #pragma comment(lib, "ws2_32")
 
 #define SERVERPORT 9000
-#define BUFSIZE 512
+#define BUFSIZE 1024
 
 class Client {
 public:
@@ -54,9 +54,7 @@ public:
 
 	HANDLE FrameAdvanced;
 
-	char remainBuffer[512]{};
-	int remainOffset = 0;
-	int remainSize = 0;
+	char remainBuffer[BUFSIZE]{};
 
 	//Add
 	XMFLOAT3  lastLaunchedMissilePos;
@@ -75,7 +73,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.78";
+	const char* serverIp = (char*)"172.30.1.26";
 
 	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010

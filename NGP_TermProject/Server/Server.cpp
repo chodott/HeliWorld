@@ -453,7 +453,6 @@ void Server::SendPacketAllClient()
 		SendPacket(recvSock, missileInfoBundle);
 		SendPacket(recvSock, itemInfoBundle);
 	}
-
 	LocalMissileEventPacket missileEventPacket;
 	while (TryPopPacket(missileEventPacket) == true)
 	{
@@ -615,6 +614,7 @@ void Client::Reset()
 	closesocket(sock);
 	sock = NULL;
 
+	lastLaunchedMissileID = 0;
 	shouldDisconnected = true;
 	keyPacket_q.clear();
 	Disconnect();

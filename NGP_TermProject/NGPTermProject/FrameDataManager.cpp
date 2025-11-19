@@ -13,6 +13,8 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
     serverFrameData_dq.emplace_back(frameData);
     serverTick = frameData.serverTick;
 
+    cout << serverFrameData_dq.back().playerInfos[playerNum].position.x << "," << serverFrameData_dq.back().playerInfos[playerNum].position.y << "," << serverFrameData_dq.back().playerInfos[playerNum].position.z << "\n";
+
     int cutLine = 0;
 
     while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < cutLine)

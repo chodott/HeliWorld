@@ -26,7 +26,9 @@ int PacketSizeHelper(char packetType)
 		break;
 	case PACKET::LocalMissileEvent:
 		packetSize = sizeof(LocalMissileEventPacket);
+		break;
 	default:
+		cout << "wrong packet type"<<"\n";
 		packetSize = -1;
 		break;
 	}
@@ -66,8 +68,10 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 	{
 		auto& pkt = *reinterpret_cast<const LocalMissileEventPacket*>(fillTarget);
 		frameDataManager->ReceiveMissileEvent(pkt);
+		break;
 	}
 	default:
+		cout << "packet parsing error";
 		break;
 	}
 }
@@ -257,39 +261,60 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	const int bufSize = 512;
 	int combinedSize = 0;
-	int remainOffset = 0;
-	int receivedBytes;
-	char buf[bufSize]{};
+	char buf[BUFSIZE]{};
 	while (true)
 	{
-		receivedBytes = recv(*sock, (char*)&buf, bufSize, 0);
+		int receivedBytes = recv(*sock, buf, BUFSIZE, 0);
+		if (receivedBytes == 0) {
+			// disconnect server
+			break;
+		}
 
-		int restBufSize = bufSize;
-		int offset = 0;
-
-		memcpy(client->remainBuffer + remainOffset, buf, receivedBytes);
+		if (combinedSize + receivedBytes > BUFSIZE)
+		{
+			std::cout << "receive buffer overflow, dropping pending bytes\n";
+			combinedSize = 0;
+		}
+		
+		memcpy(client->remainBuffer + combinedSize, buf, receivedBytes);
 		combinedSize += receivedBytes;
+
+		int offset = 0;
 	
 		while (offset < combinedSize)
 		{
-			char packetType = buf[offset];
+			if (combinedSize - offset < 1)
+			{
+				break;
+			}
+
+			char packetType = client->remainBuffer[offset];
 			int packetSize = PacketSizeHelper(packetType);
 
 			if (offset + packetSize > combinedSize)
 			{
-				//next packet
+				//wait next packet
 				break;
 			}
 	
 			// Packet process
-			client->PacketProcessHelper(packetType, buf + offset);
-			restBufSize -= packetSize;
+			client->PacketProcessHelper(packetType, client->remainBuffer + offset);
+
 			offset += packetSize;
 		}
+
+		if (combinedSize == 0)
+		{
+			continue;
+		}
 		int remainSize = combinedSize - offset;
-		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
+		if (remainSize > 0)
+		{
+			memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
+		}
 		combinedSize = remainSize;
 	}
+
+	return 0;
 }

@@ -100,8 +100,6 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (m_fRoll > +maxRoll) { z -= (m_fRoll - maxRoll); m_fRoll = +maxRoll; }
 		if (m_fRoll < -maxRoll) { z -= (m_fRoll + maxRoll); m_fRoll = -maxRoll; }
 	}
-	//cout << m_xmf3Look.x << "," << m_xmf3Look.y<<","<< m_xmf3Look.z << "\n";
-	//cout << m_xmf3Right.x << "," << m_xmf3Right.y << "," << m_xmf3Right.z << "\n";
 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
 	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();

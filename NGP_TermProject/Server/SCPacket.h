@@ -48,7 +48,7 @@ struct PlayerInfoBundlePacket
 
 struct PlayerKeyPacket {
 	char packetType;
-	unsigned char playerKeyInput;
+	unsigned char playerKeyInput = NULL;
 	XMFLOAT3 rotation;
 	uint64_t launchedMissileNum;
 	uint64_t estimatedTick;
