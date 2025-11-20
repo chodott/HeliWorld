@@ -10,6 +10,7 @@ CDebugboxObject::~CDebugboxObject()
 
 void CDebugboxObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
+	if (!GetActive()) return;
 	if (m_ppMaterials)
 	{
 		m_ppMaterials[0]->m_xmf4AmbientColor = debugColor;

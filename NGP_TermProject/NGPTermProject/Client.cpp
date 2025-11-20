@@ -266,9 +266,11 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	while (true)
 	{
 		int receivedBytes = recv(*sock, buf, BUFSIZE, 0);
-		if (receivedBytes == 0) {
-			// disconnect server
-			break;
+
+		if (receivedBytes == SOCKET_ERROR) {
+			int err = WSAGetLastError();
+			std::cout << "recv error: " << err << "\n";
+			break; 
 		}
 
 		if (combinedSize + receivedBytes > BUFSIZE)

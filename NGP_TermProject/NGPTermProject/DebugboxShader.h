@@ -23,6 +23,8 @@ public:
 	virtual D3D12_SHADER_BYTECODE CreateVertexShader();
 	virtual D3D12_SHADER_BYTECODE CreatePixelShader();
 
+	void Reset();
+
 
 private:
 	CTexture* m_pDebugboxTexture{ NULL };

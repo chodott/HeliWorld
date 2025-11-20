@@ -26,7 +26,7 @@
 #pragma comment(lib, "ws2_32")
 
 #define SERVERPORT 9000
-#define BUFSIZE 1024
+#define BUFSIZE 4096
 
 class Client {
 public:
@@ -73,7 +73,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.26";
+	const char* serverIp = (char*)"172.30.1.100";
 
 	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010

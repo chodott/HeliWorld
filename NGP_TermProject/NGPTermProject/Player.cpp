@@ -208,6 +208,8 @@ void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerIn
 {
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
 	DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
+	DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
+
 }
 
 void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
@@ -215,10 +217,7 @@ void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
 	XMFLOAT3 renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
 	SetPosition(renderPosition);
 
-
-	DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
-	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 1.f, 1.f });
-
+	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
