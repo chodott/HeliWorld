@@ -641,30 +641,43 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 }
 
-void CGameFramework::AnimateObjects()
+void CGameFramework::AnimateObjects(float fTimeElapsed)
 {
-	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	if (m_pScene)
+	if (m_pScene == nullptr)
 	{
-		AnimatePlayers(fTimeElapsed);
+		return;
+	}
+
+	static ServerFrameData prevData;
+	static ServerFrameData nextData;
+	float delayTick = networkSyncManager->GetDelayedServerTick();
+	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayTick);
+	float lerpAlpha;
+	lerpAlpha = (hasData == true) ?  (delayTick - prevData.serverTick) / (nextData.serverTick - prevData.serverTick) : 0.0f;
+	lerpAlpha = Clamp(lerpAlpha, 0.f, 1.f);
+	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
+	for (int i = 0; i < 32; ++i)
+	{
+		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.missileInfos[i], nextData.missileInfos[i], lerpAlpha);
+	}
+	for (int i = 0; i < 10; ++i)
+	{
+		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &prevData.itemInfos[i]);
 	}
 }
 
 
 
 
-void CGameFramework::AnimatePlayers(float fTimeElapsed)
+void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const ServerFrameData& nextData, const float fTimeElapsed, const float lerpAlpha)
 {
-	static ServerFrameData prevData;
-	static ServerFrameData nextData;
 
-	float value = frameDataManager->GetServerFrameData(prevData, nextData, networkSyncManager->GetDelayedServerTick());
 	for (int i = 0; i < 4; i++)
 	{
 		if (i == client->GetPlayerNum())
 		{
 
-			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], value);   //player update
+			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 
 			//Update HUD
@@ -682,19 +695,12 @@ void CGameFramework::AnimatePlayers(float fTimeElapsed)
 		}
 		else
 		{
-			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.playerInfos[i], nextData.playerInfos[i], value);//Enemy Update 
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);//Enemy Update 
 		}
 		m_pScene->AnimateObjects(fTimeElapsed, prevData.playerInfos[i]);
 	}
 
-	for (int i = 0; i < 32; ++i)
-	{
-		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.missileInfos[i], nextData.missileInfos[i], value);
-	}
-	for (int i = 0; i < 10; ++i)
-	{
-		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &prevData.itemInfos[i]);
-	}
+
 }
 
 void CGameFramework::WaitForGpuComplete()
@@ -743,7 +749,7 @@ void CGameFramework::FrameAdvance()
 		}
 		accumulatedSecond -= kDt;
 		ProcessInput(kDt);
-		AnimateObjects();
+		AnimateObjects(fTimeElapsed);
 		client->PrepareInputPacket(m_pPlayer->GetRotation());
 	}
 

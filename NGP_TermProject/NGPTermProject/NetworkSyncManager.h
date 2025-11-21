@@ -12,9 +12,9 @@ class NetworkSyncManager
 {
 public:
 	uint64_t GetTimestampMs();
-	uint64_t GetEstimatedServerTimeMs();
-	uint64_t GetDelayedServerTick();
-	uint64_t GetEstimatedServerTick();
+	float GetEstimatedServerTimeMs();
+	float GetDelayedServerTick();
+	float GetEstimatedServerTick();
 	inline uint64_t GetUpdatedTick() { return updatedTick; }
 	bool UpdateServerTick();
 	void UpdateSyncData(const uint64_t clientSendTimestamp, const uint64_t serverSendTimestamp);

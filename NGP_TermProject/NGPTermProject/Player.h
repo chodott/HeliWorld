@@ -88,7 +88,7 @@ public:
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 
 	void Update(float fTimeElapsed);
-	virtual void Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket,float lerpAlpha);
+	virtual void Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket,float lerpAlpha);
 	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }

@@ -209,7 +209,7 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
 }
 
-void CPlayer::Animate(float fTimeElapsed, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float lerpAlpha)
+void CPlayer::Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float lerpAlpha)
 {
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
 	DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });

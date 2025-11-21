@@ -34,20 +34,20 @@ uint64_t NetworkSyncManager::GetTimestampMs()
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-uint64_t NetworkSyncManager::GetEstimatedServerTimeMs()
+float NetworkSyncManager::GetEstimatedServerTimeMs()
 {
 	return GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
 }
 
-uint64_t NetworkSyncManager::GetDelayedServerTick()
+float NetworkSyncManager::GetDelayedServerTick()
 {
 	return GetEstimatedServerTick() - delayTick;
 }
 
-uint64_t NetworkSyncManager::GetEstimatedServerTick()
+float NetworkSyncManager::GetEstimatedServerTick()
 {
-	uint64_t elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
-	uint64_t serverTick = baseTick + (uint64_t)round(elapsed / kDtMs);
+	float elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
+	float serverTick = baseTick + elapsed / kDtMs;
 	return serverTick;
 }
 

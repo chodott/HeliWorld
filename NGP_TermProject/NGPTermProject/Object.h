@@ -242,7 +242,7 @@ public:
     XMFLOAT3 GetMovement() { return m_movement; }
     XMFLOAT3 GetRotation() { return m_rotation; }
     virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-    XMFLOAT3 XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t);
+    XMFLOAT3 XMVectorAngleLerp(const XMFLOAT3& prevRotation, const XMFLOAT3& nextRotation, float t);
 
 
 
@@ -287,7 +287,7 @@ public:
     virtual void BuildMaterials(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) { }
 
     virtual void PrepareAnimate() { }
-    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value);
+    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float lerpAlpha);
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket);
     virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent = NULL);
     //   virtual void Animate(float fTimeElapsed);

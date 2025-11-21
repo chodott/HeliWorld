@@ -484,7 +484,7 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
     if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->AddRef();
 }
 
-XMFLOAT3 CGameObject::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRotation, float t)
+XMFLOAT3 CGameObject::XMVectorAngleLerp(const XMFLOAT3& prevRotation, const XMFLOAT3& nextRotation, float t)
 {
     auto LerpAngle = [](float a, float b, float t) -> float
     {
@@ -501,7 +501,7 @@ XMFLOAT3 CGameObject::XMVectorAngleLerp(XMFLOAT3& prevRotation, XMFLOAT3& nextRo
 }
 
 
-void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket& prevPacket, PlayerInfoPacket& nextPacket, float value)
+void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float value)
 {
     if (value > 3.0f)
     {

@@ -22,7 +22,7 @@ class FrameDataManager
     pair<uint64_t, uint64_t> GetSimulateTickRange();
     ClientFrameData* GetClientFrameData(uint64_t targetTick);
     bool GetCorrectionPos(XMFLOAT3& correctionPos);
-    float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
+    bool GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     void CheckPositionOutOfSync();
     void ReceiveMissileEvent(const LocalMissileEventPacket& pkt);
     bool TryGetMissileEvent(LocalMissileEventPacket& event)

@@ -49,22 +49,20 @@ bool FrameDataManager::GetCorrectionPos(XMFLOAT3& correctionPos)
     return (PosCorrectionDataQueue.try_pop(correctionPos));
 }
 
-float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
+
+bool FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
     bool bCanInterpolate = false;
-    float value = 1.0f;
     for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
         if (serverFrameData_dq[i].serverTick < tick &&
             serverFrameData_dq[i + 1].serverTick >= tick) {
             prevData = serverFrameData_dq[i];
             nextData = serverFrameData_dq[i + 1];
-            bCanInterpolate = true;
-            break;
+            return true;
         }
     }
-
-    return value;
+    return false;
 }
 
 pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
