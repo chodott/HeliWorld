@@ -471,7 +471,7 @@ void CGameFramework::Initialize()
 	for (int i = playerNum * 8; i < (playerNum + 1) * 8; ++i)
 	{
 		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
-		missile->bLocalMissile = true;
+		missile->SetLocal(true);
 	}
 
 }
@@ -561,17 +561,7 @@ void CGameFramework::ApplyMissileEvents()
 				continue;
 			}
 
-			ClientFrameData* frameData = frameDataManager->GetClientFrameData(missileEvent.eventTick);
-			XMFLOAT3 posDiff{
-			frameData->position.x- missileEvent.position.x,
-			frameData->position.y - missileEvent.position.y,
-			frameData->position.z - missileEvent.position.z
-			};
-
-			missile->SetActive(missileEvent.active);
-			missile->SetServerPosition(missileEvent.position);
-			missile->SetMovingDirection(missileEvent.rotation);
-			missile->ApplyServerResult(kDt, targetTick, missileEvent, posDiff);
+			missile->ApplyServerResult(missileEvent.active);
 		}
 	}
 }

@@ -83,8 +83,6 @@ struct MissileInfoBundlePacket
 struct LocalMissileEventPacket
 {
 	char packetType;
-	XMFLOAT3 position;
-	XMFLOAT3 rotation;
 	uint64_t missileNum;
 	uint64_t eventTick;
 	int playerNum;

@@ -98,7 +98,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float lerpAlpha)
 {
-	if (bLocalMissile)
+	if (GetLocal() == true)
 	{
 		if (GetActive() == false)
 		{
@@ -106,6 +106,7 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		}
 
 		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
+		cout << GetPredictPosition().x << ", " << GetPredictPosition().y << ", " << GetPredictPosition().z << "\n";
 	}
 
 	else
@@ -132,27 +133,15 @@ void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
 	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
-void CMissleObject::ApplyServerResult(float fTimeElapsed, int targetTick, LocalMissileEventPacket& missileEvent, XMFLOAT3& posDiff)
+void CMissleObject::ApplyServerResult(bool active)
 {
-	SetPredictPosition(Vector3::Add(GetPredictPosition(), posDiff));
-	int tickDiff = targetTick - missileEvent.eventTick;
-	if (tickDiff > 0)
-	{
-		Move(GetMovingDirection(), fTimeElapsed * tickDiff * movingSpeed);
-	}
-	bActiveInServer = missileEvent.active;
+	SetActive(active);
 }
 
 void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)
 {
 	if (!GetActive()) return;
 	XMFLOAT3 renderPosition;
-	if (bActiveInServer)
-	{
-		renderPosition = LerpFloat3(GetPosition(), GetPredictPosition(), 0.1f);
-
-}
-	else
 	{
 		renderPosition = GetPredictPosition();
 	}

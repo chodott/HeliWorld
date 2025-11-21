@@ -91,7 +91,7 @@ public:
 
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
-	const float movingSpeed = 100.f;
+	const float movingSpeed = 50.f;
 
 	PlayerKeyPacket keyPacket;
 

@@ -30,7 +30,7 @@ CPlayer::CPlayer()
 	m_fRoll = 0.00f;
 	m_fYaw = 0.0f;
 
-	m_fMovingSpeed = 100.0f;
+	m_fMovingSpeed = 50.0f;
 
 	m_pPlayerUpdatedContext = NULL;
 	m_pCameraUpdatedContext = NULL;
@@ -169,12 +169,17 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 		if (missile->GetActive()) continue;
 		else
 		{
-
+			XMFLOAT3 launchPos =
+				XMFLOAT3(
+					GetPredictPosition().x + GetLookVector().x * 10.f,
+					GetPredictPosition().y + GetLookVector().y * 10.f,
+					GetPredictPosition().z + GetLookVector().z * 10.f
+				);
 			missile->SetActive(true);
-			missile->SetPredictPosition(GetPosition());
+			missile->SetPredictPosition(launchPos);
 			missile->SetMovingDirection(GetLookVector());
 			missile->SetNetID(++client->lastLaunchedMissileNum);
-			client->lastLaunchedMissilePos = GetPosition();
+			client->lastLaunchedMissilePos = launchPos;
 			break;
 
 		}

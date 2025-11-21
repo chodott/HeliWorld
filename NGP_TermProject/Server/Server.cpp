@@ -312,8 +312,6 @@ void Server::GenerateEvents(uint64_t tick)
 			GetQueue<LocalMissileEventPacket>().push(
 				{
 					CS_LocalMissileEvent,
-					missile->GetCurPos(),
-					missile->GetMovingDirection(),
 					missile->GetID(),
 					tick,
 					playerNum,
