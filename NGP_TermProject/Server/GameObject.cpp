@@ -311,9 +311,9 @@ void CMissileObject::Move(float elapsedTime)
 {
 	float distance = movingSpeed * elapsedTime;
 	//Move(m_xmf3Look, distance);
-	SetPosition(m_xmf4x4World._41 + m_xmf3Look.x * distance,
-		m_xmf4x4World._42 + m_xmf3Look.y * distance,
-		m_xmf4x4World._43 + m_xmf3Look.z * distance);
+	SetPosition(m_xmf4x4World._41 + m_xmf3MovingDirection.x * distance,
+		m_xmf4x4World._42 + m_xmf3MovingDirection.y * distance,
+		m_xmf4x4World._43 + m_xmf3MovingDirection.z * distance);
 	MoveOOBB(m_xmf3Position);
 
 }

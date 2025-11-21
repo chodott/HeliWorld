@@ -192,6 +192,7 @@ void Server::Update()
 			}
 			player->Update(kDt);
 		}
+
 		CheckCollision();
 
 		while (!trashCan.empty())
@@ -582,7 +583,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 		}
 		int remainSize = combinedSize - offset;
-		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); // �����ϰ� �ű��
+		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); 
 		combinedSize = remainSize;
 	}
 

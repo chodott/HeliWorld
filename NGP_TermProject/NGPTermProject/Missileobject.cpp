@@ -65,35 +65,7 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
 {
-	/*bool bServerActive = MissilePacket->active;
-	if (bServerActive)
-	{
-		bServerLife = true;
-		SetActive(true);
-	}
-	if (bServerLife == true && bServerActive == false)
-	{
-		bServerLife = false;
-		SetActive(false);
-	}
-	if (!GetActive()) return;
-	
-	XMFLOAT3 newPosition = ConvertInt16tofloat3(MissilePacket->positionX, MissilePacket->positionY, MissilePacket->positionZ, MAP_SCALE);
-	if (bLocalMissile)
-	{
-		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		if (bServerActive)
-		{
-			XMFLOAT3 resultPosition;
-			XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
-			XMVECTOR nextPosition = XMLoadFloat3(&newPosition);
-			XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
 
-			XMStoreFloat3(&resultPosition, curPosition);
-			SetPosition(resultPosition);
-		}
-	}
-	else SetPosition(newPosition);*/
 
 }
 void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float lerpAlpha)
