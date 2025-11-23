@@ -28,7 +28,7 @@ int PacketSizeHelper(char packetType)
 		packetSize = sizeof(LocalMissileEventPacket);
 		break;
 	default:
-		cout << "wrong packet type"<<"\n";
+		cout << "wrong packet type" << "\n";
 		packetSize = -1;
 		break;
 	}
@@ -84,7 +84,7 @@ Client::Client()
 	sock = new SOCKET();
 }
 
-Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr):Client()
+Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr) :Client()
 {
 	this->networkSyncMgr = networkSyncMgr;
 	this->frameDataManager = frameDataMgr;
@@ -186,9 +186,8 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 	cs_key.rotation = playerPYR;
 	cs_key.estimatedTick = networkSyncMgr->GetUpdatedTick();
 
-	if (prevKey != sendKey || deltaMouse.x != 0.0f || deltaMouse.y != 0.0f)
+	//if (prevKey != sendKey || deltaMouse.x != 0.0f || deltaMouse.y != 0.0f)
 	{
-		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
 		cs_key.missilePosition = lastLaunchedMissilePos;
 		inputChangedCV.notify_one();
@@ -218,7 +217,7 @@ DWORD WINAPI SendPingPacket(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	PingpongPacket cs_pingpong{PACKET::PingpongInfo};
+	PingpongPacket cs_pingpong{ PACKET::PingpongInfo };
 
 	while (true)
 	{
@@ -241,11 +240,9 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 	PlayerKeyPacket cs_keyInput;
 	while (true)
 	{
-		{
-			std::unique_lock<std::mutex> lock(client->inputPacketLock);
-			client->inputChangedCV.wait(lock);
-			client->GetKeyPacketToSend(cs_keyInput);
-		}
+		std::unique_lock<std::mutex> lock(client->inputPacketLock);
+		client->inputChangedCV.wait(lock);
+		client->GetKeyPacketToSend(cs_keyInput);
 
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
@@ -270,7 +267,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 		if (receivedBytes == SOCKET_ERROR) {
 			int err = WSAGetLastError();
 			std::cout << "recv error: " << err << "\n";
-			break; 
+			break;
 		}
 
 		if (combinedSize + receivedBytes > BUFSIZE)
@@ -278,12 +275,12 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 			std::cout << "receive buffer overflow, dropping pending bytes\n";
 			combinedSize = 0;
 		}
-		
+
 		memcpy(client->remainBuffer + combinedSize, buf, receivedBytes);
 		combinedSize += receivedBytes;
 
 		int offset = 0;
-	
+
 		while (offset < combinedSize)
 		{
 			if (combinedSize - offset < 1)
@@ -299,7 +296,7 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 				//wait next packet
 				break;
 			}
-	
+
 			// Packet process
 			client->PacketProcessHelper(packetType, client->remainBuffer + offset);
 

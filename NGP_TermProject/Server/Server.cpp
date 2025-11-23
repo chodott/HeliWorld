@@ -566,7 +566,6 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			{
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
-				client->keyPacket_q.push(keyPacket);
 				g_server->PushInputData(client->GetPlayerNumber(), keyPacket);
 				break;
 			}

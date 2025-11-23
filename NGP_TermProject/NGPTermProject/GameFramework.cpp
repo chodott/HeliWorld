@@ -487,15 +487,6 @@ void CGameFramework::ReleaseObjects()
 
 void CGameFramework::Resimulate()
 {
-	//XMFLOAT3 currentPos = m_pPlayer->GetPosition();
-	//cout << currentPos.x << ", " << currentPos.y << ", " << currentPos.z << "\n";
-	//XMFLOAT3 correctionPos = currentPos;
-	//bool result = frameDataManager->GetCorrectionPos(correctionPos);
-	//if (result)
-	//{
-	//	m_pPlayer->SetPosition(XMFLOAT3(currentPos.x + correctionPos.x, currentPos.y + correctionPos.y, currentPos.z + correctionPos.z));
-	//}
-	
 	ApplyMissileEvents();
 
     if(!frameDataManager->IsNeedResimulation())
@@ -741,7 +732,7 @@ void CGameFramework::FrameAdvance()
 	accumulatedSecond += fTimeElapsed;
 	MergeInput();
 
-	while (accumulatedSecond >= kDt)
+	if(accumulatedSecond >= kDt)
 	{
 		bool isDuplication = networkSyncManager->UpdateServerTick();
 		if (isDuplication == false)
@@ -749,7 +740,6 @@ void CGameFramework::FrameAdvance()
 			accumulatedSecond -= kDt;
 			ProcessInput(kDt);
 			client->PrepareInputPacket(m_pPlayer->GetRotation());
-			break;
 		}
 	}
 
