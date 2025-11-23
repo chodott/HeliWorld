@@ -212,8 +212,16 @@ void CPlayer::Update(float fTimeElapsed)
 void CPlayer::Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float lerpAlpha)
 {
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
-	DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
-	DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
+	XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, lerpAlpha);
+
+	if (GetLocal() == false)
+	{
+		SetPosition(serverPosition);
+		RotatePYR(curRotation);
+
+	}
+	//DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
+	//DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
 
 }
 
@@ -363,7 +371,7 @@ void CAirplanePlayer::PrepareAnimate()
 	m_pTailRotorFrame = FindFrame("Tail_Rotor");
 }
 
-void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,PlayerInfoPacket *PlayerPacket, float value)
+void CAirplanePlayer::Animate(float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float lerpAlpha)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -376,7 +384,7 @@ void CAirplanePlayer::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent,Play
 		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
 	}
 
-	//CPlayer::Animate(fTimeElapsed, pxmf4x4Parent, PlayerPacket, value);
+	CPlayer::Animate(fTimeElapsed, prevPacket, nextPacket, lerpAlpha);
 }
 
 void CAirplanePlayer::OnPrepareRender()

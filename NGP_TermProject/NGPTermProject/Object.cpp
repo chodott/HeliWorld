@@ -503,25 +503,18 @@ XMFLOAT3 CGameObject::XMVectorAngleLerp(const XMFLOAT3& prevRotation, const XMFL
 
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float value)
 {
-    if (value > 3.0f)
-    {
-        RotatePYR(GetRotation());
-    }
+    XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value);
+    RotatePYR(curRotation);
 
-    else
-    {
-        XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, value);
-        RotatePYR(curRotation);
+    XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
+   
+    XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
 
-        XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
-        XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
+    XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
 
-        XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, value);
-
-        XMFLOAT3 resultPosition;
-        XMStoreFloat3(&resultPosition, curPosition);
-        SetPosition(resultPosition);
-    }
+    XMFLOAT3 resultPosition;
+    XMStoreFloat3(&resultPosition, curPosition);
+    SetPosition(resultPosition);
 }
 
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerInfoPacket* PlayerPacket)

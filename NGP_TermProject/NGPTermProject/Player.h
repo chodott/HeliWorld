@@ -51,8 +51,9 @@ protected:
 	CShader* m_pMissileShader = NULL;
 
 	//Debug
-	int							playerNum = 0;
+	int							m_playerNum = 0;
 	bool						bWire = false;
+	bool						m_isLocal = false;
 
 public:
 	CPlayer();
@@ -72,6 +73,8 @@ public:
 	void SetPosition(const XMFLOAT3& xmf3Position) { Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false); }
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
+	inline void SetLocal(bool isLocal) { m_isLocal = isLocal; }
+	inline bool GetLocal() { return m_isLocal; }
 	const XMFLOAT3& GetVelocity() const { return(m_xmf3Velocity); }
 	float GetYaw() const { return(m_fYaw); }
 	float GetPitch() const { return(m_fPitch); }
@@ -122,7 +125,7 @@ public:
 
 private:
 	virtual void PrepareAnimate();
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent, PlayerInfoPacket* PlayerPacket, float value);
+	virtual void Animate(float fTimeElapsed,  const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket,  const float lerpAlpha);
 
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);
