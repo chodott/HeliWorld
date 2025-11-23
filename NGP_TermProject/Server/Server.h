@@ -30,6 +30,9 @@
 
 #define MAP_SCALE 32.767
 
+#define MAX_REWIND_TICKS 3
+
+
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 

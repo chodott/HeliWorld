@@ -332,6 +332,15 @@ uint64_t Server::GetTimestampMs()
 
 void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 {
+	if (InputBuffers[index].empty() == false)
+	{	//Remove past Input
+		int tickDiff = g_serverTick - keyPacket.estimatedTick;
+		if (tickDiff > MAX_REWIND_TICKS)
+		{
+			return;
+		}
+	}
+
 	InputBuffers[index].push(keyPacket);
 }
 
