@@ -55,8 +55,8 @@ bool FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrame
     std::lock_guard<std::mutex> lock(frameDataLock);
     bool bCanInterpolate = false;
     for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
-        if (serverFrameData_dq[i].serverTick < tick &&
-            serverFrameData_dq[i + 1].serverTick >= tick) {
+        if (serverFrameData_dq[i].serverTick <= tick &&
+            serverFrameData_dq[i + 1].serverTick > tick) {
             prevData = serverFrameData_dq[i];
             nextData = serverFrameData_dq[i + 1];
             return true;

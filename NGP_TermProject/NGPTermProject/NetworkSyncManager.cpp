@@ -36,7 +36,7 @@ uint64_t NetworkSyncManager::GetTimestampMs()
 
 float NetworkSyncManager::GetEstimatedServerTimeMs()
 {
-	return GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
+	return (float)GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
 }
 
 float NetworkSyncManager::GetDelayedServerTick()
@@ -56,11 +56,11 @@ bool NetworkSyncManager::UpdateServerTick()
 	uint64_t newTick = GetEstimatedServerTick();
 	if (updatedTick >= newTick)
 	{
-		return false;
+		return true;
 	}
 
 	updatedTick = newTick;
-	return true;
+	return false;
 }
 
 void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, 
@@ -77,6 +77,6 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp,
 	//Calculate Rtt Avg
 	KeepDequeSize(rtt_dq);
 	rttAvg = GetDequeAvg(rtt_dq);
-	float delay = (int)(rttAvg * 0.5f) + DEFAULT_DELAY_MS;
+	float delay = (rttAvg * 0.5f) + DEFAULT_DELAY_MS;
 	delayTick = delay / kDtMs;
 }

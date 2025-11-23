@@ -78,7 +78,6 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		}
 
 		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
-		cout << GetPredictPosition().x << ", " << GetPredictPosition().y << ", " << GetPredictPosition().z << "\n";
 	}
 
 	else

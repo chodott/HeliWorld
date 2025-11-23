@@ -27,7 +27,7 @@ public:
 private:
 	static float offsetAvg;
 	static float rttAvg;
-	int delayTick;
+	float delayTick;
 	uint64_t baseTick;
 	uint64_t baseServerTimestamp;
 

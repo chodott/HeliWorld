@@ -443,6 +443,7 @@ void CGameFramework::Initialize()
 {
 
 	int playerNum = client->GetPlayerNum();
+	m_pPlayer->SetLocal(true);
 	cout << playerNum << "\n";
 	switch (playerNum)
 	{
@@ -653,8 +654,8 @@ void CGameFramework::AnimateObjects(float fTimeElapsed)
 	float delayTick = networkSyncManager->GetDelayedServerTick();
 	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayTick);
 	float lerpAlpha;
-	lerpAlpha = (hasData == true) ?  (delayTick - prevData.serverTick) / (nextData.serverTick - prevData.serverTick) : 0.0f;
-	lerpAlpha = Clamp(lerpAlpha, 0.f, 1.f);
+	lerpAlpha = (hasData == true) ? (delayTick - (float)prevData.serverTick) / (float)(nextData.serverTick - prevData.serverTick) : 0.0f;
+	lerpAlpha = Clamp(lerpAlpha, 0.0f, 1.0f);
 	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
 	for (int i = 0; i < 32; ++i)
 	{
@@ -695,7 +696,7 @@ void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const Serve
 		}
 		else
 		{
-			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);//Enemy Update 
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);//Enemy Update 
 		}
 		m_pScene->AnimateObjects(fTimeElapsed, prevData.playerInfos[i]);
 	}
@@ -745,15 +746,17 @@ void CGameFramework::FrameAdvance()
 		bool isDuplication = networkSyncManager->UpdateServerTick();
 		if (isDuplication == false)
 		{
+			accumulatedSecond -= kDt;
+			ProcessInput(kDt);
+			client->PrepareInputPacket(m_pPlayer->GetRotation());
 			break;
 		}
-		accumulatedSecond -= kDt;
-		ProcessInput(kDt);
-		AnimateObjects(fTimeElapsed);
-		client->PrepareInputPacket(m_pPlayer->GetRotation());
 	}
 
+	AnimateObjects(fTimeElapsed);
 	VisualSmoothing(fTimeElapsed);
+
+	//Render
 
 	HRESULT hResult = m_pd3dCommandAllocator->Reset();
 	hResult = m_pd3dCommandList->Reset(m_pd3dCommandAllocator, NULL);
