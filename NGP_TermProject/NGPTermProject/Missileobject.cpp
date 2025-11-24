@@ -63,12 +63,8 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 		}
 	}
 }
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
-{
 
-
-}
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float lerpAlpha)
+void CMissleObject::Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha)
 {
 	if (GetLocal() == true)
 	{
@@ -76,7 +72,6 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 		{
 			return;
 		}
-
 		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
 	}
 
@@ -95,13 +90,11 @@ void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, Missi
 
 }
 
-void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
+void CMissleObject::Move(const XMFLOAT3& vDirection, float fSpeed)
 {
 	m_xmf3PredictPosition.x += vDirection.x * fSpeed;
 	m_xmf3PredictPosition.z += vDirection.z * fSpeed;
 	m_xmf3PredictPosition.y += vDirection.y * fSpeed;
-
-	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
 void CMissleObject::ApplyServerResult(bool active)
@@ -109,15 +102,22 @@ void CMissleObject::ApplyServerResult(bool active)
 	SetActive(active);
 }
 
-void CMissleObject::ApplyVisualSmoothing(float fTimeElapsed)
+void CMissleObject::ApplyVisualSmoothing(const XMFLOAT3& launchPosition, float fTimeElapsed)
 {
-	if (!GetActive()) return;
-	XMFLOAT3 renderPosition;
-	{
-		renderPosition = GetPredictPosition();
-	}
-	SetPosition(renderPosition);
+	if (GetActive() == false) return;
 
+	XMFLOAT3 renderPosition;
+
+	if (GetLaunched() == true)
+	{
+		renderPosition = Vector3::Add(launchPosition, Vector3::ScalarProduct(GetMovingDirection(), 10.f, false));
+		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
+		SetPredictPosition(renderPosition);
+		SetLaunched(false);
+	}
+
+	renderPosition = GetPredictPosition();
+	SetPosition(renderPosition);
 }
 
 void CMissleObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)

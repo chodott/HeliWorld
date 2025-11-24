@@ -564,7 +564,7 @@ void CGameFramework::VisualSmoothing(float fTimeElapsed)
 	for (int i = 0; i < 8; ++i)
 	{
 		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[i + 8 * client->GetPlayerNum()]);
-		missile->ApplyVisualSmoothing(fTimeElapsed);
+		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(),  kDt);
 
 	}
 }
@@ -633,7 +633,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 }
 
-void CGameFramework::AnimateObjects(float fTimeElapsed)
+void CGameFramework::AnimateObjects(const float fTimeElapsed)
 {
 	if (m_pScene == nullptr)
 	{
@@ -650,11 +650,11 @@ void CGameFramework::AnimateObjects(float fTimeElapsed)
 	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
 	for (int i = 0; i < 32; ++i)
 	{
-		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, prevData.missileInfos[i], nextData.missileInfos[i], lerpAlpha);
+		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(prevData.missileInfos[i], nextData.missileInfos[i], fTimeElapsed, lerpAlpha);
 	}
 	for (int i = 0; i < 10; ++i)
 	{
-		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(fTimeElapsed, NULL, &prevData.itemInfos[i]);
+		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(prevData.itemInfos[i], fTimeElapsed);
 	}
 }
 
@@ -669,7 +669,7 @@ void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const Serve
 		if (i == client->GetPlayerNum())
 		{
 
-			m_pPlayer->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);   //player update
+			m_pPlayer->Animate(prevData.playerInfos[i], nextData.playerInfos[i], fTimeElapsed, lerpAlpha);   //player update
 			m_pScene->m_ppShaders[0]->m_ppObjects[i]->SetActive(false);
 
 			//Update HUD
@@ -687,7 +687,7 @@ void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const Serve
 		}
 		else
 		{
-			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(fTimeElapsed, prevData.playerInfos[i], nextData.playerInfos[i], lerpAlpha);//Enemy Update 
+			m_pScene->m_ppShaders[0]->m_ppObjects[i]->Animate(prevData.playerInfos[i], nextData.playerInfos[i], fTimeElapsed, lerpAlpha);//Enemy Update 
 		}
 		m_pScene->AnimateObjects(fTimeElapsed, prevData.playerInfos[i]);
 	}

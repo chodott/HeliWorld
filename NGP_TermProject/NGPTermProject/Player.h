@@ -91,7 +91,7 @@ public:
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 
 	void Update(float fTimeElapsed);
-	virtual void Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket,float lerpAlpha);
+	virtual void Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, float lerpAlpha)override;
 	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }
@@ -125,7 +125,7 @@ public:
 
 private:
 	virtual void PrepareAnimate();
-	virtual void Animate(float fTimeElapsed,  const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket,  const float lerpAlpha);
+	virtual void Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha) override;
 
 public:
 	virtual CCamera *ChangeCamera(DWORD nNewCameraMode, float fTimeElapsed);

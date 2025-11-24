@@ -15,8 +15,7 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value);
-	virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket);
+	virtual void Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float value);
 
 
 	void SetID(int id) { m_ID = id; }
@@ -32,13 +31,15 @@ public:
 	virtual void Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle);
 	void Rotate(float fPitch, float fYaw, float fRoll);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	virtual void Move(XMFLOAT3& vDirection, float fSpeed);
+	virtual void Move(const XMFLOAT3& vDirection, float fSpeed);
 
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
+	inline void SetLaunched(bool isLaunched) { m_launched = isLaunched; }
+	inline bool GetLaunched() { return m_launched; }
 	void ApplyServerResult(bool active);
-	void ApplyVisualSmoothing(float fTimeElapsed);
+	void ApplyVisualSmoothing(const XMFLOAT3& launchPosition, float fTimeElapsed);
 
 
 
@@ -50,6 +51,7 @@ private:
 	bool m_Collision = false;
 	bool m_bActiveInServer = false;
 	bool m_bLocalMissile = false;
+	bool m_launched = false;
 	int m_ID;
 	float m_PressTime = 0;
 	uint64_t m_netID = 0;

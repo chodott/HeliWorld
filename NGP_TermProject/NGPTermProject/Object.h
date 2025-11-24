@@ -203,11 +203,9 @@ public:
     CGameObject(int nMaterials, int meshes);
     virtual ~CGameObject();
 
-    virtual void Animate(float fTimeElasped, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float lerpAlpha) {};
-    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float value) {};
-    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* PlayerPacket) {};
-    virtual void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, ItemInfoPacket* ItemPacket) {};
-    //void Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, PlayerStatusPacket* PlayerStatus) {};
+    virtual void Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElasped, const float lerpAlpha) {};
+    virtual void Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float value) {};
+    virtual void Animate( const ItemInfoPacket& ItemPacket, const float fTimeElapsed) {};
 
 public:
 

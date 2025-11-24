@@ -169,14 +169,10 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 		if (missile->GetActive()) continue;
 		else
 		{
-			XMFLOAT3 launchPos =
-				XMFLOAT3(
-					GetPredictPosition().x + GetLookVector().x * 10.f,
-					GetPredictPosition().y + GetLookVector().y * 10.f,
-					GetPredictPosition().z + GetLookVector().z * 10.f
-				);
+			XMFLOAT3 launchPos = Vector3::Add(GetPredictPosition(), Vector3::ScalarProduct(GetLookVector(), 10.f, false));
+			
 			missile->SetActive(true);
-			missile->SetPredictPosition(launchPos);
+			missile->SetLaunched(true);
 			missile->SetMovingDirection(GetLookVector());
 			missile->SetNetID(++client->lastLaunchedMissileNum);
 			client->lastLaunchedMissilePos = launchPos;
@@ -209,7 +205,7 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
 }
 
-void CPlayer::Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, float lerpAlpha)
+void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, float lerpAlpha)
 {
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
 	XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, lerpAlpha);
@@ -374,7 +370,7 @@ void CAirplanePlayer::PrepareAnimate()
 	m_pTailRotorFrame = FindFrame("Tail_Rotor");
 }
 
-void CAirplanePlayer::Animate(float fTimeElapsed, const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float lerpAlpha)
+void CAirplanePlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -387,7 +383,7 @@ void CAirplanePlayer::Animate(float fTimeElapsed, const PlayerInfoPacket& prevPa
 		m_pTailRotorFrame->m_xmf4x4Transform = Matrix4x4::Multiply(xmmtxRotate, m_pTailRotorFrame->m_xmf4x4Transform);
 	}
 
-	CPlayer::Animate(fTimeElapsed, prevPacket, nextPacket, lerpAlpha);
+	CPlayer::Animate(prevPacket, nextPacket, fTimeElapsed, lerpAlpha);
 }
 
 void CAirplanePlayer::OnPrepareRender()
