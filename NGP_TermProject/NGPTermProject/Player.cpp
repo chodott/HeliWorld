@@ -214,11 +214,14 @@ void CPlayer::Animate(const float fTimeElapsed, const PlayerInfoPacket& prevPack
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
 	XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, lerpAlpha);
 
+	SetServerPosition(serverPosition);
+
 	if (GetLocal() == false)
 	{
-		SetPosition(serverPosition);
-		RotatePYR(curRotation);
+		XMFLOAT3 renderPos = LerpFloat3(GetPosition(), serverPosition, 0.1f);
 
+		SetPosition(renderPos);
+		RotatePYR(curRotation);
 	}
 	//DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 	//DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
