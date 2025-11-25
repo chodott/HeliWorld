@@ -144,7 +144,7 @@ void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket, float fLatency = 0)
 			missile->m_bActive = true;
 			missile->SetID(missileNum);
 			missile->SetMovingDirection(m_xmf3Look);
-			missile->SetPosition(keyPacket.missilePosition);
+			missile->SetPosition(GetCurPos());
 			break;
 		}
 	}

@@ -57,7 +57,6 @@ public:
 	char remainBuffer[BUFSIZE]{};
 
 	//Add
-	XMFLOAT3  lastLaunchedMissilePos;
 	uint64_t lastLaunchedMissileNum = 0;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;
@@ -73,7 +72,7 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"172.30.1.100";
+	const char* serverIp = (char*)"127.0.0.1";
 
 	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010

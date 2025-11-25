@@ -189,7 +189,6 @@ void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 	//if (prevKey != sendKey || deltaMouse.x != 0.0f || deltaMouse.y != 0.0f)
 	{
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
-		cs_key.missilePosition = lastLaunchedMissilePos;
 		inputChangedCV.notify_one();
 		prevKey = sendKey;
 		sendKey &= (~option6);
