@@ -15,7 +15,7 @@ public:
 
 	void SetCollision(bool Collision) { m_Collision = Collision; }
 	bool GetCollision()	const { return m_Collision; }
-	virtual void Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float value);
+	virtual void Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float value) override;
 
 
 	void SetID(int id) { m_ID = id; }

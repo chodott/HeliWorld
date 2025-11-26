@@ -644,8 +644,7 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 	static ServerFrameData nextData;
 	float delayTick = networkSyncManager->GetDelayedServerTick();
 	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayTick);
-	float lerpAlpha;
-	lerpAlpha = (hasData == true) ? (delayTick - (float)prevData.serverTick) / (float)(nextData.serverTick - prevData.serverTick) : 0.0f;
+	float lerpAlpha = (hasData == true) ? (delayTick - (float)prevData.serverTick) / (float)(nextData.serverTick - prevData.serverTick) : 0.0f;
 	lerpAlpha = Clamp(lerpAlpha, 0.0f, 1.0f);
 	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
 	for (int i = 0; i < 32; ++i)

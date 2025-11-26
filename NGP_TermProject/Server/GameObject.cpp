@@ -131,7 +131,7 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket, float fLatency = 0)
+void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket)
 {
 	uint64_t missileNum = keyPacket.launchedMissileNum;
 
@@ -210,7 +210,7 @@ void CPlayer::Update(float elapsedTime)
 		// Attack
 		if (keyPacket.playerKeyInput & option6)
 		{
-			LaunchMissile(keyPacket, elapsedTime);
+			LaunchMissile(keyPacket);
 			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
@@ -247,64 +247,6 @@ void CPlayer::Reset(int playerNum)
 
 	for (auto& missile : m_pMissiles)
 		missile->Reset();
-}
-
-void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency)
-{
-	const unsigned char& prevKeyInput = prevKeyPacket.playerKeyInput;
-	const unsigned char& nextKeyInput = keyPacket.playerKeyInput;
-
-	float distance = movingSpeed * latency;
-	XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
-
-	for (int i = 0; i <= 5; ++i)
-	{
-		bool prevBit = (prevKeyInput >> i) & 1;
-		bool nextBit = (nextKeyInput >> i) & 1;
-
-		if (prevBit == nextBit) continue;
-
-		switch (i)
-		{
-		case 0:
-			if(nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			break;
-		case 1:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			break;
-		case 2:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			break;
-		case 3:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			break;
-		case 4:
-			// ...
-			break;
-		case 5:
-			// ...
-			break;
-		}
-	}
-	Vector3::ScalarProduct(xmf3Shift, distance, true);
-	Move(xmf3Shift);
-	MoveOOBB(m_xmf3Position);
-
-	m_xmf4x4World._41 = m_xmf3Position.x;
-	m_xmf4x4World._42 = m_xmf3Position.y;
-	m_xmf4x4World._43 = m_xmf3Position.z;
-
-	// Attack
-	//if (nextKeyInput & option6)
-	//{
-	//	LaunchMissile(keyPacket.launchedMissileNum);
-	//	keyPacket.playerKeyInput &= ~option6;
-	//}
-
 }
 
 void CMissileObject::Move(float elapsedTime)

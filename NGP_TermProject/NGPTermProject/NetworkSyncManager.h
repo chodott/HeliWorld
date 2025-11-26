@@ -5,7 +5,7 @@
 
 #include "CSPacket.h"
 
-#define DEFAULT_DELAY_MS 80
+#define DEFAULT_DELAY_MS 150
 #define MAX_DEQUE_LENGTH 10
 
 class NetworkSyncManager

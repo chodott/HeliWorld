@@ -213,7 +213,8 @@ void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket
 
 	if (GetLocal() == false)
 	{
-		XMFLOAT3 renderPos = LerpFloat3(GetPosition(), serverPosition, 0.1f);
+		//XMFLOAT3 renderPos = LerpFloat3(GetPosition(), serverPosition, 0.1f);
+		XMFLOAT3 renderPos = serverPosition;
 
 		SetPosition(renderPos);
 		RotatePYR(curRotation);

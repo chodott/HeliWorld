@@ -85,7 +85,7 @@ void CMissleObject::Animate(const MissileInfoPacket& prevPacket, const MissileIn
 		XMFLOAT3 resultPosition;
 
 		XMStoreFloat3(&resultPosition, renderPosition);
-		SetPosition(resultPosition);
+		SetPosition(prevPacket.position);
 	}
 
 }
