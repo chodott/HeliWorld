@@ -46,7 +46,7 @@ float NetworkSyncManager::GetDelayedServerTick()
 
 float CalculateAvg(deque<float>& target_dq)
 {
-	while (target_dq.size() > MAX_SYNC_SAMPLE_SIZE)
+	while (target_dq.size() > MAX_DEQUE_LENGTH)
 	{
 		target_dq.pop_front();
 	}
