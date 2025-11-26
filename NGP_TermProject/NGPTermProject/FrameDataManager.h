@@ -5,6 +5,8 @@
 #include <concurrent_queue.h>
 #include <mutex>
 
+#define SNAPSHOT_LIFETIME_TICK 50
+
 
 class FrameDataManager
 {
