@@ -31,13 +31,17 @@ public:
 	void ChangeSwapChainState();
 
     void BuildObjects();
+	void Initialize();
     void ReleaseObjects();
 
+	void MergeInput();
     void ProcessInput(float fTimeElapsed);
-    void AnimateObjects();
-	void AnimatePlayers(float fTimeElapsed);
+    void AnimateObjects(const float fTimeElapsed);
+	void AnimatePlayers(const ServerFrameData& prevData, const ServerFrameData& nextData, const float fTimeElapsed, const float lerpAlpha);
     void FrameAdvance();
 	void Resimulate();
+	void ApplyMissileEvents();
+	void VisualSmoothing(float fTimeElapsed);
 
 	void WaitForGpuComplete();
 	void MoveToNextFrame();

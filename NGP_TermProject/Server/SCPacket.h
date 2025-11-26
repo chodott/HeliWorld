@@ -8,6 +8,7 @@ const char SC_ItemInfo = 1;
 const char SC_MissileInfo = 2;
 const char CS_KeyInfo = 3;
 const char CS_PingpongInfo = 4;
+const char CS_LocalMissileEvent = 5;
 
 struct FPoint {
 	float x;
@@ -15,9 +16,16 @@ struct FPoint {
 }; 
 
 #pragma pack(1)
+struct TimebasePacket
+{
+	int playerNum;
+	uint64_t serverTick;
+	uint64_t serverTimestamp;
+};
+
 struct PingpongPacket
 {
-	char packetType;
+	char packetType = CS_PingpongInfo;
 	uint64_t clientTimeStamp;
 	uint64_t serverSendTimeStamp;
 };
@@ -32,19 +40,18 @@ struct PlayerInfoPacket {
 
 struct PlayerInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_PlayerInfo;
 	PlayerInfoPacket playerInfos[4];
-	uint64_t timestamp;
+	int serverTick;
 };
 
 
 struct PlayerKeyPacket {
 	char packetType;
-	unsigned char playerKeyInput;
+	unsigned char playerKeyInput = NULL;
 	XMFLOAT3 rotation;
-	int16_t launchedMissileNum = -1;
-	uint64_t timestamp;
-	bool bKeyChanged = false;
+	uint64_t launchedMissileNum;
+	uint64_t estimatedTick;
 };
 
 struct ItemInfoPacket {
@@ -56,22 +63,30 @@ struct ItemInfoPacket {
 
 struct ItemInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_ItemInfo;
 	ItemInfoPacket itemInfos[10];
 };
 
 struct MissileInfoPacket {
 	bool active = false;
-	int32_t positionX;  
-	int32_t positionY;
-	int32_t positionZ; 
+	XMFLOAT3 position;
 };
 
 struct MissileInfoBundlePacket
 {
-	char packetType;
+	char packetType = SC_MissileInfo;
 	MissileInfoPacket missileInfos[32];
 };
+
+struct LocalMissileEventPacket
+{
+	char packetType;
+	uint64_t missileNum;
+	uint64_t eventTick;
+	int playerNum;
+	bool active;
+};
+
 
 #pragma pack()
 

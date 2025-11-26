@@ -3,6 +3,9 @@
 #include "SCPacket.h"
 
 Server* g_server;
+std::unordered_map<int, vector<PlayerKeyPacket>> g_playerInputMap;
+int g_serverTick = 0;
+
 
 int PacketSizeHelper(char packetType)
 {
@@ -30,6 +33,9 @@ Server::Server()
 	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	{
 		clients[i] = new Client;
+		CPlayer* player = clients[i]->m_player;
+		player->SetPosition(player->initialPos[i]);
+		player->RotatePYR(player->initialRot[i]);
 	}
 	for (int i = 0; i < MAX_ITEM_NUM; i++)
 	{
@@ -38,7 +44,7 @@ Server::Server()
 	}
 
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
-
+	UpdateSnapshot(0);
 }
 
 Server::~Server()
@@ -168,36 +174,53 @@ void Server::CheckCollision()
 
 void Server::Update()
 {
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	uint64_t resimulateStartTick = ReturnResimulateStart();
+	uint64_t resetTick = resimulateStartTick;
+	if (resimulateStartTick > 0)
 	{
-		CPlayer* player = clients[i]->m_player;
-		if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
-		// connected, but dead
-		if (clients[i]->IsConnected() && !player->IsActive())
-		{
-			clients[i]->deadTime += elapsedTime;
-			if (clients[i]->deadTime > RESPAWN_TIME)
-			{
-				player->SetActive(true);
-				clients[i]->deadTime = 0.f;
-			}
-		}
-		else
-		{
-			float curServerTime = GetTimestampMs();
-			float clientEstimatedTime = clients[i]->m_player->keyPacket.timestamp;
-			bool bKeyChanged = player->keyPacket.bKeyChanged;
-			if (bKeyChanged && curServerTime > clientEstimatedTime)
-			{
-				float timeOffset = (float)(curServerTime - clientEstimatedTime) / 1000.0f;
-				clients[i]->m_player->CompensateLatency(clients[i]->prevKeyPacket, timeOffset);
-				player->keyPacket.bKeyChanged = false;
-			}
-			clients[i]->m_player->Update(elapsedTime, g_server->connectedClients);
-			clients[i]->prevKeyPacket = player->keyPacket;
-		}
+		resetTick--;
 	}
-	CheckCollision();
+	ResetToSnapshot(resetTick);
+	for (uint64_t tick = resimulateStartTick; tick <= g_serverTick; ++tick)
+	{
+		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+		{
+			CPlayer* player = clients[i]->m_player;
+			if (InputLogMaps[i].find(tick) != InputLogMaps[i].end())
+			{
+				player->keyPacket = InputLogMaps[i][tick];
+			}
+			player->Update(kDt);
+		}
+
+		CheckCollision();
+
+		while (!trashCan.empty())
+		{
+			trashCan.front()->Deactivate();
+			trashCan.pop();
+		}
+		UpdateSnapshot(tick);
+		GenerateEvents(tick);
+	}
+
+
+
+	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	//{
+	//	CPlayer* player = clients[i]->m_player;
+	//	if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
+	//	// connected, but dead
+	//	if (clients[i]->IsConnected() && !player->IsActive())
+	//	{
+	//		clients[i]->deadTime += elapsedTime;
+	//		if (clients[i]->deadTime > RESPAWN_TIME)
+	//		{
+	//			player->SetActive(true);
+	//			clients[i]->deadTime = 0.f;
+	//		}
+	//	}
+	//}
 
 	itemSpawnTime += elapsedTime;
 	if (itemSpawnTime > itemRespawnTime)
@@ -207,13 +230,8 @@ void Server::Update()
 			SpawnItem();
 	}
 
-	while (!trashCan.empty())
-	{
-		trashCan.front()->Deactivate();
-		trashCan.pop();
-	}
-
 	PreparePackets();
+	packetReadyCV.notify_one();
 }
 
 void Server::SpawnItem()
@@ -237,25 +255,23 @@ void Server::PreparePackets()
 	PlayerInfoBundlePacket playerBundle;
 	MissileInfoBundlePacket missileBundle;
 	ItemInfoBundlePacket itemBundle;
-	playerBundle.packetType = SC_PlayerInfo;
-	missileBundle.packetType = SC_MissileInfo;
-	itemBundle.packetType = SC_ItemInfo;
+
 	for (int clientNum =0; clientNum < MAX_CLIENT_NUM;++clientNum)
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
 		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive()};
+
 		for (int i =0; i < player->maxMissileNum; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
 			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * player->maxMissileNum + i];
-			ConvertFloat3toInt32(missile->GetCurPos(), missileInfo.positionX, missileInfo.positionY, missileInfo.positionZ,MAP_SCALE);
+			missileInfo.position = missile->GetCurPos();
 			missileInfo.active = missile->IsActive();
 		}
 	}
-	playerBundle.timestamp = GetTimestampMs();
-	playerBundlePacket_q.push(playerBundle);
-	missileBundlePacket_q.push(missileBundle);
+
+	playerBundle.serverTick = ++g_serverTick;
 
 	for (int i=0;i<MAX_ITEM_NUM;++i)
 	{
@@ -264,27 +280,192 @@ void Server::PreparePackets()
 		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
 		itemInfo.active = item->IsActive();
 	}
-	itemBundlePacket_q.push(itemBundle);
+
+	std::lock_guard<std::mutex> lock(packetQueueLock);
+	PushPacket(playerBundle);
+	PushPacket(missileBundle);
+	PushPacket(itemBundle);
+}
+
+void Server::GenerateEvents(uint64_t tick)
+{
+
+	for (int playerNum = 0; playerNum < MAX_CLIENT_NUM; ++playerNum)
+	{
+		Client* client = clients[playerNum];
+		CPlayer* player = client->m_player;
+		ServerSnapshot& snapshot = SnapshotLogMap[tick - 1];
+		for (int i = 0; i < MAX_MISSILE_NUM; ++i)
+		{
+			CMissileObject* missile = player->m_pMissiles[i];
+			bool prevMissileActive = snapshot.missileSnapshots[playerNum * MAX_MISSILE_NUM + i].active;
+			bool curMissileActive = missile->IsActive();
+			if (prevMissileActive == curMissileActive)
+			{
+				continue;
+			}
+
+			if (curMissileActive == true && client->ShouldSendEvent(missile->GetID()) == false)
+			{
+				continue;
+			}
+
+			GetQueue<LocalMissileEventPacket>().push(
+				{
+					CS_LocalMissileEvent,
+					missile->GetID(),
+					tick,
+					playerNum,
+					missile->IsActive()
+				}
+			);
+		}
+	}
 }
 
 uint64_t Server::GetTimestampMs()
 {
 	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-
-void Server::SendPacketAllClient(char* packet, int size, int flag)
+void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 {
-	// send client[i] info to all clients
+	if (InputBuffers[index].empty() == false)
+	{	//Remove past Input
+		int tickDiff = g_serverTick - keyPacket.estimatedTick;
+		if (tickDiff > MAX_REWIND_TICKS)
+		{
+			return;
+		}
+	}
+
+	InputBuffers[index].push(keyPacket);
+}
+
+void Server::ResetToSnapshot(uint64_t targetTick)
+{
+	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
+	{
+		return;
+	}
+
+	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	{
+		CPlayer* player = clients[i]->m_player;
+		player->SetPosition(snapshot.playerSnapshots[i].position);
+		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
+		player->SetHp(snapshot.playerSnapshots[i].hp);
+
+		int startMissileIndex = i * MAX_MISSILE_NUM;
+		for (int j = 0; j < 8; ++j)
+		{
+			CMissileObject* missile = player->m_pMissiles[j];
+			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex +j].position);
+			missile->SetLifeTime(snapshot.missileSnapshots[startMissileIndex + j].lifeTime);
+			missile->SetActive(snapshot.missileSnapshots[startMissileIndex + j].active);
+		}
+	}
+	
+	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	{
+		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
+	}
+
+}
+
+void Server::UpdateSnapshot(uint64_t targetTick)
+{
+	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
+	{
+		ServerSnapshot empty;
+		SnapshotLogMap.insert(make_pair(targetTick, empty));
+	}
+
+	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
+	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	{
+		CPlayer* player = clients[i]->m_player;
+		snapshot.playerSnapshots[i].position =  player->GetCurPos();
+		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
+		snapshot.playerSnapshots[i].hp = player->GetHp();
+
+		int startMissileIndex = i * MAX_MISSILE_NUM;
+		for (int j = 0; j < MAX_MISSILE_NUM; ++j)
+		{
+			CMissileObject* missile = player->m_pMissiles[j];
+			snapshot.missileSnapshots[startMissileIndex + j].position = missile->GetCurPos();
+			snapshot.missileSnapshots[startMissileIndex + j].lifeTime = missile->GetLifeTime();
+			snapshot.missileSnapshots[startMissileIndex + j].active = missile->IsActive();
+		}
+	}
+
+	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	{
+		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
+	}
+}
+
+uint64_t Server::ReturnResimulateStart()
+{
+	int startTick = g_serverTick;
+	for (int index = 0; index < MAX_CLIENT_NUM; ++index)
+	{
+		while (!InputBuffers[index].empty())
+		{
+			uint64_t tick = InputBuffers[index].front().estimatedTick;
+			if (tick > g_serverTick)
+			{
+				break;
+			}
+
+			InputLogMaps[index][tick] = InputBuffers[index].front();
+			InputBuffers[index].pop();
+			startTick = min(startTick, tick);
+		}
+	}
+	return startTick;
+}
+
+
+void Server::SendPacketAllClient()
+{
+	PlayerInfoBundlePacket playerInfoBundle;
+	MissileInfoBundlePacket missileInfoBundle;
+	ItemInfoBundlePacket itemInfoBundle;
+
+	{
+		std::unique_lock<std::mutex> lock(packetQueueLock);
+		packetReadyCV.wait(lock, [this] {
+			return !GetQueue<PlayerInfoBundlePacket>().empty() &&
+				!GetQueue<MissileInfoBundlePacket>().empty() &&
+				!GetQueue<ItemInfoBundlePacket>().empty();
+			});
+	}
+
+	TryPopPacket(playerInfoBundle);
+	TryPopPacket(missileInfoBundle);
+	TryPopPacket(itemInfoBundle);
+
 	for (const auto& client : clients)
 	{
 		if (!client->IsConnected())
 		{
 			continue;
 		}
-		send(client->sock, packet, size, flag);
+
+		SOCKET& recvSock = client->sock;
+		SendPacket(recvSock, playerInfoBundle);
+		SendPacket(recvSock, missileInfoBundle);
+		SendPacket(recvSock, itemInfoBundle);
+	}
+	LocalMissileEventPacket missileEventPacket;
+	while (TryPopPacket(missileEventPacket) == true)
+	{
+		SOCKET& recvSock = clients[missileEventPacket.playerNum]->sock;
+		SendPacket(recvSock, missileEventPacket);
 	}
 }
 
@@ -337,11 +518,12 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg)
 {
+
+	//Init Packet
 	Client* client = (Client*)arg;
-
 	int playerNumber = client->GetPlayerNumber();
-
-	send(client->sock, (char*)&playerNumber, sizeof(int), 0);
+	TimebasePacket timebasePacket{ playerNumber, g_serverTick, g_server->GetTimestampMs() };
+	send(client->sock, (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	CPlayer* p = client->m_player;
 	p->SetActive(true);
@@ -393,7 +575,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			{
 				CPlayer* player = client->m_player;
 				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
-				client->keyPacket_q.push(keyPacket);
+				g_server->PushInputData(client->GetPlayerNumber(), keyPacket);
 				break;
 			}
 			case CS_PingpongInfo:
@@ -409,7 +591,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 		}
 		int remainSize = combinedSize - offset;
-		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); // 안전하게 옮기기
+		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); 
 		combinedSize = remainSize;
 	}
 
@@ -418,30 +600,20 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
-	static PlayerInfoBundlePacket scInfoBundle;
-	static MissileInfoBundlePacket msInfoBundle;
-	static ItemInfoBundlePacket ItemInfoBundle;
 	while (1)
 	{
-		if (g_server->playerBundlePacket_q.try_pop(scInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&scInfoBundle, sizeof(PlayerInfoBundlePacket), 0);
-		}
-
-
-		if (g_server->missileBundlePacket_q.try_pop(msInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&msInfoBundle, sizeof(MissileInfoBundlePacket), 0);
-
-		}
-
-		//sending ItemInfo Packet
-		if (g_server->itemBundlePacket_q.try_pop(ItemInfoBundle))
-		{
-			g_server->SendPacketAllClient((char*)&ItemInfoBundle, sizeof(ItemInfoBundlePacket), 0);
-
-		}
+		g_server->SendPacketAllClient();
 	}
+}
+
+bool Client::ShouldSendEvent(uint64_t id)
+{
+	if (lastLaunchedMissileID >= id)
+	{
+		return false;
+	}
+	lastLaunchedMissileID = id;
+	return true;
 }
 
 void Client::Reset()
@@ -449,6 +621,7 @@ void Client::Reset()
 	closesocket(sock);
 	sock = NULL;
 
+	lastLaunchedMissileID = 0;
 	shouldDisconnected = true;
 	keyPacket_q.clear();
 	Disconnect();
@@ -466,16 +639,25 @@ int main()
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
 
+	auto  prev = std::chrono::steady_clock::now();
+	double acc = 0.0;
+
 	while (true)
 	{
-		if (g_server->connectedClients < 1) continue;
-		g_server->elapsedTime = g_server->timer.GetTimePassedFromLastUpdate();
-		if (g_server->elapsedTime >= g_server->FIXED_DELTA_TIME)
+		//Tick Base
+		auto now = std::chrono::steady_clock::now();
+		double frameDelta = std::chrono::duration<double>(now - prev).count();
+		prev = now;
+		acc += frameDelta;
+
+		int steps = 0, maxSteps = 6;
+		while (acc >= kDt && steps < maxSteps)
 		{
-			g_server->timer.Record();
 			g_server->Update();
-			g_server->elapsedTime = g_server->FIXED_DELTA_TIME;
+			acc -= kDt; ++steps;
 		}
 	}
+
+	
 }
 

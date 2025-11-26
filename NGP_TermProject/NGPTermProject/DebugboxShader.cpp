@@ -67,8 +67,13 @@ void CDebugboxShader::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 		if (m_ppObjects[j] && m_ppObjects[j]->GetActive())
 		{
 			m_ppObjects[j]->Render(pd3dCommandList, pCamera);
-			//m_ppObjects[j]->SetActive(false);
 		}
+
+		if (m_ppObjects[j])
+		{
+		m_ppObjects[j]->SetActive(false);
+		}
+
 	}
 }
 
@@ -79,7 +84,7 @@ void CDebugboxShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComma
 	m_pDebugboxTexture->LoadTextureFromFile(pd3dDevice, pd3dCommandList, L"Image/HealItem.dds", RESOURCE_TEXTURE2D, 0);
 
 	m_pMaterial = new CMaterial();
-	m_pMaterial->SetTexture(m_pDebugboxTexture);
+	m_pMaterial->SetTexture(nullptr);
 	//m_pMaterial->SetShader(this);
 
 	m_pBoxMesh = new CCubeMeshTextured(pd3dDevice, pd3dCommandList, 10.f, 10.f, 10.f);
@@ -137,4 +142,12 @@ D3D12_SHADER_BYTECODE CDebugboxShader::CreateVertexShader()
 D3D12_SHADER_BYTECODE CDebugboxShader::CreatePixelShader()
 {
 	return(CShader::CompileShaderFromFile(L"Shaders.hlsl", "PSDebugbox", "ps_5_1", &m_pd3dPixelShaderBlob));
+}
+
+void CDebugboxShader::Reset()
+{
+	for (int i = 0; i < m_nObjects; i++) {
+
+		m_ppObjects[i]->SetActive(false);
+	}
 }

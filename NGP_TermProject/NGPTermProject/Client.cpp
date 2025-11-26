@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include <thread>
 #include "Client.h"
 #include <fstream>
@@ -24,7 +24,11 @@ int PacketSizeHelper(char packetType)
 	case PACKET::PingpongInfo:
 		packetSize = sizeof(PingpongPacket);
 		break;
+	case PACKET::LocalMissileEvent:
+		packetSize = sizeof(LocalMissileEventPacket);
+		break;
 	default:
+		cout << "wrong packet type" << "\n";
 		packetSize = -1;
 		break;
 	}
@@ -38,19 +42,19 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 	case PACKET::PlayerInfo:
 	{
 		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt);
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::ItemInfo:
 	{
 		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt, networkSyncMgr->GetEstimatedServerTimeMs());
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::MissileInfo:
 	{
 		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
-		frameDataManager->CombinePacket(pkt);
+		packetCombiner->CombinePacket(pkt);
 		break;
 	}
 	case PACKET::PingpongInfo:
@@ -59,7 +63,15 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 		ReceivePingPongPacket(pkt);
 		break;
 	}
+
+	case PACKET::LocalMissileEvent:
+	{
+		auto& pkt = *reinterpret_cast<const LocalMissileEventPacket*>(fillTarget);
+		frameDataManager->ReceiveMissileEvent(pkt);
+		break;
+	}
 	default:
+		cout << "packet parsing error";
 		break;
 	}
 }
@@ -72,14 +84,17 @@ Client::Client()
 	sock = new SOCKET();
 }
 
-Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr):Client()
+Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr) :Client()
 {
 	this->networkSyncMgr = networkSyncMgr;
 	this->frameDataManager = frameDataMgr;
+	this->packetCombiner = new PacketCombiner(frameDataMgr);
+
 }
 
 Client::~Client()
 {
+	delete packetCombiner;
 	closesocket(*sock);
 	WSACleanup();
 }
@@ -105,7 +120,7 @@ void Client::ConnectServer()
 	}
 	std::cout << "Socket initalize successful\n";
 
-	if (recv(*sock, (char*)&PlayerNum, sizeof(int), MSG_WAITALL) == SOCKET_ERROR)
+	if (recv(*sock, (char*)&initData, sizeof(InitDataPacket), MSG_WAITALL) == SOCKET_ERROR)
 	{
 		if (WSAGetLastError() == WSAETIMEDOUT)
 		{
@@ -118,7 +133,8 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
-	frameDataManager->SetPlayerNum(PlayerNum);
+	frameDataManager->SetPlayerNum(initData.playerNum);
+	networkSyncMgr->SetBase(initData.serverTick, initData.serverTimestamp);
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
 	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
@@ -164,24 +180,21 @@ void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lPar
 void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
-	uint64_t serverTimestamp = networkSyncMgr->GetEstimatedServerTimeMs();
-
 	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
 	PlayerKeyPacket& cs_key = inputPacket_dq.back();
 	cs_key.playerKeyInput = sendKey;
 	cs_key.rotation = playerPYR;
-	cs_key.timestamp = serverTimestamp;
+	cs_key.estimatedTick = networkSyncMgr->GetUpdatedTick();
 
-	if (prevKey != sendKey)
+	//if (prevKey != sendKey || deltaMouse.x != 0.0f || deltaMouse.y != 0.0f)
 	{
-		cs_key.bKeyChanged = true;
 		cs_key.launchedMissileNum = lastLaunchedMissileNum;
 		inputChangedCV.notify_one();
+		prevKey = sendKey;
+		sendKey &= (~option6);
+		deltaMouse = { 0.0f, 0.0f };
 	}
-	prevKey = sendKey;
-	sendKey &= (~option6);
-	lastLaunchedMissileNum = -1;
-	deltaMouse = { 0.0f, 0.0f };
+
 }
 
 void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
@@ -203,7 +216,7 @@ DWORD WINAPI SendPingPacket(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	PingpongPacket cs_pingpong{PACKET::PingpongInfo};
+	PingpongPacket cs_pingpong{ PACKET::PingpongInfo };
 
 	while (true)
 	{
@@ -226,11 +239,9 @@ DWORD WINAPI SendInputPacket(LPVOID arg)
 	PlayerKeyPacket cs_keyInput;
 	while (true)
 	{
-		{
-			std::unique_lock<std::mutex> lock(client->inputPacketLock);
-			client->inputChangedCV.wait_for(lock, std::chrono::milliseconds(33));
-			client->GetKeyPacketToSend(cs_keyInput);
-		}
+		std::unique_lock<std::mutex> lock(client->inputPacketLock);
+		client->inputChangedCV.wait(lock);
+		client->GetKeyPacketToSend(cs_keyInput);
 
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
@@ -246,47 +257,62 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
 
-	const int bufSize = 512;
-	char buf[bufSize]{};
+	int combinedSize = 0;
+	char buf[BUFSIZE]{};
 	while (true)
 	{
-		if (recv(*sock, (char*)&buf, bufSize, MSG_WAITALL) == SOCKET_ERROR)		err_quit("recv()");
+		int receivedBytes = recv(*sock, buf, BUFSIZE, 0);
 
-		int restBufSize = bufSize;
-		int bufOffset = 0;
-		// process remain packet
-		if (client->remainSize > 0)
-		{
-			memcpy(&client->remain[client->remainOffset], buf, client->remainSize);
-			restBufSize -= client->remainSize;
-			client->PacketProcessHelper(client->remain[0], client->remain);
-			bufOffset += client->remainSize;
-
-			// reset remain
-			memset(client->remain, 0, 512);
-			client->remainOffset = 0;
-			client->remainSize = 0;
+		if (receivedBytes == SOCKET_ERROR) {
+			int err = WSAGetLastError();
+			std::cout << "recv error: " << err << "\n";
+			break;
 		}
 
-		while (restBufSize > 0)
+		if (combinedSize + receivedBytes > BUFSIZE)
 		{
-			char packetType = buf[bufOffset];
+			std::cout << "receive buffer overflow, dropping pending bytes\n";
+			combinedSize = 0;
+		}
+
+		memcpy(client->remainBuffer + combinedSize, buf, receivedBytes);
+		combinedSize += receivedBytes;
+
+		int offset = 0;
+
+		while (offset < combinedSize)
+		{
+			if (combinedSize - offset < 1)
+			{
+				break;
+			}
+
+			char packetType = client->remainBuffer[offset];
 			int packetSize = PacketSizeHelper(packetType);
 
-			// save remain packet
-			if (restBufSize < packetSize)
+			if (offset + packetSize > combinedSize)
 			{
-				client->remainOffset = restBufSize;
-				client->remainSize = packetSize - client->remainOffset;
-				memcpy(&client->remain, buf + bufOffset, restBufSize);
-				restBufSize -= client->remainSize;
+				//wait next packet
 				break;
 			}
 
 			// Packet process
-			client->PacketProcessHelper(packetType, buf + bufOffset);
-			restBufSize -= packetSize;
-			bufOffset += packetSize;
+			client->PacketProcessHelper(packetType, client->remainBuffer + offset);
+
+			offset += packetSize;
 		}
+
+		if (combinedSize == 0)
+		{
+			continue;
+		}
+		int remainSize = combinedSize - offset;
+		if (remainSize > 0)
+		{
+			memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
+		}
+		combinedSize = remainSize;
 	}
+
+	return 0;
 }

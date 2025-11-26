@@ -1,116 +1,143 @@
 #include "FrameDataManager.h"
 
-auto cmpTimestamp = [](const ClientFrameData& lhs, const uint64_t& value) {
-    return lhs.timestamp < value;
+auto cmpClientTick = [](const ClientFrameData& lhs, const uint64_t& value) {
+    return lhs.estimatedServerTick < value;
+};
+auto cmpServerTick = [](const ServerFrameData& lhs, const uint64_t& value) {
+    return lhs.serverTick < value;
 };
 
-float FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime)
+void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 {
-    std::lock_guard<std::mutex> lock(mtx);
-    float value = 5.0f;
-    bool bCanInterpolate = false;
-    for (int i = 0; i + 1 < serverframeData_dq.size(); ++i) {
-        if (serverframeData_dq[i].timestamp <= serverTime &&
-            serverframeData_dq[i + 1].timestamp >= serverTime) {
-            prevData = serverframeData_dq[i];
-            nextData = serverframeData_dq[i + 1];
-            bCanInterpolate = true;
-            break;
-        }
-    }
-    if (bCanInterpolate)
+    std::lock_guard<std::mutex> lock(frameDataLock);
+    serverFrameData_dq.emplace_back(frameData);
+    serverTick = frameData.serverTick;
+
+    int cutLine = 0;
+
+    while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < cutLine)
     {
-        value = float(serverTime - prevData.timestamp) / float(nextData.timestamp - prevData.timestamp);
-    }
-    return value;
-}
-
-pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> FrameDataManager::GetSimulateRange()
-{
-    auto target = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), targetTimestamp, cmpTimestamp);
-    return make_pair(target, clientFrameData_dq.end());
-}
-
-template<>
-void FrameDataManager::CombinePacket<ItemInfoBundlePacket>(const ItemInfoBundlePacket& pkt, uint64_t cutTimeline)
-{
-    std::lock_guard<std::mutex> lock(mtx);
-    memcpy(currentFrameData.itemInfos, pkt.itemInfos, sizeof(ItemInfoPacket) * 10);
-    AddServerFrameData(currentFrameData);
-
-    cutTimeline -= FRAMEDATA_DEADLINE_MS;
-
-    if (IsPositionOutOfSync(currentFrameData.timestamp))
-    {
-        RequestResimulation(currentFrameData.timestamp);
-    }
-    while (!serverframeData_dq.empty() && serverframeData_dq.front().timestamp < cutTimeline)
-    {
-        serverframeData_dq.pop_front();
+        serverFrameData_dq.pop_front();
     }
 
-    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().timestamp < cutTimeline)
+    while (!clientFrameData_dq.empty() && clientFrameData_dq.front().estimatedServerTick < cutLine)
     {
         clientFrameData_dq.pop_front();
     }
+
+    CheckPositionOutOfSync();
 }
 
-template<>
-void FrameDataManager::CombinePacket<MissileInfoBundlePacket>(const MissileInfoBundlePacket& pkt, uint64_t cutTimeline)
+ClientFrameData* FrameDataManager::GetClientFrameData(uint64_t targetTick)
 {
-    memcpy(currentFrameData.missileInfos, pkt.missileInfos, sizeof(MissileInfoPacket) * 32);
+    auto it = std::lower_bound(
+        clientFrameData_dq.begin(),
+        clientFrameData_dq.end(),
+        targetTick,
+        cmpClientTick
+    );
+
+    if (it != clientFrameData_dq.end() && it->estimatedServerTick == targetTick) {
+        return &(*it);
+    }
+
+    return nullptr;
 }
 
-template<>
-void FrameDataManager::CombinePacket<PlayerInfoBundlePacket>(const PlayerInfoBundlePacket& pkt, uint64_t cutTimeline)
+bool FrameDataManager::GetCorrectionPos(XMFLOAT3& correctionPos)
 {
-    memcpy(currentFrameData.playerInfos, pkt.playerInfos, sizeof(PlayerInfoPacket) * 4);
-    currentFrameData.timestamp = pkt.timestamp;
+    return (PosCorrectionDataQueue.try_pop(correctionPos));
 }
 
-bool FrameDataManager::IsPositionOutOfSync(const uint64_t& timestamp)
-{
-    auto nextFrameData =  lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(), timestamp, cmpTimestamp);
-    if (nextFrameData == clientFrameData_dq.begin()) return false;
-    if (nextFrameData == clientFrameData_dq.end()) return false;
 
+bool FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
+{
+    std::lock_guard<std::mutex> lock(frameDataLock);
+    bool bCanInterpolate = false;
+    for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
+        if (serverFrameData_dq[i].serverTick <= tick &&
+            serverFrameData_dq[i + 1].serverTick > tick) {
+            prevData = serverFrameData_dq[i];
+            nextData = serverFrameData_dq[i + 1];
+            return true;
+        }
+    }
+    return false;
+}
+
+pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
+{
+    uint64_t startTick = targetTick;
+    uint64_t endTick = clientFrameData_dq.back().estimatedServerTick;
+
+
+    if (startTick > endTick)
+    {
+        return std::make_pair(endTick, endTick);
+    }
+
+   return std::make_pair(targetTick, endTick);
+}
+
+void FrameDataManager::ReceiveMissileEvent(const LocalMissileEventPacket& pkt)
+{
+    MissileEventQueue.push(pkt);
+}
+
+void FrameDataManager::CheckPositionOutOfSync()
+{
+    auto serverSnapData = serverFrameData_dq.back();
+    uint64_t serverTick = serverSnapData.serverTick;
+    auto nextFrameData = lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(),
+        serverTick, cmpClientTick);
+
+    if (nextFrameData == clientFrameData_dq.begin() || clientFrameData_dq.size() <= 1)
+    {
+        return;
+    }
+    else if (nextFrameData == clientFrameData_dq.end())
+    {
+        nextFrameData--;
+    }
     auto prevFrameData = nextFrameData - 1;
 
-    float t = (timestamp - prevFrameData->timestamp) / (nextFrameData->timestamp - prevFrameData->timestamp);
-    XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t)
-;
-    XMFLOAT3& serverPosition = currentFrameData.playerInfos[playerNum].position;
+    float t = (serverTick - prevFrameData->estimatedServerTick)/ 
+                (nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
+    XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
+    XMFLOAT3 serverPosition = serverSnapData.playerInfos[playerNum].position;
+    clientPosition = prevFrameData->position;
 
     float distance = 0.0f;
-    distance = sqrt(pow((clientPosition.x - serverPosition.x),2) + 
-                            pow((clientPosition.y - serverPosition.y),2) + 
-                            pow((clientPosition.z - serverPosition.z),2));
+    distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
+                    + pow((clientPosition.y - serverPosition.y),2)
+                    + pow((clientPosition.z - serverPosition.z),2));
+
+    float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
+    float maxDistance = 150 * interpDelaySec;
     
-    float maxDistance = NetworkSyncManager::GetRttAvg() / 2 * 100.0f / 1000.0f;
-    maxDistance = 10.0f;
 
-    bool bOverMaxDistance = distance >= maxDistance;
+    bool bOverMaxDistance = (distance >= maxDistance);
 
-    position = serverPosition;
-    rotation = currentFrameData.playerInfos[0].rotation;
+    lock_guard<std::mutex> lock(resimulateLock);
 
-    return bOverMaxDistance;
+   if(bOverMaxDistance)
+   {
+        needResimulate = true;
+        targetTick = serverTick;
+        int index = serverFrameData_dq.size() - 2;
+        basePosition = serverFrameData_dq[index].playerInfos[playerNum].position;
+        baseRotation = serverFrameData_dq[index].playerInfos[playerNum].rotation;
+   }
+   else
+   {
+       PosCorrectionDataQueue.push(XMFLOAT3(serverPosition.x - clientPosition.x,
+                                                                            serverPosition.y - clientPosition.y, 
+                                                                        serverPosition.z - clientPosition.z));
+   }
 }
 
-void FrameDataManager::RequestResimulation(const uint64_t& timestamp)
+bool FrameDataManager::IsNeedResimulation()
 {
-    std::lock_guard<std::mutex>lock(resimulateLock);
-
-    bNeedResimulate = true;
-    targetTimestamp = timestamp;
-}
-
-bool FrameDataManager::CheckResimulateRequest()
-{
-    std::lock_guard<std::mutex>lock(resimulateLock);
-
-    if (!bNeedResimulate) return false;
-    bNeedResimulate = false;
-    return true;
-
+    lock_guard<std::mutex> lock(resimulateLock);
+    return needResimulate;
 }

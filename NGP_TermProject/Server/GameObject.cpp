@@ -48,6 +48,20 @@ void GameObject::SetPosition(float x, float y, float z)
 	MoveOOBB(m_xmf3Position);
 }
 
+void GameObject::SetPosition(XMFLOAT3 position)
+{
+	m_xmf4x4World._41 = position.x;
+	m_xmf4x4World._42 = position.y;
+	m_xmf4x4World._43 = position.z;
+
+	m_fxPos = position.x;
+	m_fyPos = position.y;
+	m_fzPos = position.z;
+
+	m_xmf3Position = position;
+	MoveOOBB(m_xmf3Position);
+}
+
 void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 {
 	m_fOldxPos = m_xmf3Position.x;
@@ -63,6 +77,10 @@ void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 
 void CPlayer::Rotate(float x, float y, float z)
 {
+
+	RecalculateLook();
+	RecalculateRight();
+	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
 
 	if (x != 0.0f)
 	{
@@ -82,7 +100,6 @@ void CPlayer::Rotate(float x, float y, float z)
 		if (m_fRoll > +maxRoll) { z -= (m_fRoll - maxRoll); m_fRoll = +maxRoll; }
 		if (m_fRoll < -maxRoll) { z -= (m_fRoll + maxRoll); m_fRoll = -maxRoll; }
 	}
-
 
 	XMMATRIX mtxRotate = XMMatrixRotationRollPitchYaw(XMConvertToRadians(m_fPitch), XMConvertToRadians(m_fYaw), XMConvertToRadians(m_fRoll));
 	XMFLOAT4X4 tempMatrix = Matrix4x4::Identity();
@@ -114,17 +131,22 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-void CPlayer::LaunchMissile(int16_t missileNum, float fLatency = 0)
+void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket)
 {
-	if (missileNum < 0) return;
-	CMissileObject* missile = m_pMissiles[missileNum];
-	if (!missile->IsActive())
+	uint64_t missileNum = keyPacket.launchedMissileNum;
+
+	if (missileNum == 0) return;
+	for (int i = 0; i < maxMissileNum; ++i)
 	{
-		missile->m_bActive = true;
-		missile->m_xmf3Look = m_xmf3Look;
-		missile->SetPosition(m_fxPos + m_xmf3Look.x * fLatency,
-											m_fyPos + m_xmf3Look.y * fLatency,
-											m_fzPos + m_xmf3Look.z * fLatency);
+		CMissileObject* missile = m_pMissiles[i];
+		if (!missile->IsActive())
+		{
+			missile->m_bActive = true;
+			missile->SetID(missileNum);
+			missile->SetMovingDirection(m_xmf3Look);
+			missile->SetPosition(GetCurPos());
+			break;
+		}
 	}
 }
 
@@ -146,14 +168,9 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 	}
 }
 
-void CPlayer::Update(float elapsedTime, int connectedClients)
+void CPlayer::Update(float elapsedTime)
 {
-	RecalculateLook();
-	RecalculateRight();
-	m_xmf3Up = Vector3::CrossProduct(m_xmf3Look, m_xmf3Right, true);
-
 	RotatePYR(keyPacket.rotation);
-	//Rotate(keyPacket.deltaMouse.y, keyPacket.deltaMouse.x, 0.f);
 
 	if (keyPacket.playerKeyInput)
 	{
@@ -193,10 +210,7 @@ void CPlayer::Update(float elapsedTime, int connectedClients)
 		// Attack
 		if (keyPacket.playerKeyInput & option6)
 		{
-			if (connectedClients >= 1)
-			{
-				LaunchMissile(keyPacket.launchedMissileNum, elapsedTime);			// if not alone in the server
-			}
+			LaunchMissile(keyPacket);
 			keyPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
@@ -221,7 +235,7 @@ void CPlayer::Reset(int playerNum)
 	m_fOldyPos = 0.f;
 	m_fOldzPos = 0.f;
 
-	SetPosition(initialPos[playerNum].x, initialPos[playerNum].y, initialPos[playerNum].z);
+	SetPosition(initialPos[playerNum]);
 
 	m_bActive = false;
 
@@ -235,71 +249,13 @@ void CPlayer::Reset(int playerNum)
 		missile->Reset();
 }
 
-void CPlayer::CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency)
-{
-	const unsigned char& prevKeyInput = prevKeyPacket.playerKeyInput;
-	const unsigned char& nextKeyInput = keyPacket.playerKeyInput;
-
-	float distance = movingSpeed * latency;
-	XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
-
-	for (int i = 0; i <= 5; ++i)
-	{
-		bool prevBit = (prevKeyInput >> i) & 1;
-		bool nextBit = (nextKeyInput >> i) & 1;
-
-		if (prevBit == nextBit) continue;
-
-		switch (i)
-		{
-		case 0:
-			if(nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			break;
-		case 1:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
-			break;
-		case 2:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			break;
-		case 3:
-			if (nextBit) xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
-			else xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
-			break;
-		case 4:
-			// ...
-			break;
-		case 5:
-			// ...
-			break;
-		}
-	}
-	Vector3::ScalarProduct(xmf3Shift, distance, true);
-	Move(xmf3Shift);
-	MoveOOBB(m_xmf3Position);
-
-	m_xmf4x4World._41 = m_xmf3Position.x;
-	m_xmf4x4World._42 = m_xmf3Position.y;
-	m_xmf4x4World._43 = m_xmf3Position.z;
-
-	// Attack
-	if (nextKeyInput & option6)
-	{
-		LaunchMissile(keyPacket.launchedMissileNum);
-		keyPacket.playerKeyInput &= ~option6;
-	}
-
-}
-
 void CMissileObject::Move(float elapsedTime)
 {
 	float distance = movingSpeed * elapsedTime;
 	//Move(m_xmf3Look, distance);
-	SetPosition(m_xmf4x4World._41 + m_xmf3Look.x * distance,
-		m_xmf4x4World._42 + m_xmf3Look.y * distance,
-		m_xmf4x4World._43 + m_xmf3Look.z * distance);
+	SetPosition(m_xmf4x4World._41 + m_xmf3MovingDirection.x * distance,
+		m_xmf4x4World._42 + m_xmf3MovingDirection.y * distance,
+		m_xmf4x4World._43 + m_xmf3MovingDirection.z * distance);
 	MoveOOBB(m_xmf3Position);
 
 }

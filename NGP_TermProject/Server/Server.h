@@ -3,17 +3,21 @@
 #include "Socket.h"
 #include "SCPacket.h"
 #include "GameObject.h"
+#include "Snapshot.h"
 
 #include <concurrent_queue.h>
 #include <array>
 #include <chrono>
 #include <queue>
+#include <unordered_map>
+#include <mutex>
 
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
 #define MAX_CLIENT_NUM		4
 #define MAX_ITEM_NUM		10
+#define MAX_MISSILE_NUM 8
 
 #define RESPAWN_TIME		5.f
 
@@ -26,8 +30,18 @@
 
 #define MAP_SCALE 32.767
 
+#define MAX_REWIND_TICKS 3
+
+
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
+
+
+// 틱 동기화 용 공용 유틸
+constexpr double kDt = 1.0 / 30.0;
+constexpr int		kDt_ms = 33;
+
+
 
 class Client;
 class CPlayer;
@@ -53,8 +67,7 @@ public:
 
 	void OpenListenSocket();
 
-	//void SendAllClient();
-	void SendPacketAllClient(char* packet, int size, int flag);
+	void SendPacketAllClient();
 
 	PlayerKeyPacket keyPackets[4];
 
@@ -63,6 +76,7 @@ public:
 	void CheckCollision();
 	void SpawnItem();
 	void PreparePackets();
+	void GenerateEvents(uint64_t tick);
 
 	uint64_t GetTimestampMs();
 
@@ -81,19 +95,38 @@ public:
 	CItemObject* m_ItemObject[MAX_ITEM_NUM];
 	std::queue<GameObject*> trashCan;
 
+	template <typename T>
+	inline void PushPacket(const T& packet){GetQueue<T>().push(packet);}
+	template <typename T>
+	inline bool TryPopPacket(T& outPacket){return GetQueue<T>().try_pop(outPacket);}
+	template<typename T>
+	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
-	//Packet Queue
-	concurrency::concurrent_queue<PlayerInfoBundlePacket> playerBundlePacket_q;
-	concurrency::concurrent_queue<ItemInfoBundlePacket> itemBundlePacket_q;
-	concurrency::concurrent_queue<MissileInfoBundlePacket> missileBundlePacket_q;
-
-	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 50.0f;
+	void PushInputData(int index, const PlayerKeyPacket& keyPacket);
+	void ResetToSnapshot(uint64_t targetTick);
+	void UpdateSnapshot(uint64_t targetTick);
+	uint64_t ReturnResimulateStart();
 
 
 private:
+	template <typename T>
+	static concurrency::concurrent_queue<T>& GetQueue()
+	{
+		static concurrency::concurrent_queue<T> queue;
+		return queue;
+	}
+
 	SOCKET listenSock;
 
+	//Fixed Frametime
+	const float FIXED_DELTA_TIME = 1.0f / 30.0f;
+	
+	std::mutex packetQueueLock;
+	std::condition_variable packetReadyCV;
+
+	queue<PlayerKeyPacket> InputBuffers[4];
+	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[4];
+	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 };
 
 
@@ -111,6 +144,7 @@ public:
 
 	bool ShouldDisconnected() { return shouldDisconnected; }
 	void Disconnect() { m_connected = false; shouldDisconnected = false; }
+	bool ShouldSendEvent(uint64_t id);
 
 	void Reset();
 
@@ -123,12 +157,11 @@ public:
 	int remainSize = 0;
 	
 	//Latency
-	PlayerKeyPacket prevKeyPacket;
-
 	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 	
 	float deadTime = 0.f;
 private:
+	uint64_t lastLaunchedMissileID = 0;
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
 
 	bool m_connected = false;

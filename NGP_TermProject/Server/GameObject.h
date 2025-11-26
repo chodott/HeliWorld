@@ -52,6 +52,7 @@ public:
 
 	void Rotate(float Pitch, float Yaw, float Roll);
 	void SetPosition(float x, float y, float z);
+	void SetPosition(XMFLOAT3 position);
 	void SetActive(bool active) { m_bActive = active; }
 	bool IsActive() { return m_bActive; }
 
@@ -82,14 +83,14 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	void LaunchMissile(int16_t missileNum, float fLatency);
+	void LaunchMissile(PlayerKeyPacket& keyPacket);
 	void UpdateMissiles(float elapsedTime);
-	void Update(float elapsedTime, int connectedClients);
+	void Update(float elapsedTime);
 	void Reset(int playerNum);
-	void CompensateLatency(const PlayerKeyPacket& prevKeyPacket, const float& latency);
 
-
-	const float movingSpeed = 100.f;
+	inline void SetHp(int hp) { m_nHp = hp; }
+	inline int GetHp() { return m_nHp; }
+	const float movingSpeed = 50.f;
 
 	PlayerKeyPacket keyPacket;
 
@@ -126,6 +127,15 @@ public:
 	
 	void Move(float elapsedTime);
 	void Reset();
+	inline void SetLifeTime(float lifeTime) { m_fLifeSpan = lifeTime; }
+	inline float GetLifeTime() { return m_fLifeSpan; }
+	inline void SetID(uint64_t id) { m_netID = id; }
+	inline uint64_t GetID() { return m_netID; }
+	inline XMFLOAT3 GetMovingDirection() { return m_xmf3MovingDirection; }
+	inline void SetMovingDirection(XMFLOAT3& direction) { m_xmf3MovingDirection = direction; }
+
+private:
+	uint64_t m_netID = 0;
 };
 
 class CItemObject : public GameObject

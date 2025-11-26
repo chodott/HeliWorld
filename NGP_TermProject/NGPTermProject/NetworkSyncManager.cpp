@@ -3,42 +3,90 @@
 float NetworkSyncManager::offsetAvg = 0.f;
 float NetworkSyncManager::rttAvg = 0.f;
 
+constexpr double kDt = 1.0 / 30.0;
+constexpr double kDtMs = kDt * 1000.0;
+
+template<class T> 
+void KeepDequeSize(deque<T>& dq)
+{
+	if (dq.size() <= MAX_DEQUE_LENGTH) 
+	{
+		return;
+	}
+	dq.erase(dq.begin(), dq.begin() + (dq.size() - MAX_DEQUE_LENGTH));
+}
+
+template<class T>
+T GetDequeAvg(const deque<T>& dq)
+{
+	if(dq.empty())
+	{
+		return 0;
+	}
+	T avg = std::accumulate(dq.begin(), dq.end(), 0.f) / dq.size();
+	return avg;
+}
+
 uint64_t NetworkSyncManager::GetTimestampMs()
 {
 	using namespace std::chrono;
-	return (uint32_t)std::chrono::duration_cast<std::chrono::milliseconds>
+	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-uint64_t NetworkSyncManager::GetEstimatedServerTimeMs()
+float NetworkSyncManager::GetEstimatedServerTimeMs()
 {
-	return GetTimestampMs() + offsetAvg;
+	return (float)GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
 }
 
-uint64_t NetworkSyncManager::GetDelayedServerTimeMs()
+float NetworkSyncManager::GetDelayedServerTick()
 {
-	return GetEstimatedServerTimeMs() - delay;
+	return GetEstimatedServerTick() - delayTick;
 }
 
-void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, const uint64_t serverSendTimestamp)
+float CalculateAvg(deque<float>& target_dq)
+{
+	while (target_dq.size() > MAX_SYNC_SAMPLE_SIZE)
+	{
+		target_dq.pop_front();
+	}
+	return std::accumulate(target_dq.begin(), target_dq.end(), 0.f) / target_dq.size();
+
+}
+
+float NetworkSyncManager::GetEstimatedServerTick()
+{
+	float elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
+	float serverTick = baseTick + elapsed / kDtMs;
+	return serverTick;
+}
+
+bool NetworkSyncManager::UpdateServerTick()
+{
+	uint64_t newTick = GetEstimatedServerTick();
+	if (updatedTick >= newTick)
+	{
+		return true;
+	}
+
+	updatedTick = newTick;
+	return false;
+}
+
+void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, 
+										const uint64_t serverSendTimestamp)
 {
 	uint64_t rtt = GetTimestampMs() - clientSendTimestamp;
-	float offset = (float)serverSendTimestamp - (float)(clientSendTimestamp + (float)rtt / 2);
+	float offset = serverSendTimestamp - (clientSendTimestamp + rtt * 0.5f);
 	scOffset_dq.push_back(offset);
 	rtt_dq.push_back(rtt);
 
 	//Calculate Offset Avg
-	while (scOffset_dq.size() > 10)
-	{
-		scOffset_dq.pop_front();
-	}
-	offsetAvg = std::accumulate(scOffset_dq.begin(), scOffset_dq.end(), 0.f) / scOffset_dq.size();
-
+	KeepDequeSize(scOffset_dq);
+	offsetAvg = GetDequeAvg(scOffset_dq);
 	//Calculate Rtt Avg
-	while (rtt_dq.size() > 10)
-	{
-		rtt_dq.pop_front();
-	}
-	rttAvg = std::accumulate(rtt_dq.begin(), rtt_dq.end(),0.f) / rtt_dq.size();
-	delay = (int)(rttAvg * 0.5f) + DEFAULT_DELAY_MS;
+	KeepDequeSize(rtt_dq);
+	rttAvg = GetDequeAvg(rtt_dq);
+	float delay = (rttAvg * 0.5f) + DEFAULT_DELAY_MS;
+	delayTick = delay / kDtMs;
 }
