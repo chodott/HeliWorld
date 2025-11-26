@@ -482,7 +482,7 @@ void CObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComman
 	int nObjects = 0;
 	for (int h = 0; h < m_nObjects; h++)
 	{
-		m_ppObjects[h] = new CMi24Object(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
+		m_ppObjects[h] = new CAirplanePlayer(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
 		m_ppObjects[h]->SetChild(pSuperCobraModel);
 		pSuperCobraModel->AddRef();
 		m_ppObjects[h]->SetPosition(300.0f, 500.0f, 500.0f+ h * 100);

@@ -8,6 +8,8 @@ namespace PACKET {
 	const char MissileInfo = 2;
 	const char KeyInfo = 3;
 	const char PingpongInfo = 4;
+	const char LocalMissileEvent = 5;
+
 };
 
 
@@ -18,6 +20,13 @@ struct FPoint {
 
 
 #pragma pack(1)
+struct InitDataPacket
+{
+	int playerNum;
+	uint64_t serverTick;
+	uint64_t serverTimestamp;
+};
+
 struct PingpongPacket
 {
 	char packetType;
@@ -38,17 +47,17 @@ struct PlayerInfoBundlePacket
 {
 	char packetType;
 	PlayerInfoPacket playerInfos[4];
-	uint64_t timestamp;
+	int serverTick;
 };
 
 
-struct PlayerKeyPacket {
+struct PlayerKeyPacket 
+{
 	char packetType = PACKET::KeyInfo;
 	unsigned char playerKeyInput;
 	XMFLOAT3 rotation;
-	int16_t launchedMissileNum = -1;
-	uint64_t timestamp;
-	bool bKeyChanged = false;
+	uint64_t launchedMissileNum = 0;
+	uint64_t estimatedTick;
 };
 
 struct ItemInfoPacket {
@@ -67,15 +76,22 @@ struct ItemInfoBundlePacket
 struct MissileInfoPacket {
 
 	bool active;
-	int32_t positionX;  
-	int32_t positionY; 
-	int32_t positionZ; 
+	XMFLOAT3 position;
 };
 
 struct MissileInfoBundlePacket
 {
 	char packetType;
 	MissileInfoPacket missileInfos[32];
+};
+
+struct LocalMissileEventPacket
+{
+	char packetType;
+	uint64_t missileNum;
+	uint64_t eventTick;
+	int playerNum;
+	bool active;
 };
 
 #pragma pack()

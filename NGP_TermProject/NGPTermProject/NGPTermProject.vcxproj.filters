@@ -165,6 +165,21 @@
     <ClInclude Include="FrameDataManager.h">
       <Filter>Client</Filter>
     </ClInclude>
+    <ClInclude Include="FrameData.h">
+      <Filter>Client</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugboxObject.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugboxShader.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugDrawManager.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkSyncManager.h">
+      <Filter>GameFramework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">
@@ -238,6 +253,24 @@
     </ClCompile>
     <ClCompile Include="FrameDataManager.cpp">
       <Filter>Client</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketCombiner.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketCombiner.h">
+      <Filter>Client</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugboxObject.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugboxShader.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugDrawManager.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="NetworkSyncManager.cpp">
+      <Filter>GameFramework</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

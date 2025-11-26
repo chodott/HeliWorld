@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Missileobject.h"
+#include "DebugDrawManager.h"
 
 
 CMissleObject::CMissleObject() :CGameObject(1, 1)
@@ -18,11 +19,11 @@ void CMissleObject::AnimateObject(float fElapsedTime)
 	//{
 	//	if (m_fRotationSpeed != 0.0f)
 	//		Rotate(m_xmf3RotationAxis, m_fRotationSpeed * fElapsedTime);
-	//	// ÃÑ¾ËÀÇ ÀÌµ¿¼Óµµ°¡ 0ÀÌ ¾Æ´Ï¸é ÀÌµ¿À» ÇÑ´Ù.
+	//	// ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Óµï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
 	//	m_fMovingSpeed = 100;
 	//	if (m_fMovingSpeed != 0.0f)
 	//		Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
-	//	// ÃÑ¾ËÀÇ Ãæµ¹¹Ú½º¸¦ °è¼Ó ¾Ö´Ï¸ÞÀÌÆ® ÇØÁÖ¾î¾ß ÃÑ¾ËÀÇ À§Ä¡°¡ º¯ÇÔ¿¡µû¶ó Ãæµ¹ ¹Ú½ºµµ °°ÀÌ À§Ä¡°¡ º¯ÇÑ´Ù.
+	//	// ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½æµ¹ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ¾ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½æµ¹ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
 	//	SetOOBB(GetPosition(), XMFLOAT3(5, 5, 5), XMFLOAT4(0., 0., 0., 1.));
 	//	//XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 	//}
@@ -38,7 +39,7 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 	if (!GetActive()) return;
 	if (m_ppMaterials)
 	{
-		if (m_ppMaterials[0]->m_pShader)//->½¦ÀÌ´õ 
+		if (m_ppMaterials[0]->m_pShader)//->ï¿½ï¿½ï¿½Ì´ï¿½ 
 		{
 			m_ppMaterials[0]->m_pShader->Render(pd3dCommandList, pCamera);
 			m_ppMaterials[0]->m_pShader->UpdateShaderVariables(pd3dCommandList);
@@ -62,99 +63,61 @@ void CMissleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* 
 		}
 	}
 }
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket* MissilePacket)
+
+void CMissleObject::Animate(const MissileInfoPacket& prevPacket, const MissileInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha)
 {
-	/*bool bServerActive = MissilePacket->active;
-	if (bServerActive)
+	if (GetLocal() == true)
 	{
-		bServerLife = true;
-		SetActive(true);
-	}
-	if (bServerLife == true && bServerActive == false)
-	{
-		bServerLife = false;
-		SetActive(false);
-	}
-	if (!GetActive()) return;
-	
-	XMFLOAT3 newPosition = ConvertInt16tofloat3(MissilePacket->positionX, MissilePacket->positionY, MissilePacket->positionZ, MAP_SCALE);
-	if (bLocalMissile)
-	{
-		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		if (bServerActive)
+		if (GetActive() == false)
 		{
-			XMFLOAT3 resultPosition;
-			XMVECTOR prevPosition = XMLoadFloat3(&GetPosition());
-			XMVECTOR nextPosition = XMLoadFloat3(&newPosition);
-			XMVECTOR curPosition = XMVectorLerp(prevPosition, nextPosition, 0.1f);
-
-			XMStoreFloat3(&resultPosition, curPosition);
-			SetPosition(resultPosition);
+			return;
 		}
-	}
-	else SetPosition(newPosition);*/
-
-}
-void CMissleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent, MissileInfoPacket& prevPacket, MissileInfoPacket& nextPacket, float lerpAlpha)
-{
-	if (bLocalMissile)
-	{
-		if (!GetActive()) return;
-
-		Move(GetMovingDirection(), movingSpeed * fTimeElapsed);
-		if (lerpAlpha >= 3.0f)
-		{
-			SetPosition(GetRealPosition());
-		}
-		else
-		{
-			if (bActiveInServer == true)
-			{
-				SetActive(prevPacket.active);
-			}
-
-			if (prevPacket.active == true)
-			{
-
-				XMFLOAT3 prevPosition = ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE);
-				XMFLOAT3 nextPosition = ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE);
-
-				XMFLOAT3 serverPosition = LerpFloat3(prevPosition, nextPosition, lerpAlpha);
-				XMFLOAT3& clientPosition = GetRealPosition();
-				XMFLOAT3 renderPosition = LerpFloat3(clientPosition, serverPosition, 0.1f);
-				SetPosition(renderPosition);
-			}
-			else
-			{
-				SetPosition(GetRealPosition());
-			}
-			bActiveInServer = prevPacket.active;
-		}
+		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
 	}
 
 	else
 	{
-		if (lerpAlpha >= 3.0f) return;
 		SetActive(prevPacket.active);
-		XMVECTOR prevPosition = XMLoadFloat3(&ConvertInt32tofloat3(prevPacket.positionX, prevPacket.positionY, prevPacket.positionZ, MAP_SCALE));
-		XMVECTOR nextPosition = XMLoadFloat3(&ConvertInt32tofloat3(nextPacket.positionX, nextPacket.positionY, nextPacket.positionZ, MAP_SCALE));
+		XMVECTOR prevPosition = XMLoadFloat3(&prevPacket.position);
+		XMVECTOR nextPosition = XMLoadFloat3(&nextPacket.position);
 
 		XMVECTOR renderPosition = XMVectorLerp(prevPosition, nextPosition, lerpAlpha);
 		XMFLOAT3 resultPosition;
 
 		XMStoreFloat3(&resultPosition, renderPosition);
-		SetPosition(resultPosition);
+		SetPosition(prevPacket.position);
 	}
 
 }
 
-void CMissleObject::Move(XMFLOAT3& vDirection, float fSpeed)
+void CMissleObject::Move(const XMFLOAT3& vDirection, float fSpeed)
 {
-	m_xmf3RealPosition.x += vDirection.x * fSpeed;
-	m_xmf3RealPosition.y += vDirection.y * fSpeed;
-	m_xmf3RealPosition.z += vDirection.z * fSpeed;
+	m_xmf3PredictPosition.x += vDirection.x * fSpeed;
+	m_xmf3PredictPosition.z += vDirection.z * fSpeed;
+	m_xmf3PredictPosition.y += vDirection.y * fSpeed;
+}
 
-	//SetPosition(m_xmf4x4World._41 + vDirection.x * fSpeed, m_xmf4x4World._42 + vDirection.y * fSpeed, m_xmf4x4World._43 + vDirection.z * fSpeed);
+void CMissleObject::ApplyServerResult(bool active)
+{
+	SetActive(active);
+}
+
+void CMissleObject::ApplyVisualSmoothing(const XMFLOAT3& launchPosition, float fTimeElapsed)
+{
+	if (GetActive() == false) return;
+
+	XMFLOAT3 renderPosition;
+
+	if (GetLaunched() == true)
+	{
+		renderPosition = Vector3::Add(launchPosition, Vector3::ScalarProduct(GetMovingDirection(), 10.f, false));
+		Move(GetMovingDirection(), fTimeElapsed * movingSpeed);
+		SetPredictPosition(renderPosition);
+		SetLaunched(false);
+	}
+
+	renderPosition = GetPredictPosition();
+	SetPosition(renderPosition);
 }
 
 void CMissleObject::Rotate(XMFLOAT3& xmf3RotationAxis, float fAngle)

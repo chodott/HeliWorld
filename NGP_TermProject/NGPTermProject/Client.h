@@ -19,13 +19,14 @@
 #include <mutex>
 
 #include "FrameDataManager.h"
+#include "PacketCombiner.h"
 #include "error.h"
 #include "Missileobject.h"
 
 #pragma comment(lib, "ws2_32")
 
 #define SERVERPORT 9000
-#define BUFSIZE 512
+#define BUFSIZE 4096
 
 class Client {
 public:
@@ -44,19 +45,19 @@ public:
 	void PacketProcessHelper(char packetType, char* fillTarget);
 	void ReceivePingPongPacket(const PingpongPacket& ppPacket);
 
+	inline int GetPlayerNum() { return initData.playerNum; }
+
 
 	
 	FPoint deltaMouse;
-	int PlayerNum = 0;
+	InitDataPacket initData;
 
 	HANDLE FrameAdvanced;
 
-	char remain[512]{};
-	int remainOffset = 0;
-	int remainSize = 0;
+	char remainBuffer[BUFSIZE]{};
 
 	//Add
-	int16_t lastLaunchedMissileNum = -1;
+	uint64_t lastLaunchedMissileNum = 0;
 	unsigned char sendKey = NULL;
 	unsigned char prevKey = NULL;
 	mutex inputPacketLock;
@@ -64,15 +65,16 @@ public:
 
 
 	//Latency Interpolation
+	PacketCombiner* packetCombiner;
 	FrameDataManager* frameDataManager;
 	NetworkSyncManager* networkSyncMgr;
 
 private:
 	SOCKET* sock = nullptr;
 
-	const char* serverIp = (char*)"192.168.0.8";
+	const char* serverIp = (char*)"127.0.0.1";
 
-	unsigned char option0 = 0x01;   // 0000 0001 
+	unsigned char option0 = 0x01;   // 0000 00c01 
 	unsigned char option1 = 0x02;   // 0000 0010
 	unsigned char option2 = 0x04;   // 0000 0100
 	unsigned char option3 = 0x08;   // 0000 1000

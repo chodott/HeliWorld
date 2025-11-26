@@ -1,32 +1,14 @@
 #pragma once
 #include "CSPacket.h"
+#include "FrameData.h"
 #include "NetworkSyncManager.h"
+#include <concurrent_queue.h>
 #include <mutex>
 
-#define FRAMEDATA_DEADLINE_MS 5000
-
-struct ServerFrameData {
-    uint64_t timestamp;
-    PlayerInfoPacket playerInfos[4];
-    ItemInfoPacket itemInfos[10];
-    MissileInfoPacket missileInfos[32];
-};
-
-struct ClientFrameData
-{
-    uint64_t timestamp;
-    XMFLOAT3 position;
-    XMFLOAT3 rotation;
-    unsigned char playerKeyInput;
-    FPoint deltaMouse;
-    float deltaTime;
-};
 
 class FrameDataManager
 {
-public:
-    template<typename PacketType>
-    void CombinePacket(const PacketType& packet, uint64_t cutTimeline = 0);
+  public:
     inline void SetPlayerNum(int n) 
     {
         playerNum = n;
@@ -35,30 +17,46 @@ public:
     {
         clientFrameData_dq.emplace_back(frameData);
     }
-    inline void AddServerFrameData(const ServerFrameData& frameData)
+    void AddServerFrameData(const ServerFrameData& frameData);
+
+    pair<uint64_t, uint64_t> GetSimulateTickRange();
+    ClientFrameData* GetClientFrameData(uint64_t targetTick);
+    bool GetCorrectionPos(XMFLOAT3& correctionPos);
+    bool GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
+    void CheckPositionOutOfSync();
+    void ReceiveMissileEvent(const LocalMissileEventPacket& pkt);
+    bool TryGetMissileEvent(LocalMissileEventPacket& event)
     {
-        serverframeData_dq.emplace_back(frameData);
+        if(MissileEventQueue.try_pop(event) == true)
+        {
+            return true;
+        }
+        return false;
     }
-    float GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t& serverTime);
-    pair<std::deque<ClientFrameData>::iterator, std::deque<ClientFrameData>::iterator> GetSimulateRange();
-    bool IsPositionOutOfSync(const uint64_t& timestamp);
+    bool IsNeedResimulation();
 
-    void RequestResimulation(const uint64_t& timestamp);
-    bool CheckResimulateRequest();
+      // 롤백 재시뮬레이션이 완료되었을 때 플래그를 해제한다.
+      inline void FinishResimulation()
+      {
+          std::lock_guard<std::mutex> lock(resimulateLock);
+          needResimulate = false;
+      }
 
-    XMFLOAT3 position;
-    XMFLOAT3 rotation;
+    XMFLOAT3 basePosition;
+    XMFLOAT3 baseRotation;
 
 private:
-    std::mutex mtx;
     std::mutex resimulateLock;
-    std::deque<ServerFrameData> serverframeData_dq;
+    std::mutex frameDataLock;
+    std::deque<ServerFrameData> serverFrameData_dq;
     std::deque<ClientFrameData> clientFrameData_dq;
+    Concurrency::concurrent_queue<XMFLOAT3> PosCorrectionDataQueue;
+    Concurrency::concurrent_queue<LocalMissileEventPacket> MissileEventQueue;
 
-    ServerFrameData currentFrameData;
-    uint64_t targetTimestamp;
+    uint64_t targetTick;
+    int serverTick;
     int playerNum = 0;
-    bool bNeedResimulate = false;
+    bool needResimulate = false;
 
 };
 

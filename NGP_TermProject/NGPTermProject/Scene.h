@@ -72,7 +72,7 @@ public:
 
 	bool ProcessInput(UCHAR* pKeysBuffer);
 	void AnimateObjects(float fTimeElapsed);
-	void AnimateObjects(float fTimeElapsed, PlayerInfoPacket& PlayerInfoPacket);
+	void AnimateObjects(const float fTimeElapsed, const PlayerInfoPacket& PlayerInfoPacket);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
 	void ReleaseUploadBuffers();
