@@ -124,8 +124,8 @@ private:
 	std::mutex packetQueueLock;
 	std::condition_variable packetReadyCV;
 
-	queue<PlayerKeyPacket> InputBuffers[4];
-	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[4];
+	queue<PlayerKeyPacket> InputBuffers[MAX_CLIENT_NUM];
+	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[MAX_CLIENT_NUM];
 	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 };
 
