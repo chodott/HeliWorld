@@ -88,6 +88,6 @@ private:
 };
 
 DWORD WINAPI ReceiveFromServer(LPVOID arg);
-DWORD WINAPI SendPingPacket(LPVOID arg);
-DWORD WINAPI SendInputPacket(LPVOID arg);
+DWORD WINAPI SendPingToServer(LPVOID arg);
+DWORD WINAPI SendInputToServer(LPVOID arg);
 

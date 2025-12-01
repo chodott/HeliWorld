@@ -137,8 +137,8 @@ void Client::ConnectServer()
 	networkSyncMgr->SetBase(initData.serverTick, initData.serverTimestamp);
 
 	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
-	CreateThread(NULL, 0, SendPingPacket, this, 0, NULL);
-	CreateThread(NULL, 0, SendInputPacket, this, 0, NULL);
+	CreateThread(NULL, 0, SendPingToServer, this, 0, NULL);
+	CreateThread(NULL, 0, SendInputToServer, this, 0, NULL);
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -209,7 +209,7 @@ void Client::ReceivePingPongPacket(const PingpongPacket& ppPacket)
 	networkSyncMgr->UpdateSyncData(ppPacket.clientTimeStamp, ppPacket.serverSendTimeStamp);
 }
 
-DWORD WINAPI SendPingPacket(LPVOID arg)
+DWORD WINAPI SendPingToServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
@@ -229,7 +229,7 @@ DWORD WINAPI SendPingPacket(LPVOID arg)
 	}
 }
 
-DWORD WINAPI SendInputPacket(LPVOID arg)
+DWORD WINAPI SendInputToServer(LPVOID arg)
 {
 	Client* client = (Client*)arg;
 	SOCKET* sock = client->GetClientsock();
