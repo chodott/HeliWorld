@@ -36,10 +36,12 @@ public:
 
 	void MergeInput();
     void ProcessInput(float fTimeElapsed);
+	void Update(const float fTimeElapsed);
     void AnimateObjects(const float fTimeElapsed);
 	void AnimatePlayers(const ServerFrameData& prevData, const ServerFrameData& nextData, const float fTimeElapsed, const float lerpAlpha);
     void FrameAdvance();
 	void Resimulate();
+	void ReapplyInput(ClientFrameData* clientFrameData);
 	void ApplyMissileEvents();
 	void VisualSmoothing(float fTimeElapsed);
 
