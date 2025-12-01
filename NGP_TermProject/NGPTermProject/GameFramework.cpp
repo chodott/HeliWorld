@@ -490,52 +490,57 @@ void CGameFramework::Resimulate()
 	ApplyMissileEvents();
 
     if(!frameDataManager->IsNeedResimulation())
-    {
+    {//재시뮬레이션 플래그 확인
            return;
     }
-
-	auto& tickRange =  frameDataManager->GetSimulateTickRange();
-	const uint64_t startTick = tickRange.first; 
-	const uint64_t endTick = tickRange.second;
-
-	m_pPlayer->SetServerPosition(frameDataManager->basePosition);
+	
+	//Rollback
 	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
 
-	unsigned char curKeyInput = 0;
-	XMFLOAT3 curRotation;
-
+	//Resimulate
+	auto& tickRange = frameDataManager->GetSimulateTickRange();
+	const uint64_t startTick = tickRange.first;
+	const uint64_t endTick = tickRange.second;
 	for (uint64_t currentTick = startTick; currentTick <= endTick; ++currentTick)
 	{
 		ClientFrameData* currentFrameData =  frameDataManager->GetClientFrameData(currentTick);
-	
-		if (currentFrameData != nullptr)
-		{
-			curKeyInput = currentFrameData->playerKeyInput;
-			curRotation = currentFrameData->rotation;
-		}
-		//Input Simulation
-		DWORD dwDirection = 0;
-		if (curKeyInput& 0x01) dwDirection |= DIR_FORWARD;
-		if (curKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
-		if (curKeyInput & 0x04) dwDirection |= DIR_LEFT;
-		if (curKeyInput & 0x08) dwDirection |= DIR_RIGHT;
-		if (curKeyInput & 0x10) dwDirection |= DIR_UP;
-		if (curKeyInput & 0x20) dwDirection |= DIR_DOWN;
+		ReapplyInput(currentFrameData);
 
-		m_pPlayer->RotatePYR(curRotation);
-		if (dwDirection) m_pPlayer->Move(dwDirection, kDt, false);
-
-		//Simulation data Update
-		if (currentFrameData != nullptr)
-		{
-			currentFrameData->position = m_pPlayer->GetPredictPosition();
-			currentFrameData->rotation = m_pPlayer->GetRotation();
-
-        }
     }
 	// 재시뮬레이션이 완료되었으므로 플래그 해제
 	frameDataManager->FinishResimulation();
+}
+
+void CGameFramework::ReapplyInput(ClientFrameData* curFrameData)
+{
+	static unsigned char curKeyInput;
+	static XMFLOAT3 curRotation;
+
+	if (curFrameData != nullptr)
+	{
+		curKeyInput = curFrameData->playerKeyInput;
+		curRotation = curFrameData->rotation;
+	}
+
+	//Input Simulation
+	DWORD dwDirection = 0;
+	if (curKeyInput & 0x01) dwDirection |= DIR_FORWARD;
+	if (curKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+	if (curKeyInput & 0x04) dwDirection |= DIR_LEFT;
+	if (curKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+	if (curKeyInput & 0x10) dwDirection |= DIR_UP;
+	if (curKeyInput & 0x20) dwDirection |= DIR_DOWN;
+
+	m_pPlayer->RotatePYR(curRotation);
+	if (dwDirection) m_pPlayer->Move(dwDirection, kDt, false);
+
+	//Simulation data Update
+	if (curFrameData != nullptr)
+	{
+		curFrameData->position = m_pPlayer->GetPredictPosition();
+		curFrameData->rotation = m_pPlayer->GetRotation();
+	}
 }
 
 void CGameFramework::ApplyMissileEvents()
@@ -633,6 +638,23 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 }
 
+void CGameFramework::Update(const float fTimeElapsed)
+{
+	accumulatedSecond += fTimeElapsed;
+	MergeInput();
+
+	if (accumulatedSecond >= kDt)
+	{
+		bool isDuplication = networkSyncManager->UpdateServerTick();
+		if (isDuplication == false)
+		{
+			accumulatedSecond -= kDt;
+			ProcessInput(kDt);
+			client->PrepareInputPacket(m_pPlayer->GetRotation());
+		}
+	}
+}
+
 void CGameFramework::AnimateObjects(const float fTimeElapsed)
 {
 	if (m_pScene == nullptr)
@@ -728,20 +750,7 @@ void CGameFramework::FrameAdvance()
 	Resimulate();
 	m_GameTimer.Tick(0.0f);
 	float fTimeElapsed = m_GameTimer.GetTimeElapsed();
-	accumulatedSecond += fTimeElapsed;
-	MergeInput();
-
-	if(accumulatedSecond >= kDt)
-	{
-		bool isDuplication = networkSyncManager->UpdateServerTick();
-		if (isDuplication == false)
-		{
-			accumulatedSecond -= kDt;
-			ProcessInput(kDt);
-			client->PrepareInputPacket(m_pPlayer->GetRotation());
-		}
-	}
-
+	Update(fTimeElapsed);
 	AnimateObjects(fTimeElapsed);
 	VisualSmoothing(fTimeElapsed);
 
