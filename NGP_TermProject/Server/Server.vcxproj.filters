@@ -3,6 +3,7 @@
   <ItemGroup>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="ClientInputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCPacket.h" />
@@ -10,5 +11,7 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Socket.h" />
+    <ClInclude Include="SnapShot.h" />
+    <ClInclude Include="ClientInputManager.h" />
   </ItemGroup>
 </Project>

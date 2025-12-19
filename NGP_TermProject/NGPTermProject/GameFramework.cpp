@@ -490,10 +490,13 @@ void CGameFramework::Resimulate()
 	ApplyMissileEvents();
 
     if(!frameDataManager->IsNeedResimulation())
-    {//재시뮬레이션 플래그 확인
-           return;
+    {
+		m_pPlayer->ApplyCorrection(frameDataManager->GetDiffVector(), CORRECTION_ALPHA);
+		frameDataManager->StepCorrection(CORRECTION_ALPHA);
+		return;
     }
 	
+	cout << "Resimulate" << "\n";
 	//Rollback
 	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);

@@ -44,12 +44,6 @@ ClientFrameData* FrameDataManager::GetClientFrameData(uint64_t targetTick)
     return nullptr;
 }
 
-bool FrameDataManager::GetCorrectionPos(XMFLOAT3& correctionPos)
-{
-    return (PosCorrectionDataQueue.try_pop(correctionPos));
-}
-
-
 bool FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
 {
     std::lock_guard<std::mutex> lock(frameDataLock);
@@ -113,7 +107,7 @@ void FrameDataManager::CheckPositionOutOfSync()
                     + pow((clientPosition.z - serverPosition.z),2));
 
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
-    float maxDistance = 150 * interpDelaySec;
+    float maxDistance = 50 * 1.1f *  interpDelaySec;
     
 
     bool bOverMaxDistance = (distance >= maxDistance);
@@ -130,9 +124,9 @@ void FrameDataManager::CheckPositionOutOfSync()
    }
    else
    {
-       PosCorrectionDataQueue.push(XMFLOAT3(serverPosition.x - clientPosition.x,
-                                                                            serverPosition.y - clientPosition.y, 
-                                                                        serverPosition.z - clientPosition.z));
+       diffVector =  XMFLOAT3(serverPosition.x - clientPosition.x,
+                                                serverPosition.y - clientPosition.y, 
+                                            serverPosition.z - clientPosition.z);
    }
 }
 
@@ -140,4 +134,15 @@ bool FrameDataManager::IsNeedResimulation()
 {
     lock_guard<std::mutex> lock(resimulateLock);
     return needResimulate;
+}
+
+void FrameDataManager::StepCorrection(const float alpha)
+{
+    XMVECTOR fullError = XMLoadFloat3(&diffVector);
+
+    XMVECTOR stepError = XMVectorScale(fullError, alpha);
+
+    // 3. 매니저가 가진 오차에서 보정량만큼 차감 (중요!)
+    XMVECTOR updatedError = XMVectorSubtract(fullError, stepError);
+    XMStoreFloat3(&diffVector, updatedError);
 }
