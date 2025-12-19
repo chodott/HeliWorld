@@ -64,6 +64,7 @@ public:
 	XMFLOAT3 GetUpVector() { return(m_xmf3Up); }
 	XMFLOAT3 GetRightVector() { return(m_xmf3Right); }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
+	XMFLOAT3 GetServerPosition() { return m_xmf3ServerPosition; }
 
 	void SetFriction(float fFriction) { m_fFriction = fFriction; }
 	void SetGravity(const XMFLOAT3& xmf3Gravity) { m_xmf3Gravity = xmf3Gravity; }
@@ -90,8 +91,9 @@ public:
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
 	void LaunchMissiles(class CGameObject** missiles, class Client* client);
 
+	void ApplyCorrection(const XMFLOAT3& errrorVector, float alpha);
 	void Update(float fTimeElapsed);
-	virtual void Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, float lerpAlpha)override;
+	virtual void Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha)override;
 	void ApplyVisualSmoothing(float fTimeElapsed);
 
 	virtual void OnPlayerUpdateCallback(float fTimeElapsed) { }

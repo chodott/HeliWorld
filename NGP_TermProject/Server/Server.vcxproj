@@ -144,10 +144,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ClientInputManager.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClientInputManager.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />

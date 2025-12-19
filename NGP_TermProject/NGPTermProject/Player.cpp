@@ -181,6 +181,15 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 	}
 }
 
+void CPlayer::ApplyCorrection(const XMFLOAT3& errorVector, float alpha)
+{
+	XMVECTOR predictedPos = XMLoadFloat3(&m_xmf3PredictPosition);
+	XMVECTOR error = XMLoadFloat3(&errorVector);
+	XMVECTOR correctionStep = XMVectorScale(error, alpha); 
+
+	XMStoreFloat3(&m_xmf3PredictPosition, XMVectorAdd(predictedPos, correctionStep));
+}
+
 void CPlayer::Update(float fTimeElapsed)
 {
 	/*m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, m_xmf3Gravity);
@@ -204,7 +213,7 @@ void CPlayer::Update(float fTimeElapsed)
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, Vector3::ScalarProduct(m_xmf3Velocity, -fDeceleration, true));*/
 }
 
-void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, float lerpAlpha)
+void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket& nextPacket, const float fTimeElapsed, const float lerpAlpha)
 {
 	XMFLOAT3 serverPosition = LerpFloat3(prevPacket.position, nextPacket.position, lerpAlpha);
 	XMFLOAT3 curRotation = XMVectorAngleLerp(prevPacket.rotation, nextPacket.rotation, lerpAlpha);
@@ -213,15 +222,12 @@ void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket
 
 	if (GetLocal() == false)
 	{
-		//XMFLOAT3 renderPos = LerpFloat3(GetPosition(), serverPosition, 0.1f);
-		XMFLOAT3 renderPos = serverPosition;
+		XMFLOAT3 renderPos = LerpFloat3(GetPosition(), serverPosition, 0.3f);
 
 		SetPosition(renderPos);
 		RotatePYR(curRotation);
+		DebugDrawManager::Get().AddDebugCube(GetServerPosition(), GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 	}
-	//DebugDrawManager::Get().AddDebugCube(serverPosition, GetRotation(), { 0.f, 0.f, 1.f, 1.f });
-	//DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), { 1.f, 0.f, 0.f, 1.f });
-
 }
 
 void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
@@ -230,6 +236,8 @@ void CPlayer::ApplyVisualSmoothing(float fTimeElapsed)
 	SetPosition(renderPosition);
 
 	DebugDrawManager::Get().AddDebugCube(GetPosition(), GetRotation(), { 0.f, 1.f, 0.f, 1.f });
+	DebugDrawManager::Get().AddDebugCube(GetPredictPosition(), GetRotation(), {1.f, 0.f, 0.f, 1.f});
+	DebugDrawManager::Get().AddDebugCube(GetServerPosition(), GetRotation(), { 0.f, 0.f, 1.f, 1.f });
 
 	if (m_pPlayerUpdatedContext) OnPlayerUpdateCallback(fTimeElapsed);
 
