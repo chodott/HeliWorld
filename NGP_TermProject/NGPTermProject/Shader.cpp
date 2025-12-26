@@ -1147,6 +1147,7 @@ void C2dUIObjectsShader::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCo
 	pUiObject->SetMesh(0, pMiniMapMesh);
 	pUiObject->SetMaterial(0, ppMiniMapMaterials[0]);
 	pUiObject->SetPosition(15, 8.5, 30);
+	pUiObject->SetActive(false);
 	pUiObject->Rotate(0.0f, 180.0f, 0.0f);
 	pUiObject->SetCbvGPUDescriptorHandlePtr(m_d3dCbvGPUDescriptorStartHandle.ptr + (::gnCbvSrvDescriptorIncrementSize * nObjects));
 	m_ppObjects[nObjects++] = pUiObject;

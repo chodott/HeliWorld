@@ -240,7 +240,7 @@ public:
     }
     XMFLOAT3 GetMovement() { return m_movement; }
     XMFLOAT3 GetRotation() { return m_rotation; }
-    virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
+    virtual void RotatePYR(const XMFLOAT3& xmf3RotationAxis);
     XMFLOAT3 XMVectorAngleLerp(const XMFLOAT3& prevRotation, const XMFLOAT3& nextRotation, float t);
 
 
