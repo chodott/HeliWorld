@@ -3,11 +3,8 @@
 //-----------------------------------------------------------------------------
 
 #include "stdafx.h"
+#include "ProtocolConstants.h"
 #include "GameFramework.h"
-
-constexpr double kDt = 1.0 / 30.0;
-constexpr double kDtMs = kDt * 1000.0;
-double accumulatedSecond;
 
 CGameFramework::CGameFramework()
 {
@@ -39,7 +36,7 @@ CGameFramework::CGameFramework()
 	m_pPlayer = NULL;
 
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
-
+	m_fAccumulatedSecond = 0.0f;
 	networkSyncManager = new NetworkSyncManager();
 	frameDataManager = new FrameDataManager();
 	client = new Client(networkSyncManager, frameDataManager);
@@ -469,7 +466,9 @@ void CGameFramework::Initialize()
 		break;
 	}
 
-	for (int i = playerNum * 8; i < (playerNum + 1) * 8; ++i)
+	int startMissileIndex = playerNum * Protocol::kMaxMissileCountPerPlayer;
+	int maxMissileIndex = (playerNum * 1) * Protocol::kMaxMissileCountPerPlayer;
+	for (int i = startMissileIndex; i < maxMissileIndex; ++i)
 	{
 		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
 		missile->SetLocal(true);
@@ -496,7 +495,6 @@ void CGameFramework::Resimulate()
 		return;
     }
 	
-	cout << "Resimulate" << "\n";
 	//Rollback
 	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
@@ -517,26 +515,26 @@ void CGameFramework::Resimulate()
 
 void CGameFramework::ReapplyInput(ClientFrameData* curFrameData)
 {
-	static unsigned char curKeyInput;
-	static XMFLOAT3 curRotation;
+	static unsigned char lastKeyInput;
+	static XMFLOAT3 lastRotation;
 
 	if (curFrameData != nullptr)
 	{
-		curKeyInput = curFrameData->playerKeyInput;
-		curRotation = curFrameData->rotation;
+		lastKeyInput = curFrameData->playerKeyInput;
+		lastRotation = curFrameData->rotation;
 	}
 
 	//Input Simulation
 	DWORD dwDirection = 0;
-	if (curKeyInput & 0x01) dwDirection |= DIR_FORWARD;
-	if (curKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
-	if (curKeyInput & 0x04) dwDirection |= DIR_LEFT;
-	if (curKeyInput & 0x08) dwDirection |= DIR_RIGHT;
-	if (curKeyInput & 0x10) dwDirection |= DIR_UP;
-	if (curKeyInput & 0x20) dwDirection |= DIR_DOWN;
+	if (lastKeyInput & 0x01) dwDirection |= DIR_FORWARD;
+	if (lastKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+	if (lastKeyInput & 0x04) dwDirection |= DIR_LEFT;
+	if (lastKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+	if (lastKeyInput & 0x10) dwDirection |= DIR_UP;
+	if (lastKeyInput & 0x20) dwDirection |= DIR_DOWN;
 
-	m_pPlayer->RotatePYR(curRotation);
-	if (dwDirection) m_pPlayer->Move(dwDirection, kDt, false);
+	m_pPlayer->RotatePYR(lastRotation);
+	if (dwDirection) m_pPlayer->Move(dwDirection, Protocol::kFixedTick, false);
 
 	//Simulation data Update
 	if (curFrameData != nullptr)
@@ -548,14 +546,13 @@ void CGameFramework::ReapplyInput(ClientFrameData* curFrameData)
 
 void CGameFramework::ApplyMissileEvents()
 {
-	uint64_t targetTick = networkSyncManager->GetEstimatedServerTick();
-
 	LocalMissileEventPacket missileEvent;
 	while(frameDataManager->TryGetMissileEvent(missileEvent) == true)
 	{
-		for (int i = 0; i < 8; ++i)
+		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
-			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[client->GetPlayerNum() * 8 + i]);
+			int missileIndex = client->GetPlayerNum() * Protocol::kMaxMissileCountPerPlayer + i;
+			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileIndex]);
 			if (missile->GetNetID() != missileEvent.missileNum)
 			{
 				continue;
@@ -569,10 +566,11 @@ void CGameFramework::ApplyMissileEvents()
 void CGameFramework::VisualSmoothing(float fTimeElapsed)
 {
 	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 	{
-		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[i + 8 * client->GetPlayerNum()]);
-		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(),  kDt);
+		int missileIndex = client->GetPlayerNum() * Protocol::kMaxMissileCountPerPlayer + i;
+		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileIndex]);
+		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(),  Protocol::kFixedTick);
 
 	}
 }
@@ -581,7 +579,6 @@ void CGameFramework::MergeInput()
 {
 	float cxDelta = 0.00f, cyDelta = 0.00f;
 	POINT ptCursorPos;
-	(char*)&ptCursorPos;
 
 	if (GetCapture() == m_hWnd)
 	{
@@ -630,7 +627,7 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
 	}
 
-	static ClientFrameData clientFrameData;
+	ClientFrameData clientFrameData;
 	clientFrameData.position = m_pPlayer->GetPredictPosition();
 	clientFrameData.rotation = m_pPlayer->GetRotation();
 	clientFrameData.estimatedServerTick = networkSyncManager->GetUpdatedTick();
@@ -643,16 +640,16 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 
 void CGameFramework::Update(const float fTimeElapsed)
 {
-	accumulatedSecond += fTimeElapsed;
+	m_fAccumulatedSecond += fTimeElapsed;
 	MergeInput();
 
-	if (accumulatedSecond >= kDt)
+	if (m_fAccumulatedSecond >= Protocol::kFixedTick)
 	{
 		bool isDuplication = networkSyncManager->UpdateServerTick();
 		if (isDuplication == false)
 		{
-			accumulatedSecond -= kDt;
-			ProcessInput(kDt);
+			m_fAccumulatedSecond -= Protocol::kFixedTick;
+			ProcessInput(Protocol::kFixedTick);
 			client->PrepareInputPacket(m_pPlayer->GetRotation());
 		}
 	}
@@ -665,18 +662,19 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 		return;
 	}
 
-	static ServerFrameData prevData;
-	static ServerFrameData nextData;
+	ServerFrameData prevData;
+	ServerFrameData nextData;
 	float delayTick = networkSyncManager->GetDelayedServerTick();
 	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayTick);
 	float lerpAlpha = (hasData == true) ? (delayTick - (float)prevData.serverTick) / (float)(nextData.serverTick - prevData.serverTick) : 0.0f;
 	lerpAlpha = Clamp(lerpAlpha, 0.0f, 1.0f);
 	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
-	for (int i = 0; i < 32; ++i)
+
+	for (int i = 0; i < Protocol::kMaxMissileCount; ++i)
 	{
 		m_pScene->m_ppShaders[2]->m_ppObjects[i]->Animate(prevData.missileInfos[i], nextData.missileInfos[i], fTimeElapsed, lerpAlpha);
 	}
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		m_pScene->m_ppShaders[5]->m_ppObjects[i]->Animate(prevData.itemInfos[i], fTimeElapsed);
 	}
@@ -688,7 +686,7 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const ServerFrameData& nextData, const float fTimeElapsed, const float lerpAlpha)
 {
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; i++)
 	{
 		if (i == client->GetPlayerNum())
 		{
@@ -823,7 +821,7 @@ void CGameFramework::FrameAdvance()
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	size_t nLength = _tcslen(m_pszFrameRate);
 	XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
-	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("(%4f, %4f, %4f)"), xmf3Position.x, xmf3Position.y, xmf3Position.z);
+	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("RTT: (%4f)"), networkSyncManager->GetRttAvg());
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
 }

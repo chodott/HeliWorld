@@ -1,10 +1,9 @@
 #include "NetworkSyncManager.h"
+#include "ProtocolConstants.h"
 
 float NetworkSyncManager::offsetAvg = 0.f;
 float NetworkSyncManager::rttAvg = 0.f;
 
-constexpr double kDt = 1.0 / 30.0;
-constexpr double kDtMs = kDt * 1000.0;
 
 template<class T> 
 void KeepDequeSize(deque<T>& dq)
@@ -57,7 +56,7 @@ float CalculateAvg(deque<float>& target_dq)
 float NetworkSyncManager::GetEstimatedServerTick()
 {
 	float elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
-	float serverTick = baseTick + elapsed / kDtMs;
+	float serverTick = baseTick + elapsed / Protocol::kFixedTickMs;
 	return serverTick;
 }
 
@@ -88,5 +87,5 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp,
 	KeepDequeSize(rtt_dq);
 	rttAvg = GetDequeAvg(rtt_dq);
 	float delay = (rttAvg * 0.5f) + DEFAULT_DELAY_MS;
-	delayTick = delay / kDtMs;
+	delayTick = delay / Protocol::kFixedTickMs;
 }

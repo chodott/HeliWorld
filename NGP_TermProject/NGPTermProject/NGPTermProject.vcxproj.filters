@@ -180,6 +180,9 @@
     <ClInclude Include="NetworkSyncManager.h">
       <Filter>GameFramework</Filter>
     </ClInclude>
+    <ClInclude Include="ProtocolConstants.h">
+      <Filter>Client</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">
