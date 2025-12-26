@@ -106,5 +106,6 @@ private:
 	Client* client;
 	NetworkSyncManager* networkSyncManager;
 	FrameDataManager* frameDataManager;
+	double m_fAccumulatedSecond;
 };
 

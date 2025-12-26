@@ -1,6 +1,7 @@
 #pragma once
 #include"stdafx.h"
 #include "DirectXMath.h"
+#include "ProtocolConstants.h"
 
 namespace PACKET {
 	const char PlayerInfo = 0;
@@ -46,7 +47,7 @@ struct PlayerInfoPacket {
 struct PlayerInfoBundlePacket
 {
 	char packetType;
-	PlayerInfoPacket playerInfos[4];
+	PlayerInfoPacket playerInfos[Protocol::kMaxPlayerCount];
 	int serverTick;
 };
 
@@ -70,7 +71,7 @@ struct ItemInfoPacket {
 struct ItemInfoBundlePacket
 {
 	char packetType;
-	ItemInfoPacket itemInfos[10];
+	ItemInfoPacket itemInfos[Protocol::kMaxItemCount];
 };
 
 struct MissileInfoPacket {
@@ -82,7 +83,7 @@ struct MissileInfoPacket {
 struct MissileInfoBundlePacket
 {
 	char packetType;
-	MissileInfoPacket missileInfos[32];
+	MissileInfoPacket missileInfos[Protocol::kMaxMissileCount];
 };
 
 struct LocalMissileEventPacket
