@@ -23,7 +23,7 @@ void DebugDrawManager::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsComm
 }
 
 
-void DebugDrawManager::AddDebugCube(XMFLOAT3& position, XMFLOAT3& rotation, XMFLOAT4 color)
+void DebugDrawManager::AddDebugCube(const XMFLOAT3& position, const XMFLOAT3& rotation, XMFLOAT4 color)
 {
 	if (m_pDebugboxShader == NULL) return;
 	CDebugboxObject* debugTarget = (CDebugboxObject*)m_pDebugboxShader->m_ppObjects[count++];

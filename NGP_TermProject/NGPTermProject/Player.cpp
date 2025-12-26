@@ -226,7 +226,7 @@ void CPlayer::Animate(const PlayerInfoPacket& prevPacket, const PlayerInfoPacket
 
 		SetPosition(renderPos);
 		RotatePYR(curRotation);
-		DebugDrawManager::Get().AddDebugCube(GetServerPosition(), GetRotation(), { 0.f, 0.f, 1.f, 1.f });
+		DebugDrawManager::Get().AddDebugCube(GetServerPosition(), prevPacket.rotation, { 0.f, 0.f, 1.f, 1.f });
 	}
 }
 

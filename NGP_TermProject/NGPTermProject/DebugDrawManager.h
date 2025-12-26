@@ -10,7 +10,7 @@ private:
 public:
 	static DebugDrawManager& Get();
 
-	void AddDebugCube(XMFLOAT3& position, XMFLOAT3& rotation, XMFLOAT4 color);
+	void AddDebugCube(const XMFLOAT3& position, const XMFLOAT3& rotation, XMFLOAT4 color);
 
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera, int npipelinestate);
 
