@@ -42,7 +42,7 @@ public:
 	void AnimatePlayers(const ServerFrameData& prevData, const ServerFrameData& nextData, const float fTimeElapsed, const float lerpAlpha);
     void FrameAdvance();
 	void Resimulate();
-	void ReapplyInput(ClientFrameData* clientFrameData);
+	void ReapplyInput(ClientFrameData& clientFrameData);
 	void ApplyMissileEvents();
 	void VisualSmoothing(float fTimeElapsed);
 
@@ -87,9 +87,6 @@ private:
 	ID3D12Fence					*m_pd3dFence = NULL;
 	UINT64						m_nFenceValues[m_nSwapChainBuffers];
 	HANDLE						m_hFenceEvent;
-
-	unsigned char m_lastKeyInput;
-	XMFLOAT3 m_lastRotation;
 
 #if defined(_DEBUG)
 	ID3D12Debug					*m_pd3dDebugController;
