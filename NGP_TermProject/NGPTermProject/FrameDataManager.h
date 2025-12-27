@@ -15,18 +15,18 @@ class FrameDataManager
     {
         playerNum = n;
     }
-    inline void AddClientFrameData(const ClientFrameData& frameData)
-    {
-        clientFrameData_dq.emplace_back(frameData);
-    }
+    void AddClientFrameData(const ClientFrameData& frameData);
     void AddServerFrameData(const ServerFrameData& frameData);
 
     pair<uint64_t, uint64_t> GetSimulateTickRange();
-    ClientFrameData* GetClientFrameData(uint64_t targetTick);
+    bool TryGetClientStartIndex(uint64_t startTick, size_t& outIndex);
+    bool TryGetClientFrameData(uint64_t targetTick, ClientFrameData& frameData);
     inline XMFLOAT3 GetDiffVector() { return diffVector; }
     bool GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
     void CheckPositionOutOfSync();
     void ReceiveMissileEvent(const LocalMissileEventPacket& pkt);
+    bool ReadClientFrame(size_t index, ClientFrameData& outFrameData);
+    bool WriteClientSimulateResult(size_t index, const XMFLOAT3& pos, const XMFLOAT3& rot);
     bool TryGetMissileEvent(LocalMissileEventPacket& event)
     {
         if(MissileEventQueue.try_pop(event) == true)
@@ -45,8 +45,8 @@ class FrameDataManager
           needResimulate = false;
       }
 
-    XMFLOAT3 basePosition;
-    XMFLOAT3 baseRotation;
+    XMFLOAT3 rollbackPosition;
+    XMFLOAT3 rollbackRotation;
 
 private:
     std::mutex resimulateLock;
@@ -57,6 +57,7 @@ private:
     
     XMFLOAT3 diffVector;
     uint64_t targetTick;
+    uint64_t dataCutTickLine;
     int serverTick;
     int playerNum = 0;
     bool needResimulate = false;
