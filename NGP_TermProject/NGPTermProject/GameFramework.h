@@ -88,6 +88,9 @@ private:
 	UINT64						m_nFenceValues[m_nSwapChainBuffers];
 	HANDLE						m_hFenceEvent;
 
+	unsigned char m_lastKeyInput;
+	XMFLOAT3 m_lastRotation;
+
 #if defined(_DEBUG)
 	ID3D12Debug					*m_pd3dDebugController;
 #endif

@@ -95,11 +95,10 @@ void FrameDataManager::CheckPositionOutOfSync()
     }
     auto prevFrameData = nextFrameData - 1;
 
-    float t = (serverTick - prevFrameData->estimatedServerTick)/ 
-                (nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
+    float t = float(serverTick - prevFrameData->estimatedServerTick)/ 
+                float(nextFrameData->estimatedServerTick - prevFrameData->estimatedServerTick);
     XMFLOAT3 clientPosition = LerpFloat3(prevFrameData->position, nextFrameData->position, t);
     XMFLOAT3 serverPosition = serverSnapData.playerInfos[playerNum].position;
-    clientPosition = prevFrameData->position;
 
     float distance = 0.0f;
     distance = sqrt(pow((clientPosition.x - serverPosition.x),2)
@@ -107,8 +106,7 @@ void FrameDataManager::CheckPositionOutOfSync()
                     + pow((clientPosition.z - serverPosition.z),2));
 
     float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
-    float maxDistance = 50 * 1.1f *  interpDelaySec;
-    
+    float maxDistance = 50 * 1.2f *  interpDelaySec;
 
     bool bOverMaxDistance = (distance >= maxDistance);
 
@@ -142,7 +140,6 @@ void FrameDataManager::StepCorrection(const float alpha)
 
     XMVECTOR stepError = XMVectorScale(fullError, alpha);
 
-    // 3. 매니저가 가진 오차에서 보정량만큼 차감 (중요!)
     XMVECTOR updatedError = XMVectorSubtract(fullError, stepError);
     XMStoreFloat3(&diffVector, updatedError);
 }
