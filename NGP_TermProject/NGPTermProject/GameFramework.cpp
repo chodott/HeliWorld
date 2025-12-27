@@ -467,7 +467,7 @@ void CGameFramework::Initialize()
 	}
 
 	int startMissileIndex = playerNum * Protocol::kMaxMissileCountPerPlayer;
-	int maxMissileIndex = (playerNum * 1) * Protocol::kMaxMissileCountPerPlayer;
+	int maxMissileIndex = (playerNum + 1) * Protocol::kMaxMissileCountPerPlayer;
 	for (int i = startMissileIndex; i < maxMissileIndex; ++i)
 	{
 		CMissleObject* missile = (CMissleObject*)m_pScene->m_ppShaders[2]->m_ppObjects[i];
@@ -488,13 +488,13 @@ void CGameFramework::Resimulate()
 {
 	ApplyMissileEvents();
 
-    if(!frameDataManager->IsNeedResimulation())
-    {
+	if (!frameDataManager->IsNeedResimulation())
+	{
 		m_pPlayer->ApplyCorrection(frameDataManager->GetDiffVector(), CORRECTION_ALPHA);
 		frameDataManager->StepCorrection(CORRECTION_ALPHA);
 		return;
-    }
-	
+	}
+
 	//Rollback
 	m_pPlayer->SetPredictPosition(frameDataManager->basePosition);
 	m_pPlayer->RotatePYR(frameDataManager->baseRotation);
@@ -505,35 +505,32 @@ void CGameFramework::Resimulate()
 	const uint64_t endTick = tickRange.second;
 	for (uint64_t currentTick = startTick; currentTick <= endTick; ++currentTick)
 	{
-		ClientFrameData* currentFrameData =  frameDataManager->GetClientFrameData(currentTick);
+		ClientFrameData* currentFrameData = frameDataManager->GetClientFrameData(currentTick);
 		ReapplyInput(currentFrameData);
 
-    }
+	}
 	// 재시뮬레이션이 완료되었으므로 플래그 해제
 	frameDataManager->FinishResimulation();
 }
 
 void CGameFramework::ReapplyInput(ClientFrameData* curFrameData)
 {
-	static unsigned char lastKeyInput;
-	static XMFLOAT3 lastRotation;
-
 	if (curFrameData != nullptr)
 	{
-		lastKeyInput = curFrameData->playerKeyInput;
-		lastRotation = curFrameData->rotation;
+		m_lastKeyInput = curFrameData->playerKeyInput;
+		m_lastRotation = curFrameData->rotation;
 	}
 
 	//Input Simulation
 	DWORD dwDirection = 0;
-	if (lastKeyInput & 0x01) dwDirection |= DIR_FORWARD;
-	if (lastKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
-	if (lastKeyInput & 0x04) dwDirection |= DIR_LEFT;
-	if (lastKeyInput & 0x08) dwDirection |= DIR_RIGHT;
-	if (lastKeyInput & 0x10) dwDirection |= DIR_UP;
-	if (lastKeyInput & 0x20) dwDirection |= DIR_DOWN;
+	if (m_lastKeyInput & 0x01) dwDirection |= DIR_FORWARD;
+	if (m_lastKeyInput & 0x02) dwDirection |= DIR_BACKWARD;
+	if (m_lastKeyInput & 0x04) dwDirection |= DIR_LEFT;
+	if (m_lastKeyInput & 0x08) dwDirection |= DIR_RIGHT;
+	if (m_lastKeyInput & 0x10) dwDirection |= DIR_UP;
+	if (m_lastKeyInput & 0x20) dwDirection |= DIR_DOWN;
 
-	m_pPlayer->RotatePYR(lastRotation);
+	m_pPlayer->RotatePYR(m_lastRotation);
 	if (dwDirection) m_pPlayer->Move(dwDirection, Protocol::kFixedTick, false);
 
 	//Simulation data Update
@@ -547,7 +544,7 @@ void CGameFramework::ReapplyInput(ClientFrameData* curFrameData)
 void CGameFramework::ApplyMissileEvents()
 {
 	LocalMissileEventPacket missileEvent;
-	while(frameDataManager->TryGetMissileEvent(missileEvent) == true)
+	while (frameDataManager->TryGetMissileEvent(missileEvent) == true)
 	{
 		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
@@ -570,7 +567,7 @@ void CGameFramework::VisualSmoothing(float fTimeElapsed)
 	{
 		int missileIndex = client->GetPlayerNum() * Protocol::kMaxMissileCountPerPlayer + i;
 		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileIndex]);
-		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(),  Protocol::kFixedTick);
+		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(), Protocol::kFixedTick);
 
 	}
 }
@@ -664,9 +661,23 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 
 	ServerFrameData prevData;
 	ServerFrameData nextData;
-	float delayTick = networkSyncManager->GetDelayedServerTick();
-	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayTick);
-	float lerpAlpha = (hasData == true) ? (delayTick - (float)prevData.serverTick) / (float)(nextData.serverTick - prevData.serverTick) : 0.0f;
+	double delayedTick = networkSyncManager->GetDelayedServerTick();
+	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayedTick);
+	if (!hasData)
+	{
+		return;
+	}
+
+	float lerpAlpha = 0.0f;
+	const float serverTickGap = float(nextData.serverTick - prevData.serverTick);
+	if (serverTickGap > 0.0f)
+	{
+		lerpAlpha = (delayedTick - float(prevData.serverTick)) / serverTickGap;
+	}
+	else
+	{
+		lerpAlpha = 0.0f;
+	}
 	lerpAlpha = Clamp(lerpAlpha, 0.0f, 1.0f);
 	AnimatePlayers(prevData, nextData, fTimeElapsed, lerpAlpha);
 

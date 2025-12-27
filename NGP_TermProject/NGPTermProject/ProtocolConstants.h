@@ -12,4 +12,7 @@ namespace Protocol
 	constexpr int kMaxMissileCountPerPlayer = 8;
 
 	constexpr int kMaxMissileCount = kMaxPlayerCount * kMaxMissileCountPerPlayer;
+
+	constexpr int kDefaultDelayMs = 150;
+
 }

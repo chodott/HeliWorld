@@ -1,8 +1,8 @@
 #include "NetworkSyncManager.h"
 #include "ProtocolConstants.h"
 
-float NetworkSyncManager::offsetAvg = 0.f;
-float NetworkSyncManager::rttAvg = 0.f;
+double NetworkSyncManager::offsetAvg = 0.f;
+double NetworkSyncManager::rttAvg = 0.f;
 
 
 template<class T> 
@@ -16,14 +16,14 @@ void KeepDequeSize(deque<T>& dq)
 }
 
 template<class T>
-T GetDequeAvg(const deque<T>& dq)
+double GetDequeAvgDouble(const deque<T>& dq)
 {
 	if(dq.empty())
 	{
-		return 0;
+		return 0.0;
 	}
-	T avg = std::accumulate(dq.begin(), dq.end(), 0.f) / dq.size();
-	return avg;
+	const double sum = std::accumulate(dq.begin(), dq.end(), 0.0);
+	return sum / (double)dq.size();
 }
 
 uint64_t NetworkSyncManager::GetTimestampMs()
@@ -33,36 +33,32 @@ uint64_t NetworkSyncManager::GetTimestampMs()
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-float NetworkSyncManager::GetEstimatedServerTimeMs()
+double NetworkSyncManager::GetEstimatedServerTime()
 {
-	return (float)GetTimestampMs() + offsetAvg - rttAvg * 0.5f;
+	return (double)GetTimestampMs() + offsetAvg - rttAvg * 0.5;
 }
 
-float NetworkSyncManager::GetDelayedServerTick()
+double NetworkSyncManager::GetDelayedServerTick()
 {
 	return GetEstimatedServerTick() - delayTick;
 }
 
-float CalculateAvg(deque<float>& target_dq)
+double NetworkSyncManager::GetEstimatedServerTick()
 {
-	while (target_dq.size() > MAX_DEQUE_LENGTH)
-	{
-		target_dq.pop_front();
-	}
-	return std::accumulate(target_dq.begin(), target_dq.end(), 0.f) / target_dq.size();
-
+	double elapsed = GetEstimatedServerTime() - (double)baseServerTimestamp;
+	double serverTick = (double)baseTick + elapsed / Protocol::kFixedTickMs;
+	return serverTick;
 }
 
-float NetworkSyncManager::GetEstimatedServerTick()
+uint64_t NetworkSyncManager::GetEstimatedServerTickI()
 {
-	float elapsed = GetEstimatedServerTimeMs() - baseServerTimestamp;
-	float serverTick = baseTick + elapsed / Protocol::kFixedTickMs;
-	return serverTick;
+	double tickF = GetEstimatedServerTick();
+	return (uint64_t)floor(tickF);
 }
 
 bool NetworkSyncManager::UpdateServerTick()
 {
-	uint64_t newTick = GetEstimatedServerTick();
+	uint64_t newTick = GetEstimatedServerTickI();
 	if (updatedTick >= newTick)
 	{
 		return true;
@@ -75,17 +71,17 @@ bool NetworkSyncManager::UpdateServerTick()
 void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp, 
 										const uint64_t serverSendTimestamp)
 {
-	uint64_t rtt = GetTimestampMs() - clientSendTimestamp;
-	float offset = serverSendTimestamp - (clientSendTimestamp + rtt * 0.5f);
+	double rtt = double(GetTimestampMs() - clientSendTimestamp);
+	double offset = double(serverSendTimestamp) - (double(clientSendTimestamp) + rtt * 0.5);
 	scOffset_dq.push_back(offset);
 	rtt_dq.push_back(rtt);
 
 	//Calculate Offset Avg
 	KeepDequeSize(scOffset_dq);
-	offsetAvg = GetDequeAvg(scOffset_dq);
+	offsetAvg = GetDequeAvgDouble(scOffset_dq);
 	//Calculate Rtt Avg
 	KeepDequeSize(rtt_dq);
-	rttAvg = GetDequeAvg(rtt_dq);
-	float delay = (rttAvg * 0.5f) + DEFAULT_DELAY_MS;
+	rttAvg = GetDequeAvgDouble(rtt_dq);
+	double delay = (rttAvg * 0.5) + Protocol::kDefaultDelayMs;
 	delayTick = delay / Protocol::kFixedTickMs;
 }
