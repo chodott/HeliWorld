@@ -3,9 +3,6 @@
 #include "SCPacket.h"
 
 Server* g_server;
-std::unordered_map<int, vector<PlayerKeyPacket>> g_playerInputMap;
-int g_serverTick = 0;
-
 
 int PacketSizeHelper(char packetType)
 {
@@ -30,14 +27,14 @@ Server::Server()
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
 
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		clients[i] = new Client;
 		CPlayer* player = clients[i]->m_player;
 		player->SetPosition(player->initialPos[i]);
 		player->RotatePYR(player->initialRot[i]);
 	}
-	for (int i = 0; i < MAX_ITEM_NUM; i++)
+	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
 		m_ItemObject[i] = new CItemObject();
 		m_ItemObject[i]->SetPosition(100.f, 100.f, 100.f + 10.f * i);
@@ -50,12 +47,12 @@ Server::Server()
 Server::~Server()
 {
 	WSACleanup();
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		if (clients[i] != nullptr)
 			delete clients[i];
 	}
-	for (int i = 0; i < MAX_ITEM_NUM; i++)
+	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
 		if (m_ItemObject[i] != nullptr)
 		{
@@ -95,7 +92,7 @@ void Server::OpenListenSocket()
 
 void Server::CheckCollision()
 {
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		if (!clients[i]->IsConnected())
 			continue;
@@ -114,7 +111,7 @@ void Server::CheckCollision()
 				clients[i]->m_player->m_fOldzPos);
 		}
 
-		for (int j = 0; j < MAX_CLIENT_NUM; ++j)
+		for (int j = 0; j < Protocol::kMaxPlayerCount; ++j)
 		{
 			//Same Player
 			if (i == j)
@@ -156,7 +153,7 @@ void Server::CheckCollision()
 			}
 		}
 
-		for (int j = 0; j < MAX_ITEM_NUM; j++)
+		for (int j = 0; j < Protocol::kMaxItemCount; j++)
 		{
 			if (!m_ItemObject[j]->IsActive())		continue;
 
@@ -181,9 +178,9 @@ void Server::Update()
 		resetTick--;
 	}
 	ResetToSnapshot(resetTick);
-	for (uint64_t tick = resimulateStartTick; tick <= g_serverTick; ++tick)
+	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
 	{
-		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
 			CPlayer* player = clients[i]->m_player;
 			if (InputLogMaps[i].find(tick) != InputLogMaps[i].end())
@@ -236,7 +233,7 @@ void Server::Update()
 
 void Server::SpawnItem()
 {
-	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		if (!m_ItemObject[i]->IsActive())
 		{
@@ -256,24 +253,24 @@ void Server::PreparePackets()
 	MissileInfoBundlePacket missileBundle;
 	ItemInfoBundlePacket itemBundle;
 
-	for (int clientNum =0; clientNum < MAX_CLIENT_NUM;++clientNum)
+	for (int clientNum =0; clientNum < Protocol::kMaxPlayerCount;++clientNum)
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
 		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive()};
 
-		for (int i =0; i < player->maxMissileNum; ++i)
+		for (int i =0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
-			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * player->maxMissileNum + i];
+			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
 			missileInfo.position = missile->GetCurPos();
 			missileInfo.active = missile->IsActive();
 		}
 	}
 
-	playerBundle.serverTick = ++g_serverTick;
+	playerBundle.serverTick = ++serverTick;
 
-	for (int i=0;i<MAX_ITEM_NUM;++i)
+	for (int i=0;i<Protocol::kMaxItemCount;++i)
 	{
 		CItemObject* item = m_ItemObject[i];
 		ItemInfoPacket& itemInfo = itemBundle.itemInfos[i];
@@ -289,16 +286,17 @@ void Server::PreparePackets()
 
 void Server::GenerateEvents(uint64_t tick)
 {
+	if (tick == 0) return;
 
-	for (int playerNum = 0; playerNum < MAX_CLIENT_NUM; ++playerNum)
+	for (int playerNum = 0; playerNum < Protocol::kMaxPlayerCount; ++playerNum)
 	{
 		Client* client = clients[playerNum];
 		CPlayer* player = client->m_player;
 		ServerSnapshot& snapshot = SnapshotLogMap[tick - 1];
-		for (int i = 0; i < MAX_MISSILE_NUM; ++i)
+		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
-			bool prevMissileActive = snapshot.missileSnapshots[playerNum * MAX_MISSILE_NUM + i].active;
+			bool prevMissileActive = snapshot.missileSnapshots[playerNum * Protocol::kMaxMissileCountPerPlayer + i].active;
 			bool curMissileActive = missile->IsActive();
 			if (prevMissileActive == curMissileActive)
 			{
@@ -334,7 +332,7 @@ void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
 {
 	if (InputBuffers[index].empty() == false)
 	{	//Remove past Input
-		int tickDiff = g_serverTick - keyPacket.estimatedTick;
+		int tickDiff = GetTick() - keyPacket.estimatedTick;
 		if (tickDiff > MAX_REWIND_TICKS)
 		{
 			return;
@@ -352,15 +350,15 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 	}
 
 	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = clients[i]->m_player;
 		player->SetPosition(snapshot.playerSnapshots[i].position);
 		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
 		player->SetHp(snapshot.playerSnapshots[i].hp);
 
-		int startMissileIndex = i * MAX_MISSILE_NUM;
-		for (int j = 0; j < 8; ++j)
+		int startMissileIndex = i * Protocol::kMaxMissileCountPerPlayer;
+		for (int j = 0; j < Protocol::kMaxMissileCountPerPlayer; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
 			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex +j].position);
@@ -369,7 +367,7 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 		}
 	}
 	
-	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
 	}
@@ -385,15 +383,15 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 	}
 
 	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
-	for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = clients[i]->m_player;
 		snapshot.playerSnapshots[i].position =  player->GetCurPos();
 		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
 		snapshot.playerSnapshots[i].hp = player->GetHp();
 
-		int startMissileIndex = i * MAX_MISSILE_NUM;
-		for (int j = 0; j < MAX_MISSILE_NUM; ++j)
+		int startMissileIndex = i * Protocol::kMaxMissileCountPerPlayer;
+		for (int j = 0; j < Protocol::kMaxMissileCountPerPlayer; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
 			snapshot.missileSnapshots[startMissileIndex + j].position = missile->GetCurPos();
@@ -402,7 +400,7 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 		}
 	}
 
-	for (int i = 0; i < MAX_ITEM_NUM; ++i)
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
 	}
@@ -410,13 +408,13 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 
 uint64_t Server::ReturnResimulateStart()
 {
-	int startTick = g_serverTick;
-	for (int index = 0; index < MAX_CLIENT_NUM; ++index)
+	int startTick = GetTick();
+	for (int index = 0; index < Protocol::kMaxPlayerCount; ++index)
 	{
 		while (!InputBuffers[index].empty())
 		{
 			uint64_t tick = InputBuffers[index].front().estimatedTick;
-			if (tick > g_serverTick)
+			if (tick > GetTick())
 			{
 				break;
 			}
@@ -480,7 +478,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	while (true)
 	{
 		addrlen = sizeof(clientaddr);
-		if (g_server->connectedClients < MAX_CLIENT_NUM)
+		if (g_server->connectedClients < Protocol::kMaxPlayerCount)
 			std::cout << "Waiting for accept...\n";
 
 		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
@@ -489,10 +487,10 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 			err_quit("accept()");
 			continue;
 		}
-		bool noDelay = true;
-		setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, (char*)noDelay, sizeof(noDelay));
+		BOOL noDelay = true;
+		setsockopt(clientSock, IPPROTO_TCP, TCP_NODELAY, (char*)&noDelay, sizeof(noDelay));
 
-		for (int i = 0; i < MAX_CLIENT_NUM; ++i)
+		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
 			Client* client = g_server->clients[i];
 			client->SetPlayerNumber(i);
@@ -522,7 +520,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	//Init Packet
 	Client* client = (Client*)arg;
 	int playerNumber = client->GetPlayerNumber();
-	TimebasePacket timebasePacket{ playerNumber, g_serverTick, g_server->GetTimestampMs() };
+	TimebasePacket timebasePacket{ playerNumber, g_server->GetTick(), g_server->GetTimestampMs()};
 	send(client->sock, (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	CPlayer* p = client->m_player;

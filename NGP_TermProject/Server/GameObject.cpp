@@ -1,5 +1,6 @@
 #include "GameObject.h"
 
+
 GameObject::GameObject()
 {
 	m_xmf4x4World = Matrix4x4::Identity();
@@ -12,7 +13,7 @@ GameObject::GameObject()
 CPlayer::CPlayer()
 {
 	// Init Missiles
-	for (int i = 0; i < maxMissileNum; ++i)
+	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 	{
 		m_pMissiles[i] = new CMissileObject();
 	}
@@ -21,7 +22,7 @@ CPlayer::CPlayer()
 CPlayer::~CPlayer()
 {
 	// Delete Missiles
-	for (int i = 0; i < maxMissileNum; ++i)
+	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 	{
 		delete m_pMissiles[i];
 	}
@@ -136,7 +137,7 @@ void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket)
 	uint64_t missileNum = keyPacket.launchedMissileNum;
 
 	if (missileNum == 0) return;
-	for (int i = 0; i < maxMissileNum; ++i)
+	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 	{
 		CMissileObject* missile = m_pMissiles[i];
 		if (!missile->IsActive())
