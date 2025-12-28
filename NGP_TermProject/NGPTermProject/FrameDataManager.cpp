@@ -1,11 +1,5 @@
 #include "FrameDataManager.h"
 #include "Player.h"
-auto cmpClientTick = [](const ClientFrameData& lhs, const uint64_t& value) {
-	return lhs.estimatedServerTick < value;
-};
-auto cmpServerTick = [](const ServerFrameData& lhs, const uint64_t& value) {
-	return lhs.serverTick < value;
-};
 
 void FrameDataManager::AddClientFrameData(const ClientFrameData& frameData)
 {
@@ -46,12 +40,13 @@ void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
 	CheckPositionOutOfSync();
 }
 
-bool FrameDataManager::TryGetClientFrameData(uint64_t targetTick, ClientFrameData& frameData)
+bool FrameDataManager::TryGetClientFrameData(const uint64_t targetTick, ClientFrameData& frameData)
 {
 	std::lock_guard<std::mutex> lock(frameDataLock);
 	auto it = std::lower_bound(
 		clientFrameData_dq.begin(),clientFrameData_dq.end(),
-		targetTick,cmpClientTick
+		targetTick,
+		[](const ClientFrameData& lhs, const uint64_t& value) {return lhs.estimatedServerTick < value;}
 	);
 
 	if (it != clientFrameData_dq.end() && it->estimatedServerTick == targetTick) {
@@ -62,19 +57,29 @@ bool FrameDataManager::TryGetClientFrameData(uint64_t targetTick, ClientFrameDat
 	return false;
 }
 
-bool FrameDataManager::GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t tick)
+bool FrameDataManager::TryGetServerFrameData(const uint64_t targetTick, ServerFrameData& prevData, ServerFrameData& nextData)
 {
 	std::lock_guard<std::mutex> lock(frameDataLock);
-	bool bCanInterpolate = false;
-	for (int i = 0; i + 1 < serverFrameData_dq.size(); ++i) {
-		if (serverFrameData_dq[i].serverTick <= tick &&
 			serverFrameData_dq[i + 1].serverTick > tick) {
-			prevData = serverFrameData_dq[i];
-			nextData = serverFrameData_dq[i + 1];
-			return true;
-		}
+	if (serverFrameData_dq.size() < 2)
+	{
+		return false;
 	}
-	return false;
+
+	auto it = std::lower_bound(
+		serverFrameData_dq.begin(), serverFrameData_dq.end(),
+		targetTick,
+		[](const ServerFrameData& lhs, const uint64_t& value) { return lhs.serverTick < value; }
+	);
+
+	if (it == serverFrameData_dq.begin() || it == serverFrameData_dq.end())
+	{
+		return false;
+	}
+
+	nextData = *it;
+	prevData = *(it - 1);
+	return true;
 }
 
 pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
@@ -94,14 +99,16 @@ bool FrameDataManager::TryGetClientStartIndex(uint64_t startTick, size_t& outInd
 {
 	std::lock_guard<std::mutex> lock(frameDataLock);
 	auto it = std::lower_bound(clientFrameData_dq.begin(), clientFrameData_dq.end(),
-		startTick, cmpClientTick);
+		startTick, 
+		[](const ClientFrameData& lhs, const uint64_t& value) {return lhs.estimatedServerTick < value; }
+	);
 
 	if (it == clientFrameData_dq.end() || it->estimatedServerTick != startTick)
 	{
 		return false;
 	}
 
-	outIndex = int(std::distance(clientFrameData_dq.begin(), it));                      
+	outIndex = size_t(std::distance(clientFrameData_dq.begin(), it));                      
 	return true;
 }
 
@@ -153,7 +160,9 @@ void FrameDataManager::CheckPositionOutOfSync()
 		serverTick = serverSnapData.serverTick;
 		auto clientNextIter = lower_bound(
 			clientFrameData_dq.begin(), clientFrameData_dq.end(),
-			serverTick, cmpClientTick);
+			serverTick, 
+			[](const ClientFrameData& lhs, const uint64_t& value) {return lhs.estimatedServerTick < value; }
+		);
 
 		if (clientNextIter == clientFrameData_dq.begin())
 		{
@@ -226,6 +235,7 @@ bool FrameDataManager::IsNeedResimulation()
 
 void FrameDataManager::StepCorrection(const float alpha)
 {
+	lock_guard<std::mutex> lock(resimulateLock);
 	XMVECTOR fullError = XMLoadFloat3(&diffVector);
 
 	XMVECTOR stepError = XMVectorScale(fullError, alpha);

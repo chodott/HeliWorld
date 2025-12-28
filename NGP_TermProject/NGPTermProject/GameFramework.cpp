@@ -500,7 +500,7 @@ void CGameFramework::Resimulate()
 	m_pPlayer->RotatePYR(frameDataManager->rollbackRotation);
 
 	//Resimulate
-	auto& tickRange = frameDataManager->GetSimulateTickRange();
+	auto tickRange = frameDataManager->GetSimulateTickRange();
 	const uint64_t startTick = tickRange.first;
 	const uint64_t endTick = tickRange.second;
 
@@ -658,7 +658,8 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 	ServerFrameData prevData;
 	ServerFrameData nextData;
 	double delayedTick = networkSyncManager->GetDelayedServerTick();
-	bool hasData = frameDataManager->GetServerFrameData(prevData, nextData, delayedTick);
+	const uint64_t delayedTickI = (delayedTick <= 0.0) ? 0 : uint64_t(delayedTick);
+	bool hasData = frameDataManager->TryGetServerFrameData(delayedTickI, prevData, nextData);
 	if (!hasData)
 	{
 		return;
