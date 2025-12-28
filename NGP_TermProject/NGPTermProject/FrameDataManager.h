@@ -20,9 +20,9 @@ class FrameDataManager
 
     pair<uint64_t, uint64_t> GetSimulateTickRange();
     bool TryGetClientStartIndex(uint64_t startTick, size_t& outIndex);
-    bool TryGetClientFrameData(uint64_t targetTick, ClientFrameData& frameData);
     inline XMFLOAT3 GetDiffVector() { return diffVector; }
-    bool GetServerFrameData(ServerFrameData& prevData, ServerFrameData& nextData, const uint64_t serverTime);
+    bool TryGetClientFrameData(const uint64_t targetTick, ClientFrameData& frameData);
+    bool TryGetServerFrameData(const uint64_t serverTime, ServerFrameData& prevData, ServerFrameData& nextData);
     void CheckPositionOutOfSync();
     void ReceiveMissileEvent(const LocalMissileEventPacket& pkt);
     bool ReadClientFrame(size_t index, ClientFrameData& outFrameData);
