@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="GameObject.cpp" />
-    <ClCompile Include="ClientInputManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCPacket.h" />
@@ -12,6 +11,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SnapShot.h" />
-    <ClInclude Include="ClientInputManager.h" />
+    <ClInclude Include="..\NGPTermProject\ProtocolConstants.h" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 #include "SCPacket.h"
 #include "GameObject.h"
 #include "Snapshot.h"
+#include "ProtocolConstants.h"
 
 #include <concurrent_queue.h>
 #include <array>
@@ -14,10 +15,6 @@
 
 #define SERVERPORT		9000
 #define BUFSIZE			512
-
-#define MAX_CLIENT_NUM		4
-#define MAX_ITEM_NUM		10
-#define MAX_MISSILE_NUM 8
 
 #define RESPAWN_TIME		5.f
 
@@ -69,7 +66,7 @@ public:
 
 	void SendPacketAllClient();
 
-	PlayerKeyPacket keyPackets[4];
+	PlayerKeyPacket keyPackets[Protocol::kMaxPlayerCount];
 
 	// 클라 충돌 및 움직임 송수신
 	void Update();
@@ -79,6 +76,7 @@ public:
 	void GenerateEvents(uint64_t tick);
 
 	uint64_t GetTimestampMs();
+	inline uint64_t GetTick() { return serverTick; }
 
 	SOCKET* GetSocket() { return &listenSock; }
 
@@ -87,12 +85,12 @@ public:
 	float itemSpawnTime = 0.f;
 	float elapsedTime = 0.f;
 
-	std::array<Client*, MAX_CLIENT_NUM> clients;
+	std::array<Client*, Protocol::kMaxPlayerCount> clients;
 
 	int connectedClients = 0;
 	HANDLE updateDone;
 
-	CItemObject* m_ItemObject[MAX_ITEM_NUM];
+	CItemObject* m_ItemObject[Protocol::kMaxItemCount];
 	std::queue<GameObject*> trashCan;
 
 	template <typename T>
@@ -124,8 +122,10 @@ private:
 	std::mutex packetQueueLock;
 	std::condition_variable packetReadyCV;
 
-	queue<PlayerKeyPacket> InputBuffers[MAX_CLIENT_NUM];
-	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[MAX_CLIENT_NUM];
+	uint64_t serverTick = 0;
+
+	queue<PlayerKeyPacket> InputBuffers[Protocol::kMaxPlayerCount];
+	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[Protocol::kMaxPlayerCount];
 	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 };
 

@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "SCPacket.h"
+#include "ProtocolConstants.h"
 
 #define DIR_FORWARD				0x01
 #define DIR_BACKWARD			0x02
@@ -77,8 +78,7 @@ public:
 	const int maxHp = 100;
 	int m_nHp = maxHp;
 
-	const int maxMissileNum = 8;
-	CMissileObject* m_pMissiles[8];
+	CMissileObject* m_pMissiles[Protocol::kMaxMissileCountPerPlayer];
 
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
@@ -90,13 +90,13 @@ public:
 
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
-	const float movingSpeed = 50.f;
+	const float movingSpeed = Protocol::kSpeedPlayerPerSec;
 
 	PlayerKeyPacket keyPacket;
 
-	XMFLOAT3 initialPos[4]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
+	XMFLOAT3 initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
 
-	XMFLOAT3 initialRot[4]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+	XMFLOAT3 initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 
 private:
 	// Key bindings
