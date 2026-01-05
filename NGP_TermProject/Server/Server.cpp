@@ -7,14 +7,14 @@ Server* g_server;
 int PacketSizeHelper(char packetType)
 {
 	int packetSize;
-	switch(packetType)
+	switch (packetType)
 	{
 	case CS_KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
 		break;
 	case CS_PingpongInfo:
 		packetSize = sizeof(PingpongPacket);
-		break;	
+		break;
 	default:
 		packetSize = -1;
 		break;
@@ -239,9 +239,9 @@ void Server::SpawnItem()
 		{
 			m_ItemObject[i]->SetActive(true);
 			m_ItemObject[i]->healAmount = ((rand() % 3) + 1) * 10;
-			m_ItemObject[i]->SetPosition(rand() % MAX_BOUNDARY_X, 
-															rand() % (MAX_BOUNDARY_Y - MIN_BOUNDARY_Y) + MIN_BOUNDARY_Y, 
-															rand() % MAX_BOUNDARY_Z);
+			m_ItemObject[i]->SetPosition(rand() % MAX_BOUNDARY_X,
+				rand() % (MAX_BOUNDARY_Y - MIN_BOUNDARY_Y) + MIN_BOUNDARY_Y,
+				rand() % MAX_BOUNDARY_Z);
 			break;
 		}
 	}
@@ -253,13 +253,13 @@ void Server::PreparePackets()
 	MissileInfoBundlePacket missileBundle;
 	ItemInfoBundlePacket itemBundle;
 
-	for (int clientNum =0; clientNum < Protocol::kMaxPlayerCount;++clientNum)
+	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
-		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive()};
+		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
 
-		for (int i =0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
+		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
 			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
@@ -270,7 +270,7 @@ void Server::PreparePackets()
 
 	playerBundle.serverTick = ++serverTick;
 
-	for (int i=0;i<Protocol::kMaxItemCount;++i)
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		CItemObject* item = m_ItemObject[i];
 		ItemInfoPacket& itemInfo = itemBundle.itemInfos[i];
@@ -361,12 +361,12 @@ void Server::ResetToSnapshot(uint64_t targetTick)
 		for (int j = 0; j < Protocol::kMaxMissileCountPerPlayer; ++j)
 		{
 			CMissileObject* missile = player->m_pMissiles[j];
-			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex +j].position);
+			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex + j].position);
 			missile->SetLifeTime(snapshot.missileSnapshots[startMissileIndex + j].lifeTime);
 			missile->SetActive(snapshot.missileSnapshots[startMissileIndex + j].active);
 		}
 	}
-	
+
 	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
@@ -386,7 +386,7 @@ void Server::UpdateSnapshot(uint64_t targetTick)
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = clients[i]->m_player;
-		snapshot.playerSnapshots[i].position =  player->GetCurPos();
+		snapshot.playerSnapshots[i].position = player->GetCurPos();
 		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
 		snapshot.playerSnapshots[i].hp = player->GetHp();
 
@@ -467,7 +467,6 @@ void Server::SendPacketAllClient()
 	}
 }
 
-
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
 	UNREFERENCED_PARAMETER(arg);
@@ -520,7 +519,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	//Init Packet
 	Client* client = (Client*)arg;
 	int playerNumber = client->GetPlayerNumber();
-	TimebasePacket timebasePacket{ playerNumber, g_server->GetTick(), g_server->GetTimestampMs()};
+	TimebasePacket timebasePacket{ playerNumber, g_server->GetTick(), g_server->GetTimestampMs() };
 	send(client->sock, (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	CPlayer* p = client->m_player;
@@ -534,33 +533,35 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	++g_server->connectedClients;
 	PlayerKeyPacket& keyPacket = g_server->keyPackets[playerNumber];
 
-	const int bufMaxSize = 512;
 	int combinedSize = 0;
-	int remainOffset = 0;
-	int receivedBytes;
-	char buf[512]{};
+	char buf[BUFSIZE]{};
 	while (true)
 	{
-		receivedBytes = recv(client->sock, (char*)&buf, bufMaxSize, 0);
-		if(receivedBytes == SOCKET_ERROR)
+		int receivedBytes = recv(client->sock, (char*)&buf, BUFSIZE, 0);
+		if (receivedBytes == SOCKET_ERROR)
 		{
 			// cut the connection
 			client->Reset();
 			--g_server->connectedClients;
 			break;
 		}
-		
-		int bufSize = bufMaxSize;
-		int offset = 0;
 
-		memcpy(client->remainBuffer + remainOffset, buf, receivedBytes);
+		if (combinedSize + receivedBytes > BUFSIZE)
+		{
+			std::cout << "receive buffer overflow, dropping pending bytes\n";
+			combinedSize = 0;
+		}
+
+		memcpy(client->remainBuffer + combinedSize, buf, receivedBytes);
 		combinedSize += receivedBytes;
+
+		int offset = 0;
 
 		while (offset < combinedSize)
 		{
-			char packetType = buf[offset];
+			char packetType = client->remainBuffer[offset];
 			int packetSize = PacketSizeHelper(packetType);
-			   
+
 			if (offset + packetSize > combinedSize)
 			{
 				//next packet
@@ -588,8 +589,17 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			offset += packetSize;
 
 		}
+
+		if (combinedSize == 0)
+		{
+			continue;
+		}
+
 		int remainSize = combinedSize - offset;
-		memmove(client->remainBuffer, client->remainBuffer + offset, remainSize); 
+		if (remainSize > 0)
+		{
+			memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
+		}
 		combinedSize = remainSize;
 	}
 
@@ -656,6 +666,6 @@ int main()
 		}
 	}
 
-	
+
 }
 
