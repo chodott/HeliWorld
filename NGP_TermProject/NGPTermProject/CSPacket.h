@@ -3,10 +3,9 @@
 #include "DirectXMath.h"
 #include "ProtocolConstants.h"
 
-namespace PACKET {
-	const char PlayerInfo = 0;
-	const char ItemInfo = 1;
-	const char MissileInfo = 2;
+namespace PACKET 
+{
+	const char SnapshotInfo = 1;
 	const char KeyInfo = 3;
 	const char PingpongInfo = 4;
 	const char LocalMissileEvent = 5;
@@ -14,7 +13,8 @@ namespace PACKET {
 };
 
 
-struct FPoint {
+struct FPoint 
+{
 	float x;
 	float y;
 };
@@ -36,21 +36,14 @@ struct PingpongPacket
 };
 
 
-struct PlayerInfoPacket {
+struct PlayerInfoPacket 
+{
 	int playerNumber = -1;
 	int playerHP;
 	XMFLOAT3 position;
 	XMFLOAT3 rotation;
 	bool playerActive;
 };
-
-struct PlayerInfoBundlePacket
-{
-	char packetType;
-	PlayerInfoPacket playerInfos[Protocol::kMaxPlayerCount];
-	int serverTick;
-};
-
 
 struct PlayerKeyPacket 
 {
@@ -61,17 +54,12 @@ struct PlayerKeyPacket
 	uint64_t estimatedTick;
 };
 
-struct ItemInfoPacket {
+struct ItemInfoPacket 
+{
 	int32_t positionX;
 	int32_t positionY;
 	int32_t positionZ;
 	bool active;
-};
-
-struct ItemInfoBundlePacket
-{
-	char packetType;
-	ItemInfoPacket itemInfos[Protocol::kMaxItemCount];
 };
 
 struct MissileInfoPacket {
@@ -80,11 +68,15 @@ struct MissileInfoPacket {
 	XMFLOAT3 position;
 };
 
-struct MissileInfoBundlePacket
+struct TickSnapshotPacket
 {
 	char packetType;
+	uint64_t serverTick;
+	PlayerInfoPacket playerInfos[Protocol::kMaxPlayerCount];
 	MissileInfoPacket missileInfos[Protocol::kMaxMissileCount];
+	ItemInfoPacket itemInfos[Protocol::kMaxItemCount];
 };
+
 
 struct LocalMissileEventPacket
 {

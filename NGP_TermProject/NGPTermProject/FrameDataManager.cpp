@@ -23,20 +23,25 @@ void FrameDataManager::AddClientFrameData(const ClientFrameData& frameData)
 	}
 }
 
-void FrameDataManager::AddServerFrameData(const ServerFrameData& frameData)
+void FrameDataManager::AddServerFrameData(const TickSnapshotPacket& snapshotPacket)
 {
 	{
 		std::lock_guard<std::mutex> lock(frameDataLock);
-		serverFrameData_dq.emplace_back(frameData);
-		serverTick = frameData.serverTick;
+		serverFrameData_dq.emplace_back(
+			snapshotPacket.serverTick,
+			snapshotPacket.playerInfos,
+			snapshotPacket.missileInfos,
+			snapshotPacket.itemInfos
+			);
 
-		dataCutTickLine = frameData.serverTick > SNAPSHOT_LIFETIME_TICK ? frameData.serverTick - SNAPSHOT_LIFETIME_TICK : 0;
+		dataCutTickLine = snapshotPacket.serverTick > SNAPSHOT_LIFETIME_TICK ? snapshotPacket.serverTick - SNAPSHOT_LIFETIME_TICK : 0;
 
 		while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < dataCutTickLine)
 		{
 			serverFrameData_dq.pop_front();
 		}
 	}
+
 	CheckPositionOutOfSync();
 }
 
@@ -60,7 +65,6 @@ bool FrameDataManager::TryGetClientFrameData(const uint64_t targetTick, ClientFr
 bool FrameDataManager::TryGetServerFrameData(const uint64_t targetTick, ServerFrameData& prevData, ServerFrameData& nextData)
 {
 	std::lock_guard<std::mutex> lock(frameDataLock);
-			serverFrameData_dq[i + 1].serverTick > tick) {
 	if (serverFrameData_dq.size() < 2)
 	{
 		return false;
@@ -85,13 +89,18 @@ bool FrameDataManager::TryGetServerFrameData(const uint64_t targetTick, ServerFr
 pair<uint64_t, uint64_t> FrameDataManager::GetSimulateTickRange()
 {
 	std::lock_guard<std::mutex> lock(frameDataLock);
+
+	if (clientFrameData_dq.empty())
+	{
+		return { targetTick, targetTick };
+	}
+
 	uint64_t startTick = targetTick;
 	uint64_t endTick = clientFrameData_dq.back().estimatedServerTick;
 	if (startTick > endTick)
 	{
 		return std::make_pair(endTick, endTick);
 	}
-
 	return std::make_pair(targetTick, endTick);
 }
 
@@ -201,8 +210,8 @@ void FrameDataManager::CheckPositionOutOfSync()
 	const float dz = clientPosition.z - serverPosition.z;
 	const float distSq = dx * dx + dy * dy + dz * dz;
 
-	float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + 50.0f) * 0.001f;
-	const float maxDistance = 50.0f * 1.2f * interpDelaySec;
+	float interpDelaySec = (NetworkSyncManager::GetRttAvg() * 0.5f + Protocol::kDefaultDelayMs) * Protocol::kMsToSec;
+	const float maxDistance = Protocol::kSpeedPlayerPerSec * Protocol::kDistanceMargin * interpDelaySec;
 	const float maxDistSq = maxDistance * maxDistance;
 	const bool bOverMaxDistance = (distSq >= maxDistSq);
 
