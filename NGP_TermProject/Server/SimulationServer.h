@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "ClientInputBuffer.h"
 #include "SnapShot.h"
+#include "SnapshotPublisher.h"
 
 #include <queue>
 
@@ -24,8 +25,10 @@ private:
 	void ResetToSnapshot(uint64_t targetTick);
 	void UpdateSnapshot(uint64_t targetTick);
 
-	ClientInputBuffer& clientInputBuffer;
+	void PreparePackets();
 
+	ClientInputBuffer& clientInputBuffer;
+	SnapshotPacketBuffer& snapshotPacketBuffer;
 
 	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 	CItemObject* m_ItemObject[Protocol::kMaxItemCount];
@@ -39,7 +42,7 @@ private:
 	uint64_t serverTick = 0;
 
 public:
-	SimulationServer(ClientInputBuffer& inputBuffer);
+	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer);
 	~SimulationServer();
 
 	void Update();

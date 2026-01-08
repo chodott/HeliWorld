@@ -7,6 +7,7 @@
 #include "ProtocolConstants.h"
 #include "ClientInputBuffer.h"
 #include "SimulationServer.h"
+#include "SnapshotPacketBuffer.h"
 
 #include <concurrent_queue.h>
 #include <array>
@@ -41,10 +42,10 @@ private:
 	time::time_point timeStamp;
 };
 
-class Server {
+class NetworkServer {
 public:
-	Server();
-	~Server();
+	NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer);
+	~NetworkServer();
 
 	void OpenListenSocket();
 
@@ -85,6 +86,9 @@ private:
 	}
 
 	SOCKET listenSock;
+
+	ClientInputBuffer& clientInputBuffer;
+	SnapshotPacketBuffer& snapshotPacketBuffer;
 };
 
 

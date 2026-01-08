@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="SnapshotPacketBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\NGPTermProject\ProtocolConstants.h" />
@@ -153,6 +154,7 @@
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="SnapShot.h" />
+    <ClInclude Include="SnapshotPacketBuffer.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

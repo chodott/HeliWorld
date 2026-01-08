@@ -2,8 +2,6 @@
 #include "GameObject.h"
 #include "SCPacket.h"
 
-Server* g_server;
-
 int PacketSizeHelper(char packetType)
 {
 	int packetSize;
@@ -22,7 +20,8 @@ int PacketSizeHelper(char packetType)
 	return packetSize;
 }
 
-Server::Server()
+NetworkServer::NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer):
+	clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer)
 {
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -39,7 +38,7 @@ Server::Server()
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
 }
 
-Server::~Server()
+NetworkServer::~NetworkServer()
 {
 	WSACleanup();
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
@@ -60,7 +59,7 @@ Client::~Client()
 	delete m_player;
 }
 
-void Server::OpenListenSocket()
+void NetworkServer::OpenListenSocket()
 {
 	// create listen socket
 	if ((listenSock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) err_quit("socket()");
@@ -79,41 +78,7 @@ void Server::OpenListenSocket()
 	std::cout << "Listen socket opened\n";
 }
 
-
-
-
-void Server::PreparePackets()
-{
-	TickSnapshotPacket tickSnapshot{};
-	tickSnapshot.serverTick = ++serverTick;
-
-	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
-	{
-		Client* client = clients[clientNum];
-		CPlayer* player = client->m_player;
-		tickSnapshot.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
-
-		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
-		{
-			CMissileObject* missile = player->m_pMissiles[i];
-			MissileInfoPacket& missileInfo = tickSnapshot.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
-			missileInfo.position = missile->GetCurPos();
-			missileInfo.active = missile->IsActive();
-		}
-	}
-
-	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
-	{
-		CItemObject* item = m_ItemObject[i];
-		ItemInfoPacket& itemInfo = tickSnapshot.itemInfos[i];
-		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
-		itemInfo.active = item->IsActive();
-	}
-
-	PushPacket(tickSnapshot);
-}
-
-void Server::GenerateEvents(uint64_t tick)
+void NetworkServer::GenerateEvents(uint64_t tick)
 {
 	if (tick == 0) return;
 
@@ -150,14 +115,14 @@ void Server::GenerateEvents(uint64_t tick)
 	}
 }
 
-uint64_t Server::GetTimestampMs()
+uint64_t NetworkServer::GetTimestampMs()
 {
 	using namespace std::chrono;
 	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
 
-void Server::SendPacketAllClient()
+void NetworkServer::SendPacketAllClient()
 {
 	TickSnapshotPacket tickSnapshotPacket;
 
@@ -187,18 +152,17 @@ void Server::SendPacketAllClient()
 
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
-	UNREFERENCED_PARAMETER(arg);
-
+	NetworkServer* netServer = (NetworkServer*)arg;
 	SOCKET clientSock;
 	sockaddr_in clientaddr;
 	int addrlen;
 	while (true)
 	{
 		addrlen = sizeof(clientaddr);
-		if (g_server->connectedClients < Protocol::kMaxPlayerCount)
+		if (netServer->connectedClients < Protocol::kMaxPlayerCount)
 			std::cout << "Waiting for accept...\n";
 
-		clientSock = accept(*g_server->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
+		clientSock = accept(*netServer->GetSocket(), (sockaddr*)&clientaddr, &addrlen);
 		if (clientSock == SOCKET_ERROR)
 		{
 			err_quit("accept()");
@@ -209,7 +173,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
-			Client* client = g_server->clients[i];
+			Client* client = netServer->clients[i];
 			client->SetPlayerNumber(i);
 
 			if (!client->IsConnected())
@@ -326,9 +290,10 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
+	NetworkServer* netServer = (NetworkServer*)arg;
 	while (1)
 	{
-		g_server->SendPacketAllClient();
+		netServer->SendPacketAllClient();
 	}
 }
 
@@ -354,19 +319,19 @@ void Client::Reset()
 	m_player->Reset(GetPlayerNumber());
 }
 
-
-
 int main()
 {
-	g_server = new Server();
-	g_server->OpenListenSocket();
+	ClientInputBuffer clientInputBuffer;
+	SnapshotPacketBuffer snapshotPacketBuffer;
 
-	ClientInputBuffer* clientInputBuffer = new ClientInputBuffer();
-	SimulationServer* simulationServer = new SimulationServer();
+	SimulationServer simulationServer(clientInputBuffer, snapshotPacketBuffer);
+	NetworkServer networkServer(clientInputBuffer, snapshotPacketBuffer);
+
+	networkServer.OpenListenSocket();
 
 	srand(time(NULL));
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
-	HANDLE sendThread = CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
+	HANDLE sendThread = CreateThread(NULL, 0, SendAllClient, &networkServer, 0, NULL);
 
 	auto  prev = std::chrono::steady_clock::now();
 	double acc = 0.0;
@@ -382,7 +347,7 @@ int main()
 		int steps = 0, maxSteps = 6;
 		while (acc >= Protocol::kFixedTick && steps < maxSteps)
 		{
-			simulationServer->Update();
+			simulationServer.Update();
 			acc -= Protocol::kFixedTick;
 			++steps;
 		}
