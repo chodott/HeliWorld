@@ -1,7 +1,8 @@
 #include "SimulationServer.h"
 #include "ProtocolConstants.h"
 
-SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer) : clientInputBuffer(inputBuffer)
+SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer) 
+	: clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer)
 {
 	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
@@ -79,7 +80,7 @@ void SimulationServer::Update()
 			SpawnItem();
 	}
 
-
+	++serverTick;
 	PreparePackets();
 }
 
@@ -242,4 +243,34 @@ void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 	{
 		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
 	}
+}
+
+void SimulationServer::PreparePackets()
+{
+	TickSnapshotPacket tickSnapshot{};
+
+	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
+	{
+		Client* client = clients[clientNum];
+		CPlayer* player = client->m_player;
+		tickSnapshot.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
+
+		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
+		{
+			CMissileObject* missile = player->m_pMissiles[i];
+			MissileInfoPacket& missileInfo = tickSnapshot.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
+			missileInfo.position = missile->GetCurPos();
+			missileInfo.active = missile->IsActive();
+		}
+	}
+
+	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
+	{
+		CItemObject* item = m_ItemObject[i];
+		ItemInfoPacket& itemInfo = tickSnapshot.itemInfos[i];
+		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
+		itemInfo.active = item->IsActive();
+	}
+
+	snapshotPacketBuffer.PushSnapshotPacket(tickSnapshot);
 }
