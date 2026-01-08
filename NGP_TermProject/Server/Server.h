@@ -5,6 +5,8 @@
 #include "GameObject.h"
 #include "Snapshot.h"
 #include "ProtocolConstants.h"
+#include "ClientInputBuffer.h"
+#include "SimulationServer.h"
 
 #include <concurrent_queue.h>
 #include <array>
@@ -16,19 +18,7 @@
 #define SERVERPORT		9000
 #define BUFSIZE			512
 
-#define RESPAWN_TIME		5.f
-
-#define MAX_BOUNDARY_X		1000
-#define MIN_BOUNDARY_X		0
-#define MAX_BOUNDARY_Y		1000
-#define MIN_BOUNDARY_Y		300
-#define MAX_BOUNDARY_Z		1000
-#define MIN_BOUNDARY_Z		0
-
 #define MAP_SCALE 32.767
-
-#define MAX_REWIND_TICKS 3
-
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
@@ -62,30 +52,21 @@ public:
 
 	PlayerKeyPacket keyPackets[Protocol::kMaxPlayerCount];
 
-	// 클라 충돌 및 움직임 송수신
-	void Update();
-	void CheckCollision();
-	void SpawnItem();
 	void PreparePackets();
 	void GenerateEvents(uint64_t tick);
 
 	uint64_t GetTimestampMs();
-	inline uint64_t GetTick() { return serverTick; }
 
 	SOCKET* GetSocket() { return &listenSock; }
 
 	Clock timer;
-	const float itemRespawnTime = 8.f;
-	float itemSpawnTime = 0.f;
-	float elapsedTime = 0.f;
+
 
 	std::array<Client*, Protocol::kMaxPlayerCount> clients;
 
 	int connectedClients = 0;
 	HANDLE updateDone;
 
-	CItemObject* m_ItemObject[Protocol::kMaxItemCount];
-	std::queue<GameObject*> trashCan;
 
 	template <typename T>
 	inline void PushPacket(const T& packet){GetQueue<T>().push(packet);}
@@ -93,11 +74,6 @@ public:
 	inline bool TryPopPacket(T& outPacket){return GetQueue<T>().try_pop(outPacket);}
 	template<typename T>
 	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
-
-	void PushInputData(int index, const PlayerKeyPacket& keyPacket);
-	void ResetToSnapshot(uint64_t targetTick);
-	void UpdateSnapshot(uint64_t targetTick);
-	uint64_t ReturnResimulateStart();
 
 
 private:
@@ -109,12 +85,6 @@ private:
 	}
 
 	SOCKET listenSock;
-
-	uint64_t serverTick = 0;
-
-	queue<PlayerKeyPacket> InputBuffers[Protocol::kMaxPlayerCount];
-	unordered_map<uint64_t, PlayerKeyPacket> InputLogMaps[Protocol::kMaxPlayerCount];
-	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 };
 
 
