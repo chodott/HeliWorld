@@ -16,7 +16,7 @@ class FrameDataManager
         playerNum = n;
     }
     void AddClientFrameData(const ClientFrameData& frameData);
-    void AddServerFrameData(const ServerFrameData& frameData);
+    void AddServerFrameData(const TickSnapshotPacket& frameData);
 
     pair<uint64_t, uint64_t> GetSimulateTickRange();
     bool TryGetClientStartIndex(uint64_t startTick, size_t& outIndex);

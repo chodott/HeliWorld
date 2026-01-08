@@ -9,14 +9,8 @@ int PacketSizeHelper(char packetType)
 	int packetSize;
 	switch (packetType)
 	{
-	case PACKET::PlayerInfo:
-		packetSize = sizeof(PlayerInfoBundlePacket);
-		break;
-	case PACKET::ItemInfo:
-		packetSize = sizeof(ItemInfoBundlePacket);
-		break;
-	case PACKET::MissileInfo:
-		packetSize = sizeof(MissileInfoBundlePacket);
+	case PACKET::SnapshotInfo:
+		packetSize = sizeof(TickSnapshotPacket);
 		break;
 	case PACKET::KeyInfo:
 		packetSize = sizeof(PlayerKeyPacket);
@@ -39,22 +33,10 @@ void Client::PacketProcessHelper(char packetType, char* fillTarget)
 {
 	switch (packetType)
 	{
-	case PACKET::PlayerInfo:
+	case PACKET::SnapshotInfo:
 	{
-		auto& pkt = *reinterpret_cast<const PlayerInfoBundlePacket*>(fillTarget);
-		packetCombiner->CombinePacket(pkt);
-		break;
-	}
-	case PACKET::ItemInfo:
-	{
-		auto& pkt = *reinterpret_cast<const ItemInfoBundlePacket*>(fillTarget);
-		packetCombiner->CombinePacket(pkt);
-		break;
-	}
-	case PACKET::MissileInfo:
-	{
-		auto& pkt = *reinterpret_cast<const MissileInfoBundlePacket*>(fillTarget);
-		packetCombiner->CombinePacket(pkt);
+		auto& pkt = *reinterpret_cast<const TickSnapshotPacket*>(fillTarget);
+		frameDataManager->AddServerFrameData(pkt);
 		break;
 	}
 	case PACKET::PingpongInfo:
@@ -280,13 +262,12 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 
 		while (offset < combinedSize)
 		{
-			if (combinedSize - offset < 1)
-			{
-				break;
-			}
-
 			char packetType = client->remainBuffer[offset];
 			int packetSize = PacketSizeHelper(packetType);
+			if (packetSize < 0) {
+				offset += 1;
+				continue;
+			}
 
 			if (offset + packetSize > combinedSize)
 			{
