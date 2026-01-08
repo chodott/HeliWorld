@@ -187,7 +187,7 @@ void Server::Update()
 			{
 				player->keyPacket = InputLogMaps[i][tick];
 			}
-			player->Update(kDt);
+			player->Update(Protocol::kFixedTick);
 		}
 
 		CheckCollision();
@@ -228,7 +228,6 @@ void Server::Update()
 	}
 
 	PreparePackets();
-	packetReadyCV.notify_one();
 }
 
 void Server::SpawnItem()
@@ -249,39 +248,33 @@ void Server::SpawnItem()
 
 void Server::PreparePackets()
 {
-	PlayerInfoBundlePacket playerBundle;
-	MissileInfoBundlePacket missileBundle;
-	ItemInfoBundlePacket itemBundle;
+	TickSnapshotPacket tickSnapshot;
+	tickSnapshot.serverTick = ++serverTick;
 
 	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
 	{
 		Client* client = clients[clientNum];
 		CPlayer* player = client->m_player;
-		playerBundle.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
+		tickSnapshot.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
 
 		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
-			MissileInfoPacket& missileInfo = missileBundle.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
+			MissileInfoPacket& missileInfo = tickSnapshot.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
 			missileInfo.position = missile->GetCurPos();
 			missileInfo.active = missile->IsActive();
 		}
 	}
 
-	playerBundle.serverTick = ++serverTick;
-
 	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		CItemObject* item = m_ItemObject[i];
-		ItemInfoPacket& itemInfo = itemBundle.itemInfos[i];
+		ItemInfoPacket& itemInfo = tickSnapshot.itemInfos[i];
 		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
 		itemInfo.active = item->IsActive();
 	}
 
-	std::lock_guard<std::mutex> lock(packetQueueLock);
-	PushPacket(playerBundle);
-	PushPacket(missileBundle);
-	PushPacket(itemBundle);
+	PushPacket(tickSnapshot);
 }
 
 void Server::GenerateEvents(uint64_t tick)
@@ -430,35 +423,24 @@ uint64_t Server::ReturnResimulateStart()
 
 void Server::SendPacketAllClient()
 {
-	PlayerInfoBundlePacket playerInfoBundle;
-	MissileInfoBundlePacket missileInfoBundle;
-	ItemInfoBundlePacket itemInfoBundle;
+	TickSnapshotPacket tickSnapshotPacket;
 
+	bool bCanSendPacket = TryPopPacket(tickSnapshotPacket);
+	
+	if (bCanSendPacket)
 	{
-		std::unique_lock<std::mutex> lock(packetQueueLock);
-		packetReadyCV.wait(lock, [this] {
-			return !GetQueue<PlayerInfoBundlePacket>().empty() &&
-				!GetQueue<MissileInfoBundlePacket>().empty() &&
-				!GetQueue<ItemInfoBundlePacket>().empty();
-			});
-	}
-
-	TryPopPacket(playerInfoBundle);
-	TryPopPacket(missileInfoBundle);
-	TryPopPacket(itemInfoBundle);
-
-	for (const auto& client : clients)
-	{
-		if (!client->IsConnected())
+		for (const auto& client : clients)
 		{
-			continue;
-		}
+			if (!client->IsConnected())
+			{
+				continue;
+			}
 
-		SOCKET& recvSock = client->sock;
-		SendPacket(recvSock, playerInfoBundle);
-		SendPacket(recvSock, missileInfoBundle);
-		SendPacket(recvSock, itemInfoBundle);
+			SOCKET& recvSock = client->sock;
+			SendPacket(recvSock, tickSnapshotPacket);
+		}
 	}
+
 	LocalMissileEventPacket missileEventPacket;
 	while (TryPopPacket(missileEventPacket) == true)
 	{
@@ -645,7 +627,7 @@ int main()
 
 	srand(time(NULL));
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
-	CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
+	HANDLE sendThread = CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
 
 	auto  prev = std::chrono::steady_clock::now();
 	double acc = 0.0;
@@ -659,13 +641,22 @@ int main()
 		acc += frameDelta;
 
 		int steps = 0, maxSteps = 6;
-		while (acc >= kDt && steps < maxSteps)
+		while (acc >= Protocol::kFixedTick && steps < maxSteps)
 		{
 			g_server->Update();
-			acc -= kDt; ++steps;
+			acc -= Protocol::kFixedTick;
+			++steps;
+		}
+
+		if (acc < Protocol::kFixedTick)
+		{
+			double margin = Protocol::kFixedTick - acc;
+			DWORD sleepMs = (DWORD)(margin * 1000.0);
+			Sleep(sleepMs);
 		}
 	}
 
-
+	CloseHandle(acceptThread);
+	CloseHandle(sendThread);
 }
 

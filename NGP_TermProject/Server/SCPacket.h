@@ -2,10 +2,9 @@
 #pragma warning(disable : 26495)
 
 #include "stdafx.h"
+#include "ProtocolConstants.h"
 
-const char SC_PlayerInfo = 0;
-const char SC_ItemInfo = 1;
-const char SC_MissileInfo = 2;
+const char CS_TickSnapshot = 1;
 const char CS_KeyInfo = 3;
 const char CS_PingpongInfo = 4;
 const char CS_LocalMissileEvent = 5;
@@ -38,14 +37,6 @@ struct PlayerInfoPacket {
 	bool playerActive;
 };
 
-struct PlayerInfoBundlePacket
-{
-	char packetType = SC_PlayerInfo;
-	PlayerInfoPacket playerInfos[4];
-	int serverTick;
-};
-
-
 struct PlayerKeyPacket {
 	char packetType;
 	unsigned char playerKeyInput = NULL;
@@ -61,21 +52,9 @@ struct ItemInfoPacket {
 	bool active;
 };
 
-struct ItemInfoBundlePacket
-{
-	char packetType = SC_ItemInfo;
-	ItemInfoPacket itemInfos[10];
-};
-
 struct MissileInfoPacket {
 	bool active = false;
 	XMFLOAT3 position;
-};
-
-struct MissileInfoBundlePacket
-{
-	char packetType = SC_MissileInfo;
-	MissileInfoPacket missileInfos[32];
 };
 
 struct LocalMissileEventPacket
@@ -85,6 +64,15 @@ struct LocalMissileEventPacket
 	uint64_t eventTick;
 	int playerNum;
 	bool active;
+};
+
+struct TickSnapshotPacket
+{
+	char packetType = CS_TickSnapshot;
+	uint64_t serverTick;
+	PlayerInfoPacket playerInfos[Protocol::kMaxPlayerCount];
+	MissileInfoPacket missileInfos[Protocol::kMaxMissileCount];
+	ItemInfoPacket itemInfos[Protocol::kMaxItemCount];
 };
 
 

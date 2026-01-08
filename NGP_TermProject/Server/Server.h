@@ -34,12 +34,6 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg);
 DWORD WINAPI AcceptClient(LPVOID arg);
 
 
-// 틱 동기화 용 공용 유틸
-constexpr double kDt = 1.0 / 30.0;
-constexpr int		kDt_ms = 33;
-
-
-
 class Client;
 class CPlayer;
 class CItemObject;
@@ -115,12 +109,6 @@ private:
 	}
 
 	SOCKET listenSock;
-
-	//Fixed Frametime
-	const float FIXED_DELTA_TIME = 1.0f / 30.0f;
-	
-	std::mutex packetQueueLock;
-	std::condition_variable packetReadyCV;
 
 	uint64_t serverTick = 0;
 
