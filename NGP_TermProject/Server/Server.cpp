@@ -34,14 +34,9 @@ Server::Server()
 		player->SetPosition(player->initialPos[i]);
 		player->RotatePYR(player->initialRot[i]);
 	}
-	for (int i = 0; i < Protocol::kMaxItemCount; i++)
-	{
-		m_ItemObject[i] = new CItemObject();
-		m_ItemObject[i]->SetPosition(100.f, 100.f, 100.f + 10.f * i);
-	}
+
 
 	updateDone = CreateEvent(nullptr, true, false, nullptr);
-	UpdateSnapshot(0);
 }
 
 Server::~Server()
@@ -52,13 +47,7 @@ Server::~Server()
 		if (clients[i] != nullptr)
 			delete clients[i];
 	}
-	for (int i = 0; i < Protocol::kMaxItemCount; i++)
-	{
-		if (m_ItemObject[i] != nullptr)
-		{
-			delete m_ItemObject[i];
-		}
-	}
+
 }
 
 Client::Client()
@@ -90,165 +79,12 @@ void Server::OpenListenSocket()
 	std::cout << "Listen socket opened\n";
 }
 
-void Server::CheckCollision()
-{
-	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-	{
-		if (!clients[i]->IsConnected())
-			continue;
-
-		CPlayer* iPlayer = clients[i]->m_player;
-		if (!iPlayer->IsActive())
-			continue;
-
-		//Collision Map
-		if (clients[i]->m_player->m_fyPos < MIN_BOUNDARY_Y || clients[i]->m_player->m_fyPos > MAX_BOUNDARY_Y ||
-			clients[i]->m_player->m_fzPos < MIN_BOUNDARY_Z || clients[i]->m_player->m_fzPos > MAX_BOUNDARY_Z ||
-			clients[i]->m_player->m_fxPos < MIN_BOUNDARY_X || clients[i]->m_player->m_fxPos > MAX_BOUNDARY_X)
-		{
-			clients[i]->m_player->SetPosition(clients[i]->m_player->m_fOldxPos,
-				clients[i]->m_player->m_fOldyPos,
-				clients[i]->m_player->m_fOldzPos);
-		}
-
-		for (int j = 0; j < Protocol::kMaxPlayerCount; ++j)
-		{
-			//Same Player
-			if (i == j)
-				continue;
-			if (!clients[j]->IsConnected())
-				continue;
-
-			CPlayer* jPlayer = clients[j]->m_player;
-			if (!jPlayer->IsActive())
-				continue;
-
-			// Check Player to Player
-			if (iPlayer->GetBoundingBox().Intersects(jPlayer->GetBoundingBox()))
-			{
-				//iPlayer->m_nHp -= 10;
-				iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
-
-				//jPlayer->m_nHp -= 10;
-				jPlayer->SetPosition(jPlayer->m_fOldxPos, jPlayer->m_fOldyPos, jPlayer->m_fOldzPos);
-			}
-
-			for (auto& missile : jPlayer->m_pMissiles)
-			{
-				if (!missile->IsActive())
-					continue;
-
-				// Check Players and Missiles
-				if (iPlayer->GetBoundingBox().Intersects(missile->GetBoundingBox()))
-				{
-					iPlayer->m_nHp -= missile->damage;
-					missile->ShouldDeactive();
-					trashCan.push(missile);
-					if (iPlayer->m_nHp <= 0)
-					{
-						iPlayer->Reset(i);
-						iPlayer->ShouldDeactive();
-					}
-				}
-			}
-		}
-
-		for (int j = 0; j < Protocol::kMaxItemCount; j++)
-		{
-			if (!m_ItemObject[j]->IsActive())		continue;
-
-			if (iPlayer->GetBoundingBox().Intersects(m_ItemObject[j]->GetBoundingBox()))
-			{
-				iPlayer->m_nHp += m_ItemObject[j]->healAmount;
-				if (iPlayer->m_nHp > iPlayer->maxHp)			iPlayer->m_nHp = iPlayer->maxHp;
-
-				m_ItemObject[j]->ShouldDeactive();
-				trashCan.push(m_ItemObject[j]);
-			}
-		}
-	}
-}
-
-void Server::Update()
-{
-	uint64_t resimulateStartTick = ReturnResimulateStart();
-	uint64_t resetTick = resimulateStartTick;
-	if (resimulateStartTick > 0)
-	{
-		resetTick--;
-	}
-	ResetToSnapshot(resetTick);
-	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
-	{
-		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-		{
-			CPlayer* player = clients[i]->m_player;
-			if (InputLogMaps[i].find(tick) != InputLogMaps[i].end())
-			{
-				player->keyPacket = InputLogMaps[i][tick];
-			}
-			player->Update(Protocol::kFixedTick);
-		}
-
-		CheckCollision();
-
-		while (!trashCan.empty())
-		{
-			trashCan.front()->Deactivate();
-			trashCan.pop();
-		}
-		UpdateSnapshot(tick);
-		GenerateEvents(tick);
-	}
 
 
-
-	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
-	//{
-	//	CPlayer* player = clients[i]->m_player;
-	//	if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
-	//	// connected, but dead
-	//	if (clients[i]->IsConnected() && !player->IsActive())
-	//	{
-	//		clients[i]->deadTime += elapsedTime;
-	//		if (clients[i]->deadTime > RESPAWN_TIME)
-	//		{
-	//			player->SetActive(true);
-	//			clients[i]->deadTime = 0.f;
-	//		}
-	//	}
-	//}
-
-	itemSpawnTime += elapsedTime;
-	if (itemSpawnTime > itemRespawnTime)
-	{
-		itemSpawnTime -= itemRespawnTime;
-		if (connectedClients >= 2)
-			SpawnItem();
-	}
-
-	PreparePackets();
-}
-
-void Server::SpawnItem()
-{
-	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
-	{
-		if (!m_ItemObject[i]->IsActive())
-		{
-			m_ItemObject[i]->SetActive(true);
-			m_ItemObject[i]->healAmount = ((rand() % 3) + 1) * 10;
-			m_ItemObject[i]->SetPosition(rand() % MAX_BOUNDARY_X,
-				rand() % (MAX_BOUNDARY_Y - MIN_BOUNDARY_Y) + MIN_BOUNDARY_Y,
-				rand() % MAX_BOUNDARY_Z);
-			break;
-		}
-	}
-}
 
 void Server::PreparePackets()
 {
-	TickSnapshotPacket tickSnapshot;
+	TickSnapshotPacket tickSnapshot{};
 	tickSnapshot.serverTick = ++serverTick;
 
 	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
@@ -285,7 +121,7 @@ void Server::GenerateEvents(uint64_t tick)
 	{
 		Client* client = clients[playerNum];
 		CPlayer* player = client->m_player;
-		ServerSnapshot& snapshot = SnapshotLogMap[tick - 1];
+		ServerSnapshot& snapshot = SnapshotLogMap.at(tick - 1);
 		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
 			CMissileObject* missile = player->m_pMissiles[i];
@@ -320,106 +156,6 @@ uint64_t Server::GetTimestampMs()
 	return (uint64_t)std::chrono::duration_cast<std::chrono::milliseconds>
 		(steady_clock::now().time_since_epoch()).count();
 }
-
-void Server::PushInputData(int index, const PlayerKeyPacket& keyPacket)
-{
-	if (InputBuffers[index].empty() == false)
-	{	//Remove past Input
-		int tickDiff = GetTick() - keyPacket.estimatedTick;
-		if (tickDiff > MAX_REWIND_TICKS)
-		{
-			return;
-		}
-	}
-
-	InputBuffers[index].push(keyPacket);
-}
-
-void Server::ResetToSnapshot(uint64_t targetTick)
-{
-	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
-	{
-		return;
-	}
-
-	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
-	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-	{
-		CPlayer* player = clients[i]->m_player;
-		player->SetPosition(snapshot.playerSnapshots[i].position);
-		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
-		player->SetHp(snapshot.playerSnapshots[i].hp);
-
-		int startMissileIndex = i * Protocol::kMaxMissileCountPerPlayer;
-		for (int j = 0; j < Protocol::kMaxMissileCountPerPlayer; ++j)
-		{
-			CMissileObject* missile = player->m_pMissiles[j];
-			missile->SetPosition(snapshot.missileSnapshots[startMissileIndex + j].position);
-			missile->SetLifeTime(snapshot.missileSnapshots[startMissileIndex + j].lifeTime);
-			missile->SetActive(snapshot.missileSnapshots[startMissileIndex + j].active);
-		}
-	}
-
-	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
-	{
-		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
-	}
-
-}
-
-void Server::UpdateSnapshot(uint64_t targetTick)
-{
-	if (SnapshotLogMap.find(targetTick) == SnapshotLogMap.end())
-	{
-		ServerSnapshot empty;
-		SnapshotLogMap.insert(make_pair(targetTick, empty));
-	}
-
-	ServerSnapshot& snapshot = SnapshotLogMap[targetTick];
-	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-	{
-		CPlayer* player = clients[i]->m_player;
-		snapshot.playerSnapshots[i].position = player->GetCurPos();
-		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
-		snapshot.playerSnapshots[i].hp = player->GetHp();
-
-		int startMissileIndex = i * Protocol::kMaxMissileCountPerPlayer;
-		for (int j = 0; j < Protocol::kMaxMissileCountPerPlayer; ++j)
-		{
-			CMissileObject* missile = player->m_pMissiles[j];
-			snapshot.missileSnapshots[startMissileIndex + j].position = missile->GetCurPos();
-			snapshot.missileSnapshots[startMissileIndex + j].lifeTime = missile->GetLifeTime();
-			snapshot.missileSnapshots[startMissileIndex + j].active = missile->IsActive();
-		}
-	}
-
-	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
-	{
-		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
-	}
-}
-
-uint64_t Server::ReturnResimulateStart()
-{
-	int startTick = GetTick();
-	for (int index = 0; index < Protocol::kMaxPlayerCount; ++index)
-	{
-		while (!InputBuffers[index].empty())
-		{
-			uint64_t tick = InputBuffers[index].front().estimatedTick;
-			if (tick > GetTick())
-			{
-				break;
-			}
-
-			InputLogMaps[index][tick] = InputBuffers[index].front();
-			InputBuffers[index].pop();
-			startTick = min(startTick, tick);
-		}
-	}
-	return startTick;
-}
-
 
 void Server::SendPacketAllClient()
 {
@@ -625,6 +361,9 @@ int main()
 	g_server = new Server();
 	g_server->OpenListenSocket();
 
+	ClientInputBuffer* clientInputBuffer = new ClientInputBuffer();
+	SimulationServer* simulationServer = new SimulationServer();
+
 	srand(time(NULL));
 	HANDLE acceptThread = CreateThread(NULL, 0, AcceptClient, nullptr, 0, NULL);
 	HANDLE sendThread = CreateThread(NULL, 0, SendAllClient, g_server, 0, NULL);
@@ -643,7 +382,7 @@ int main()
 		int steps = 0, maxSteps = 6;
 		while (acc >= Protocol::kFixedTick && steps < maxSteps)
 		{
-			g_server->Update();
+			simulationServer->Update();
 			acc -= Protocol::kFixedTick;
 			++steps;
 		}
