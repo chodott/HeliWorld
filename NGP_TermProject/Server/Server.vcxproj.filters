@@ -5,16 +5,25 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="SnapshotPacketBuffer.cpp" />
     <ClCompile Include="SimulationServer.cpp" />
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="ClientInputBuffer.cpp" />
+    <ClCompile Include="NetworkEventQueue.cpp" />
+    <ClCompile Include="error.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="Socket.h" />
     <ClInclude Include="SnapShot.h" />
     <ClInclude Include="..\NGPTermProject\ProtocolConstants.h" />
     <ClInclude Include="SnapshotPacketBuffer.h" />
     <ClInclude Include="SimulationServer.h" />
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="ServerContext.h" />
+    <ClInclude Include="ClientInputBuffer.h" />
+    <ClInclude Include="NetworkEventQueue.h" />
+    <ClInclude Include="error.h" />
   </ItemGroup>
 </Project>

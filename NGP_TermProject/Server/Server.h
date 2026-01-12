@@ -1,13 +1,14 @@
 #pragma once
 
 #include "SCPacket.h"
+#include "error.h"
 #include "GameObject.h"
 #include "ProtocolConstants.h"
 #include "ClientInputBuffer.h"
-#include "SimulationServer.h"
 #include "SnapshotPacketBuffer.h"
 #include "Client.h"
 #include "ServerContext.h"
+#include "NetworkEventQueue.h"
 
 #include <array>
 #include <chrono>
@@ -15,13 +16,7 @@
 #include <unordered_map>
 #include <mutex>
 
-#define SERVERPORT		9000
-#define BUFSIZE			512
-
-#define MAP_SCALE 32.767
-
-DWORD WINAPI ReceiveFromClient(LPVOID arg);
-
+#define  SERVERPORT 9000
 
 class Clock {
 public:
@@ -38,16 +33,13 @@ private:
 
 class NetworkServer {
 public:
-	NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer);
+	NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~NetworkServer();
 
 	void OpenListenSocket(ServerContext* serverContext);
 	void CloseListenSocket();
 
 	void SendPacketAllClient();
-
-	void PreparePackets();
-	void GenerateEvents(uint64_t tick);
 
 	uint64_t GetTimestampMs();
 
@@ -61,21 +53,7 @@ public:
 	HANDLE updateDone;
 
 
-	template <typename T>
-	inline void PushPacket(const T& packet){GetQueue<T>().push(packet);}
-	template <typename T>
-	inline bool TryPopPacket(T& outPacket){return GetQueue<T>().try_pop(outPacket);}
-	template<typename T>
-	inline void SendPacket(SOCKET& recvSocket, const T& packet) { send(recvSocket, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
-
-
 private:
-	template <typename T>
-	static concurrency::concurrent_queue<T>& GetQueue()
-	{
-		static concurrency::concurrent_queue<T> queue;
-		return queue;
-	}
 
 	SOCKET listenSock;
 	ServerContext serverContext;
@@ -85,5 +63,6 @@ private:
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
+	NetworkEventQueue& eventQueue;
 };
 

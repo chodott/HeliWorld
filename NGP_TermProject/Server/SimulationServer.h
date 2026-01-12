@@ -4,6 +4,7 @@
 #include "ClientInputBuffer.h"
 #include "SnapShot.h"
 #include "SnapshotPacketBuffer.h"
+#include "NetworkEventQueue.h"
 
 #include <queue>
 
@@ -28,12 +29,12 @@ private:
 
 	void PreparePackets();
 
-	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
-
-	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount];
+	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount];
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
+	NetworkEventQueue& eventQueue;
 
 	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
 	CPlayer* m_player[Protocol::kMaxPlayerCount];
@@ -48,7 +49,7 @@ private:
 	uint64_t serverTick = 0;
 
 public:
-	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer);
+	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~SimulationServer();
 
 	void Update();

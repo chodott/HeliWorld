@@ -224,19 +224,10 @@ void CPlayer::Update(float elapsedTime)
 
 void CPlayer::Reset(int playerNum)
 {
-	m_xmf3Right = XMFLOAT3(0, 0, 0);
-	m_xmf3Up = XMFLOAT3(0, 0, 0);
-	m_xmf3Look = XMFLOAT3(0, 0, 0);
-
-	m_fPitch = initialRot[playerNum].x;
-	m_fYaw = initialRot[playerNum].y;
-	m_fRoll = initialRot[playerNum].z;
-
 	m_fOldxPos = 0.f;
 	m_fOldyPos = 0.f;
 	m_fOldzPos = 0.f;
 
-	SetPosition(initialPos[playerNum]);
 
 	m_bActive = false;
 

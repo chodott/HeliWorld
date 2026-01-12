@@ -19,6 +19,6 @@ public:
 	~ClientInputBuffer() {}
 	void PushInputData(const int index, const uint64_t currentTick, const PlayerKeyPacket& keyPacket);
 	uint64_t GetResimulateStartTick(const uint64_t curTick);
-	bool TryGetKeyPacket(int clientNum, uint64_t targetTick, PlayerKeyPacket& outKeyPacket)
+	bool TryGetKeyPacket(int clientNum, uint64_t targetTick, PlayerKeyPacket& outKeyPacket);
 };
 

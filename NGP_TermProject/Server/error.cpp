@@ -1,7 +1,5 @@
-ï»¿#pragma once
-#include <cstdio>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32")
+#include"stdafx.h"
+#include"Error.h"
 
 void err_quit(const char* msg)
 {
@@ -13,9 +11,11 @@ void err_quit(const char* msg)
 		(char*)&lpMsgBuf, 0, NULL);
 	MessageBoxA(NULL, (const char*)lpMsgBuf, msg, MB_ICONERROR);
 	LocalFree(lpMsgBuf);
+
 	exit(1);
 }
 
+// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
 void err_display(const char* msg)
 {
 	LPVOID lpMsgBuf;
@@ -28,6 +28,7 @@ void err_display(const char* msg)
 	LocalFree(lpMsgBuf);
 }
 
+// ¼ÒÄÏ ÇÔ¼ö ¿À·ù Ãâ·Â
 void err_display(int errcode)
 {
 	LPVOID lpMsgBuf;
@@ -36,6 +37,7 @@ void err_display(int errcode)
 		NULL, errcode,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		(char*)&lpMsgBuf, 0, NULL);
-	printf("[ì˜¤ë¥˜] %s\n", (char*)lpMsgBuf);
+	printf("[¿À·ù] %s\n", (char*)lpMsgBuf);
 	LocalFree(lpMsgBuf);
 }
+

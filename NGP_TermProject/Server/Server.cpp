@@ -1,6 +1,4 @@
 #include "Server.h"
-#include "GameObject.h"
-#include "SCPacket.h"
 
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
@@ -9,6 +7,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 	SOCKET clientSock;
 	sockaddr_in clientaddr;
+
 	int addrlen;
 	while (true)
 	{
@@ -55,8 +54,8 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 }
 
 
-NetworkServer::NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer):
-	clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer)
+NetworkServer::NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue):
+	clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer), eventQueue(networkEventQueue)
 {
 	WSADATA wsa;
 	WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -77,7 +76,6 @@ NetworkServer::~NetworkServer()
 		if (clients[i] != nullptr)
 			delete clients[i];
 	}
-
 }
 
 void NetworkServer::OpenListenSocket(ServerContext* serverContext)
@@ -120,8 +118,7 @@ uint64_t NetworkServer::GetTimestampMs()
 void NetworkServer::SendPacketAllClient()
 {
 	TickSnapshotPacket tickSnapshotPacket;
-
-	bool bCanSendPacket = TryPopPacket(tickSnapshotPacket);
+	bool bCanSendPacket = snapshotPacketBuffer.TryGetSnapshotPacket(tickSnapshotPacket);
 	
 	if (bCanSendPacket)
 	{
@@ -131,17 +128,15 @@ void NetworkServer::SendPacketAllClient()
 			{
 				continue;
 			}
-
-			SOCKET& recvSock = client->GetSocket();
-			SendPacket(recvSock, tickSnapshotPacket);
+			client->SendPacket(tickSnapshotPacket);
 		}
 	}
 
 	LocalMissileEventPacket missileEventPacket;
-	while (TryPopPacket(missileEventPacket) == true)
+	while (eventQueue.TryPopPacket(missileEventPacket) == true)
 	{
-		SOCKET& recvSock = clients[missileEventPacket.playerNum]->GetSocket();
-		SendPacket(recvSock, missileEventPacket);
+		Client* client = clients[missileEventPacket.playerNum];
+		client->SendPacket(missileEventPacket);
 	}
 }
 

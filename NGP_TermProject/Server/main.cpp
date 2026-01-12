@@ -4,9 +4,10 @@ int main()
 {
 	ClientInputBuffer clientInputBuffer;
 	SnapshotPacketBuffer snapshotPacketBuffer;
+	NetworkEventQueue networkEventQueue;
 
-	SimulationServer simulationServer(clientInputBuffer, snapshotPacketBuffer);
-	NetworkServer networkServer(clientInputBuffer, snapshotPacketBuffer);
+	SimulationServer simulationServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
+	NetworkServer networkServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
 
 	ServerContext serverContext{&networkServer,&simulationServer, &clientInputBuffer};
 
