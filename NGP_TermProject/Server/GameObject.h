@@ -94,10 +94,6 @@ public:
 
 	PlayerKeyPacket keyPacket;
 
-	XMFLOAT3 initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
-
-	XMFLOAT3 initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
-
 private:
 	// Key bindings
 	unsigned char option0 = 0x01;	// 0000 0001 

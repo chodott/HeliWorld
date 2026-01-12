@@ -1,15 +1,14 @@
 #pragma once
 
-#include "Socket.h"
 #include "SCPacket.h"
 #include "GameObject.h"
-#include "Snapshot.h"
 #include "ProtocolConstants.h"
 #include "ClientInputBuffer.h"
 #include "SimulationServer.h"
 #include "SnapshotPacketBuffer.h"
+#include "Client.h"
+#include "ServerContext.h"
 
-#include <concurrent_queue.h>
 #include <array>
 #include <chrono>
 #include <queue>
@@ -22,12 +21,7 @@
 #define MAP_SCALE 32.767
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg);
-DWORD WINAPI AcceptClient(LPVOID arg);
 
-
-class Client;
-class CPlayer;
-class CItemObject;
 
 class Clock {
 public:
@@ -47,11 +41,10 @@ public:
 	NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer);
 	~NetworkServer();
 
-	void OpenListenSocket();
+	void OpenListenSocket(ServerContext* serverContext);
+	void CloseListenSocket();
 
 	void SendPacketAllClient();
-
-	PlayerKeyPacket keyPackets[Protocol::kMaxPlayerCount];
 
 	void PreparePackets();
 	void GenerateEvents(uint64_t tick);
@@ -61,7 +54,6 @@ public:
 	SOCKET* GetSocket() { return &listenSock; }
 
 	Clock timer;
-
 
 	std::array<Client*, Protocol::kMaxPlayerCount> clients;
 
@@ -86,50 +78,12 @@ private:
 	}
 
 	SOCKET listenSock;
+	ServerContext serverContext;
+
+	HANDLE acceptHandle;
+	HANDLE sendHandle;
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 };
-
-
-class Client {
-public:
-	Client();
-	~Client();
-	SOCKET sock;
-
-	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
-	int GetPlayerNumber() { return m_playerNumber; }
-
-	void Connected() { m_connected = true; shouldDisconnected = false; }
-	bool IsConnected() { return m_connected; }
-
-	bool ShouldDisconnected() { return shouldDisconnected; }
-	void Disconnect() { m_connected = false; shouldDisconnected = false; }
-	bool ShouldSendEvent(uint64_t id);
-
-	void Reset();
-
-	CPlayer* m_player = nullptr;
-
-
-	//Check RTT
-	char remainBuffer[512]{};
-	int receivedBytes = 0;
-	int remainSize = 0;
-	
-	//Latency
-	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
-	
-	float deadTime = 0.f;
-private:
-	uint64_t lastLaunchedMissileID = 0;
-	int m_playerNumber = -1;	// maybe client class can have playerID inside
-
-	bool m_connected = false;
-	bool shouldDisconnected = false;
-};
-
-
-DWORD WINAPI SendAllClient(LPVOID arg);
 
