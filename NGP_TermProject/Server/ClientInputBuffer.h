@@ -15,8 +15,6 @@ private:
 	unordered_map<uint64_t, PlayerInputPacket> inputLogMaps[Protocol::kMaxPlayerCount];
 
 public:
-	ClientInputBuffer() {}
-	~ClientInputBuffer() {}
 	void PushInputData(const int index, const uint64_t currentTick, const PlayerInputPacket& InputPacket);
 	uint64_t GetResimulateStartTick(const uint64_t curTick);
 	bool TryGetInputPacket(int clientNum, uint64_t targetTick, PlayerInputPacket& outInputPacket);

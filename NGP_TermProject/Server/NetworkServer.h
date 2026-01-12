@@ -9,6 +9,7 @@
 #include "Client.h"
 #include "ServerContext.h"
 #include "NetworkEventQueue.h"
+#include "SnapshotPacketBuffer.h"
 
 #include <array>
 #include <chrono>
@@ -56,8 +57,8 @@ private:
 	SOCKET listenSock;
 	ServerContext serverContext;
 
-	HANDLE acceptHandle;
-	HANDLE sendHandle;
+	HANDLE acceptHandle = nullptr;
+	HANDLE sendHandle = nullptr;
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;

@@ -46,10 +46,14 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
-	NetworkServer* netServer = static_cast <NetworkServer*>(arg);
-	while (1)
+	ServerContext* serverContext = static_cast<ServerContext*>(arg);
+	NetworkServer* netServer = serverContext->netServer;
+	SnapshotPacketBuffer* snapshotBuffer = serverContext->snapshotBuffer;
+	while (true)
 	{
+		WaitForSingleObject(snapshotBuffer->GetSendEvent(), INFINITE);
 		netServer->SendPacketAllClient();
+		cout << "Send";
 	}
 }
 
@@ -98,7 +102,7 @@ void NetworkServer::OpenListenSocket(ServerContext* serverContext)
 	srand(time(NULL));
 
 	acceptHandle = CreateThread(NULL, 0, AcceptClient, serverContext, 0, NULL);
-	sendHandle = CreateThread(NULL, 0, SendAllClient, this, 0, NULL);
+	sendHandle = CreateThread(NULL, 0, SendAllClient, serverContext, 0, NULL);
 }
 
 void NetworkServer::CloseListenSocket()
