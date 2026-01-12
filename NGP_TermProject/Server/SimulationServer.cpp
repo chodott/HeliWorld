@@ -1,8 +1,11 @@
 #include "SimulationServer.h"
 #include "ProtocolConstants.h"
 
-SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer) 
-	: clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer)
+XMFLOAT3 SimulationServer::initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
+XMFLOAT3 SimulationServer::initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
+
+SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue)
+	: clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer), eventQueue(networkEventQueue)
 {
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
@@ -262,12 +265,7 @@ void SimulationServer::GenerateMissileEvents(uint64_t tick)
 				continue;
 			}
 
-			if (curMissileActive == true && client->ShouldSendEvent(missile->GetID()) == false)
-			{
-				continue;
-			}
-
-			GetQueue<LocalMissileEventPacket>().push(
+			eventQueue.PushPacket<LocalMissileEventPacket>(
 				{
 					CS_LocalMissileEvent,
 					missile->GetID(),
@@ -284,16 +282,15 @@ void SimulationServer::PreparePackets()
 {
 	TickSnapshotPacket tickSnapshot{};
 
-	for (int clientNum = 0; clientNum < Protocol::kMaxPlayerCount; ++clientNum)
+	for (int playerNum = 0; playerNum < Protocol::kMaxPlayerCount; ++playerNum)
 	{
-		Client* client = clients[clientNum];
-		CPlayer* player = client->m_player;
-		tickSnapshot.playerInfos[clientNum] = { clientNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
+		CPlayer* player = m_player[playerNum];
+		tickSnapshot.playerInfos[playerNum] = { playerNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
 
-		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
+		for (int missileNum = 0; missileNum < Protocol::kMaxMissileCountPerPlayer; ++missileNum)
 		{
-			CMissileObject* missile = player->m_pMissiles[i];
-			MissileInfoPacket& missileInfo = tickSnapshot.missileInfos[clientNum * Protocol::kMaxMissileCountPerPlayer + i];
+			CMissileObject* missile = player->m_pMissiles[missileNum];
+			MissileInfoPacket& missileInfo = tickSnapshot.missileInfos[playerNum * Protocol::kMaxMissileCountPerPlayer + missileNum];
 			missileInfo.position = missile->GetCurPos();
 			missileInfo.active = missile->IsActive();
 		}
@@ -303,7 +300,6 @@ void SimulationServer::PreparePackets()
 	{
 		CItemObject* item = m_ItemObject[i];
 		ItemInfoPacket& itemInfo = tickSnapshot.itemInfos[i];
-		ConvertFloat3toInt32(item->GetCurPos(), itemInfo.positionX, itemInfo.positionY, itemInfo.positionZ, MAP_SCALE);
 		itemInfo.active = item->IsActive();
 	}
 

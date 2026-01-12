@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Socket.h"
 #include "Snapshot.h"
 #include "Server.h"
 #include "SimulationServer.h"
@@ -8,6 +7,7 @@
 
 #include <concurrent_queue.h>
 
+#define BUFSIZE 512
 
 class Client {
 public:
@@ -28,6 +28,9 @@ public:
 	void Reset();
 
 	inline SOCKET GetSocket() { return sock; }
+
+	template<typename T>
+	inline void SendPacket(const T& packet) { send(sock, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
 
 	//Check RTT
 	char remainBuffer[512]{};

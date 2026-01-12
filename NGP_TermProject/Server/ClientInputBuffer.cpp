@@ -5,7 +5,7 @@ void ClientInputBuffer::PushInputData(const int index, const uint64_t currentTic
 {
 	if (inputBuffers[index].empty() == false)
 	{	//Remove past Input
-		int tickDiff = currentTick - keyPacket.estimatedTick;
+		int tickDiff = int(currentTick - keyPacket.estimatedTick);
 		if (tickDiff > MAX_REWIND_TICKS)
 		{
 			return;
@@ -39,7 +39,7 @@ uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 
 bool ClientInputBuffer::TryGetKeyPacket(int clientNum, uint64_t targetTick, PlayerKeyPacket& outKeyPacket)
 {
-	if (inputLogMaps[i].find(targetTick) != inputLogMaps[i].end())
+	if (inputLogMaps[clientNum].find(targetTick) != inputLogMaps[clientNum].end())
 	{
 		outKeyPacket = inputLogMaps[clientNum][targetTick];
 		return true;
