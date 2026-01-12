@@ -6,7 +6,7 @@ int PacketSizeHelper(char packetType)
 	switch (packetType)
 	{
 	case CS_KeyInfo:
-		packetSize = sizeof(PlayerKeyPacket);
+		packetSize = sizeof(PlayerInputPacket);
 		break;
 	case CS_PingpongInfo:
 		packetSize = sizeof(PingpongPacket);
@@ -24,15 +24,13 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	NetworkServer* networkServer = receiveClientContext->serverContext->netServer;
 	SimulationServer* simulationServer = receiveClientContext->serverContext->simServer;
 	ClientInputBuffer* inputBuffer = receiveClientContext->serverContext->inputBuffer;
+	Client* client = receiveClientContext->client;
 
-	//Init Packet
-	Client* client = (Client*)arg;
 	int playerNumber = client->GetPlayerNumber();
 	TimebasePacket timebasePacket{ playerNumber, simulationServer->GetTick(), networkServer->GetTimestampMs() };
 	send(client->GetSocket(), (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
-	client->Connected();
-	PlayerKeyPacket keyPacket{};
+	PlayerInputPacket inputPacket{};
 
 	int combinedSize = 0;
 	char buf[BUFSIZE]{};
@@ -72,8 +70,8 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			{
 			case CS_KeyInfo:
 			{
-				memcpy(&keyPacket, client->remainBuffer + offset, packetSize);
-				inputBuffer->PushInputData(client->GetPlayerNumber(), simulationServer->GetTick(), keyPacket);
+				memcpy(&inputPacket, client->remainBuffer + offset, packetSize);
+				inputBuffer->PushInputData(client->GetPlayerNumber(), simulationServer->GetTick(), inputPacket);
 				break;
 			}
 			case CS_PingpongInfo:
@@ -110,6 +108,9 @@ void Client::Connect(const SOCKET clientSock, const int playerNum, ServerContext
 	sock = clientSock;
 	SetPlayerNumber(playerNum);
 
+	m_connected = true; 
+	shouldDisconnected = false;
+
 	recvCtx.serverContext = serverContext;
 	recvCtx.client = this;
 
@@ -134,7 +135,6 @@ void Client::Reset()
 
 	lastLaunchedMissileID = 0;
 	shouldDisconnected = true;
-	keyPacket_q.clear();
 	Disconnect();
 }
 

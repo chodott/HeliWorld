@@ -50,8 +50,6 @@ public:
 	std::array<Client*, Protocol::kMaxPlayerCount> clients;
 
 	int connectedClients = 0;
-	HANDLE updateDone;
-
 
 private:
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Snapshot.h"
-#include "Server.h"
+#include "NetworkServer.h"
 #include "SimulationServer.h"
 #include "ServerContext.h"
 
@@ -18,7 +18,6 @@ public:
 	int GetPlayerNumber() { return m_playerNumber; }
 
 	void Connect(SOCKET clientSock, int playerNum, ServerContext* serverContext);
-	void Connected() { m_connected = true; shouldDisconnected = false; }
 	bool IsConnected() { return m_connected; }
 
 	bool ShouldDisconnected() { return shouldDisconnected; }
@@ -38,7 +37,6 @@ public:
 	int remainSize = 0;
 
 	//Latency
-	concurrency::concurrent_queue<PlayerKeyPacket> keyPacket_q;
 
 	float deadTime = 0.f;
 private:

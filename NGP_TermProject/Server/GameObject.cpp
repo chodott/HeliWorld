@@ -132,9 +132,9 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 
 }
 
-void CPlayer::LaunchMissile(PlayerKeyPacket& keyPacket)
+void CPlayer::LaunchMissile(PlayerInputPacket& inputPacket)
 {
-	uint64_t missileNum = keyPacket.launchedMissileNum;
+	uint64_t missileNum = inputPacket.launchedMissileNum;
 
 	if (missileNum == 0) return;
 	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
@@ -169,37 +169,37 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 	}
 }
 
-void CPlayer::Update(float elapsedTime)
+void CPlayer::Update(float elapsedTime, PlayerInputPacket& inputPacket)
 {
-	RotatePYR(keyPacket.rotation);
+	RotatePYR(inputPacket.rotation);
 
-	if (keyPacket.playerKeyInput)
+	if (inputPacket.playerKeyInput)
 	{
 		XMFLOAT3 xmf3Shift = XMFLOAT3(0.f, 0.f, 0.f);
 
 		float distance = movingSpeed * elapsedTime;
 
-		if (keyPacket.playerKeyInput & option0)
+		if (inputPacket.playerKeyInput & option0)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, distance);
 		}
-		if (keyPacket.playerKeyInput & option1)
+		if (inputPacket.playerKeyInput & option1)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Look, -distance);
 		}
-		if (keyPacket.playerKeyInput & option2)
+		if (inputPacket.playerKeyInput & option2)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, -distance);
 		}
-		if (keyPacket.playerKeyInput & option3)
+		if (inputPacket.playerKeyInput & option3)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Right, distance);
 		}
-		if (keyPacket.playerKeyInput & option4)
+		if (inputPacket.playerKeyInput & option4)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, -distance);
 		}
-		if (keyPacket.playerKeyInput & option5)
+		if (inputPacket.playerKeyInput & option5)
 		{
 			xmf3Shift = Vector3::Add(xmf3Shift, m_xmf3Up, distance);
 		}
@@ -209,10 +209,10 @@ void CPlayer::Update(float elapsedTime)
 		MoveOOBB(m_xmf3Position);
 
 		// Attack
-		if (keyPacket.playerKeyInput & option6)
+		if (inputPacket.playerKeyInput & option6)
 		{
-			LaunchMissile(keyPacket);
-			keyPacket.playerKeyInput &= ~option6;
+			LaunchMissile(inputPacket);
+			inputPacket.playerKeyInput &= ~option6;
 		}
 		m_xmf4x4World._41 = m_xmf3Position.x;
 		m_xmf4x4World._42 = m_xmf3Position.y;
@@ -232,10 +232,6 @@ void CPlayer::Reset(int playerNum)
 	m_bActive = false;
 
 	m_nHp = 100;
-	keyPacket.rotation = { 0,0,0 };
-	keyPacket.playerKeyInput = NULL;
-	keyPacket.launchedMissileNum = -1;
-	
 
 	for (auto& missile : m_pMissiles)
 		missile->Reset();

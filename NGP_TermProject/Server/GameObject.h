@@ -83,16 +83,14 @@ public:
 	void Move(const XMFLOAT3& xmf3Shift);
 	void Rotate(float x, float y, float z);
 	void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	void LaunchMissile(PlayerKeyPacket& keyPacket);
+	void LaunchMissile(PlayerInputPacket& keyPacket);
 	void UpdateMissiles(float elapsedTime);
-	void Update(float elapsedTime);
+	void Update(float elapsedTime, PlayerInputPacket& inputPacket);
 	void Reset(int playerNum);
 
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
 	const float movingSpeed = Protocol::kSpeedPlayerPerSec;
-
-	PlayerKeyPacket keyPacket;
 
 private:
 	// Key bindings
