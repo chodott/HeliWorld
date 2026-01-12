@@ -3,7 +3,7 @@
 #include "GameObject.h"
 #include "ClientInputBuffer.h"
 #include "SnapShot.h"
-#include "SnapshotPublisher.h"
+#include "SnapshotPacketBuffer.h"
 
 #include <queue>
 
@@ -24,13 +24,19 @@ private:
 
 	void ResetToSnapshot(uint64_t targetTick);
 	void UpdateSnapshot(uint64_t targetTick);
+	void GenerateMissileEvents(uint64_t tick);
 
 	void PreparePackets();
+
+	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
+
+	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 
 	unordered_map<uint64_t, ServerSnapshot> SnapshotLogMap;
+	CPlayer* m_player[Protocol::kMaxPlayerCount];
 	CItemObject* m_ItemObject[Protocol::kMaxItemCount];
 
 	std::queue<GameObject*> trashCan;

@@ -4,14 +4,19 @@
 SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer) 
 	: clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer)
 {
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
+	{
+		m_player[i] = new CPlayer();
+		m_player[i]->SetPosition(initialPos[i]);
+		m_player[i]->RotatePYR(initialRot[i]);
+	}
 	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
 		m_ItemObject[i] = new CItemObject();
-		m_ItemObject[i]->SetPosition(100.f, 100.f, 100.f + 10.f * i);
+		m_ItemObject[i]->SetPosition(0,0,0);
 	}
 
 	UpdateSnapshot(0);
-
 }
 
 SimulationServer::~SimulationServer()
@@ -34,12 +39,14 @@ void SimulationServer::Update()
 		resetTick--;
 	}
 	ResetToSnapshot(resetTick);
+
+	PlayerKeyPacket keyPacket;
 	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
 	{
 		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
-			CPlayer* player = clients[i]->m_player;
-			clientInputBuffer.TryGetKeyPacket(player->keyPacket);
+			CPlayer* player = m_player[i];
+			clientInputBuffer.TryGetKeyPacket(i, tick, keyPacket);
 			player->Update(Protocol::kFixedTick);
 		}
 
@@ -51,7 +58,7 @@ void SimulationServer::Update()
 			trashCan.pop();
 		}
 		UpdateSnapshot(tick);
-		GenerateEvents(tick);
+		GenerateMissileEvents(tick);
 	}
 
 
@@ -76,8 +83,7 @@ void SimulationServer::Update()
 	if (itemSpawnTime > itemRespawnTime)
 	{
 		itemSpawnTime -= itemRespawnTime;
-		if (connectedClients >= 2)
-			SpawnItem();
+		SpawnItem();
 	}
 
 	++serverTick;
@@ -88,21 +94,16 @@ void SimulationServer::CheckCollision()
 {
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
-		if (!clients[i]->IsConnected())
-			continue;
-
-		CPlayer* iPlayer = clients[i]->m_player;
+		CPlayer* iPlayer = m_player[i];
 		if (!iPlayer->IsActive())
 			continue;
 
 		//Collision Map
-		if (clients[i]->m_player->m_fyPos < MIN_BOUNDARY_Y || clients[i]->m_player->m_fyPos > MAX_BOUNDARY_Y ||
-			clients[i]->m_player->m_fzPos < MIN_BOUNDARY_Z || clients[i]->m_player->m_fzPos > MAX_BOUNDARY_Z ||
-			clients[i]->m_player->m_fxPos < MIN_BOUNDARY_X || clients[i]->m_player->m_fxPos > MAX_BOUNDARY_X)
+		if (iPlayer->m_fyPos < MIN_BOUNDARY_Y || iPlayer->m_fyPos > MAX_BOUNDARY_Y ||
+			iPlayer->m_fzPos < MIN_BOUNDARY_Z || iPlayer->m_fzPos > MAX_BOUNDARY_Z ||
+			iPlayer->m_fxPos < MIN_BOUNDARY_X || iPlayer->m_fxPos > MAX_BOUNDARY_X)
 		{
-			clients[i]->m_player->SetPosition(clients[i]->m_player->m_fOldxPos,
-				clients[i]->m_player->m_fOldyPos,
-				clients[i]->m_player->m_fOldzPos);
+			iPlayer->SetPosition(iPlayer->m_fOldxPos, iPlayer->m_fOldyPos, iPlayer->m_fOldzPos);
 		}
 
 		for (int j = 0; j < Protocol::kMaxPlayerCount; ++j)
@@ -110,10 +111,8 @@ void SimulationServer::CheckCollision()
 			//Same Player
 			if (i == j)
 				continue;
-			if (!clients[j]->IsConnected())
-				continue;
 
-			CPlayer* jPlayer = clients[j]->m_player;
+			CPlayer* jPlayer = m_player[j];
 			if (!jPlayer->IsActive())
 				continue;
 
@@ -192,7 +191,7 @@ void SimulationServer::ResetToSnapshot(uint64_t targetTick)
 	ServerSnapshot& snapshot = it->second;
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
-		CPlayer* player = clients[i]->m_player;
+		CPlayer* player = m_player[i];
 		player->SetPosition(snapshot.playerSnapshots[i].position);
 		player->RotatePYR(snapshot.playerSnapshots[i].rotation);
 		player->SetHp(snapshot.playerSnapshots[i].hp);
@@ -224,7 +223,7 @@ void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 	ServerSnapshot& snapshot = it->second;
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
-		CPlayer* player = clients[i]->m_player;
+		CPlayer* player = m_player[i];
 		snapshot.playerSnapshots[i].position = player->GetCurPos();
 		snapshot.playerSnapshots[i].rotation = player->GetCurRot();
 		snapshot.playerSnapshots[i].hp = player->GetHp();
@@ -242,6 +241,42 @@ void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		snapshot.itemSnapshots[i].position = m_ItemObject[i]->GetCurPos();
+	}
+}
+
+void SimulationServer::GenerateMissileEvents(uint64_t tick)
+{
+	if (tick == 0) return;
+
+	for (int playerNum = 0; playerNum < Protocol::kMaxPlayerCount; ++playerNum)
+	{
+		CPlayer* player = m_player[playerNum];
+		ServerSnapshot& snapshot = SnapshotLogMap.at(tick - 1);
+		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
+		{
+			CMissileObject* missile = player->m_pMissiles[i];
+			bool prevMissileActive = snapshot.missileSnapshots[playerNum * Protocol::kMaxMissileCountPerPlayer + i].active;
+			bool curMissileActive = missile->IsActive();
+			if (prevMissileActive == curMissileActive)
+			{
+				continue;
+			}
+
+			if (curMissileActive == true && client->ShouldSendEvent(missile->GetID()) == false)
+			{
+				continue;
+			}
+
+			GetQueue<LocalMissileEventPacket>().push(
+				{
+					CS_LocalMissileEvent,
+					missile->GetID(),
+					tick,
+					playerNum,
+					missile->IsActive()
+				}
+			);
+		}
 	}
 }
 
