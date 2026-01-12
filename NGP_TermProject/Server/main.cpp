@@ -9,7 +9,7 @@ int main()
 	SimulationServer simulationServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
 	NetworkServer networkServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
 
-	ServerContext serverContext{&networkServer,&simulationServer, &clientInputBuffer};
+	ServerContext serverContext{&networkServer,&simulationServer, &clientInputBuffer, &snapshotPacketBuffer};
 
 	networkServer.OpenListenSocket(&serverContext);
 
@@ -27,7 +27,7 @@ int main()
 		int steps = 0, maxSteps = 6;
 		while (acc >= Protocol::kFixedTick && steps < maxSteps)
 		{
-			simulationServer.Update();
+			simulationServer.Update(Protocol::kFixedTick);
 			acc -= Protocol::kFixedTick;
 			++steps;
 		}

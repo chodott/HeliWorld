@@ -4,11 +4,13 @@ class NetworkServer;
 class SimulationServer;
 class Client;
 class ClientInputBuffer;
+class SnapshotPacketBuffer;
 
 struct ServerContext {
 	NetworkServer* netServer;   
 	SimulationServer* simServer; 
 	ClientInputBuffer* inputBuffer;
+	SnapshotPacketBuffer* snapshotBuffer;
 };
 
 struct ReceiveClientContext {
