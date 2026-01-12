@@ -37,7 +37,7 @@ struct PlayerInfoPacket {
 	bool playerActive;
 };
 
-struct PlayerKeyPacket {
+struct PlayerInputPacket {
 	char packetType;
 	unsigned char playerKeyInput = NULL;
 	XMFLOAT3 rotation;

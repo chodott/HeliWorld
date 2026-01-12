@@ -1,18 +1,18 @@
 #include "ClientInputBuffer.h"
 
 
-void ClientInputBuffer::PushInputData(const int index, const uint64_t currentTick, const PlayerKeyPacket& keyPacket)
+void ClientInputBuffer::PushInputData(const int index, const uint64_t currentTick, const PlayerInputPacket& inputPacket)
 {
 	if (inputBuffers[index].empty() == false)
 	{	//Remove past Input
-		int tickDiff = int(currentTick - keyPacket.estimatedTick);
+		int tickDiff = int(currentTick - inputPacket.estimatedTick);
 		if (tickDiff > MAX_REWIND_TICKS)
 		{
 			return;
 		}
 	}
 
-	inputBuffers[index].push(keyPacket);
+	inputBuffers[index].push(inputPacket);
 }
 
 
@@ -37,11 +37,11 @@ uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 	return startTick;
 }
 
-bool ClientInputBuffer::TryGetKeyPacket(int clientNum, uint64_t targetTick, PlayerKeyPacket& outKeyPacket)
+bool ClientInputBuffer::TryGetInputPacket(int clientNum, uint64_t targetTick, PlayerInputPacket& outInputPacket)
 {
 	if (inputLogMaps[clientNum].find(targetTick) != inputLogMaps[clientNum].end())
 	{
-		outKeyPacket = inputLogMaps[clientNum][targetTick];
+		outInputPacket = inputLogMaps[clientNum][targetTick];
 		return true;
 	}
 	else

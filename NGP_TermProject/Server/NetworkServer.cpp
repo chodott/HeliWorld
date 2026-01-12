@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "NetworkServer.h"
 
 DWORD WINAPI AcceptClient(LPVOID arg)
 {
@@ -46,7 +46,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 
 DWORD WINAPI SendAllClient(LPVOID arg)
 {
-	NetworkServer* netServer = (NetworkServer*)arg;
+	NetworkServer* netServer = static_cast <NetworkServer*>(arg);
 	while (1)
 	{
 		netServer->SendPacketAllClient();
@@ -65,7 +65,6 @@ NetworkServer::NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffe
 		clients[i] = new Client;
 	}
 
-	updateDone = CreateEvent(nullptr, true, false, nullptr);
 }
 
 NetworkServer::~NetworkServer()

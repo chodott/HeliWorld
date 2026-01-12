@@ -52,7 +52,7 @@ public:
 	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~SimulationServer();
 
-	void Update();
+	void Update(const float elapsedTime);
 	inline uint64_t GetTick() { return serverTick; }
 };
 

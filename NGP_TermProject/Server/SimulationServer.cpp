@@ -33,7 +33,7 @@ SimulationServer::~SimulationServer()
 	}
 }
 
-void SimulationServer::Update()
+void SimulationServer::Update(const float elapsedTime)
 {
 	uint64_t resimulateStartTick = clientInputBuffer.GetResimulateStartTick(GetTick());
 	uint64_t resetTick = resimulateStartTick;
@@ -43,14 +43,14 @@ void SimulationServer::Update()
 	}
 	ResetToSnapshot(resetTick);
 
-	PlayerKeyPacket keyPacket;
+	PlayerInputPacket inputPacket;
 	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
 	{
 		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
 			CPlayer* player = m_player[i];
-			clientInputBuffer.TryGetKeyPacket(i, tick, keyPacket);
-			player->Update(Protocol::kFixedTick);
+			clientInputBuffer.TryGetInputPacket(i, tick, inputPacket);
+			player->Update(elapsedTime, inputPacket);
 		}
 
 		CheckCollision();
@@ -64,12 +64,9 @@ void SimulationServer::Update()
 		GenerateMissileEvents(tick);
 	}
 
-
-
 	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
 	//{
 	//	CPlayer* player = clients[i]->m_player;
-	//	if (clients[i]->keyPacket_q.try_pop(player->keyPacket));
 	//	// connected, but dead
 	//	if (clients[i]->IsConnected() && !player->IsActive())
 	//	{

@@ -11,14 +11,14 @@
 class ClientInputBuffer
 {
 private:
-	queue<PlayerKeyPacket> inputBuffers[Protocol::kMaxPlayerCount];
-	unordered_map<uint64_t, PlayerKeyPacket> inputLogMaps[Protocol::kMaxPlayerCount];
+	queue<PlayerInputPacket> inputBuffers[Protocol::kMaxPlayerCount];
+	unordered_map<uint64_t, PlayerInputPacket> inputLogMaps[Protocol::kMaxPlayerCount];
 
 public:
 	ClientInputBuffer() {}
 	~ClientInputBuffer() {}
-	void PushInputData(const int index, const uint64_t currentTick, const PlayerKeyPacket& keyPacket);
+	void PushInputData(const int index, const uint64_t currentTick, const PlayerInputPacket& InputPacket);
 	uint64_t GetResimulateStartTick(const uint64_t curTick);
-	bool TryGetKeyPacket(int clientNum, uint64_t targetTick, PlayerKeyPacket& outKeyPacket);
+	bool TryGetInputPacket(int clientNum, uint64_t targetTick, PlayerInputPacket& outInputPacket);
 };
 
