@@ -34,7 +34,6 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 				client->Connect(clientSock, i, serverContext);
 				break;
 			}
-			continue;
 		}
 		char addr[INET_ADDRSTRLEN];
 		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
@@ -53,7 +52,6 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 	{
 		WaitForSingleObject(snapshotBuffer->GetSendEvent(), INFINITE);
 		netServer->SendPacketAllClient();
-		cout << "Send";
 	}
 }
 

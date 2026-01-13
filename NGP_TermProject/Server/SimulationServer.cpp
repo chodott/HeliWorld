@@ -43,14 +43,14 @@ void SimulationServer::Update(const float elapsedTime)
 	}
 	ResetToSnapshot(resetTick);
 
-	PlayerInputPacket inputPacket;
+	PlayerInputPacket inputPacket[Protocol::kMaxPlayerCount];
 	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
 	{
 		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 		{
 			CPlayer* player = m_player[i];
-			clientInputBuffer.TryGetInputPacket(i, tick, inputPacket);
-			player->Update(elapsedTime, inputPacket);
+			clientInputBuffer.TryGetInputPacket(i, tick, inputPacket[i]);
+			player->Update(elapsedTime, inputPacket[i]);
 		}
 
 		CheckCollision();
@@ -278,12 +278,11 @@ void SimulationServer::GenerateMissileEvents(uint64_t tick)
 void SimulationServer::PreparePackets()
 {
 	TickSnapshotPacket tickSnapshot{};
-
+	tickSnapshot.serverTick = GetTick();
 	for (int playerNum = 0; playerNum < Protocol::kMaxPlayerCount; ++playerNum)
 	{
 		CPlayer* player = m_player[playerNum];
 		tickSnapshot.playerInfos[playerNum] = { playerNum, player->m_nHp, player->GetCurPos(), player->GetCurRot(), player->IsActive() };
-
 		for (int missileNum = 0; missileNum < Protocol::kMaxMissileCountPerPlayer; ++missileNum)
 		{
 			CMissileObject* missile = player->m_pMissiles[missileNum];

@@ -35,7 +35,6 @@ void FrameDataManager::AddServerFrameData(const TickSnapshotPacket& snapshotPack
 			);
 
 		dataCutTickLine = snapshotPacket.serverTick > SNAPSHOT_LIFETIME_TICK ? snapshotPacket.serverTick - SNAPSHOT_LIFETIME_TICK : 0;
-
 		while (!serverFrameData_dq.empty() && serverFrameData_dq.front().serverTick < dataCutTickLine)
 		{
 			serverFrameData_dq.pop_front();
@@ -67,6 +66,7 @@ bool FrameDataManager::TryGetServerFrameData(const uint64_t targetTick, ServerFr
 	std::lock_guard<std::mutex> lock(frameDataLock);
 	if (serverFrameData_dq.size() < 2)
 	{
+		cout << "Lack of Server Frame Data" << "\n";
 		return false;
 	}
 
@@ -78,6 +78,7 @@ bool FrameDataManager::TryGetServerFrameData(const uint64_t targetTick, ServerFr
 
 	if (it == serverFrameData_dq.begin() || it == serverFrameData_dq.end())
 	{
+		cout << "Lack of Server Frame Data" << "\n";
 		return false;
 	}
 

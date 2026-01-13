@@ -21,7 +21,7 @@ uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 	uint64_t startTick = curTick;
 	for (int index = 0; index < Protocol::kMaxPlayerCount; ++index)
 	{
-		while (!inputBuffers->empty())
+		while (!inputBuffers[index].empty())
 		{
 			uint64_t tick = inputBuffers[index].front().estimatedTick;
 			if (tick > curTick)
