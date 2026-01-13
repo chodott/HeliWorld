@@ -14,7 +14,7 @@ public:
 	Client() {}
 	~Client() {}
 
-	void SetPlayerNumber(int playerNumber) { m_playerNumber = (char)playerNumber; }
+	void SetPlayerNumber(int playerNumber) { m_playerNumber = playerNumber; }
 	int GetPlayerNumber() { return m_playerNumber; }
 
 	void Connect(SOCKET clientSock, int playerNum, ServerContext* serverContext);
