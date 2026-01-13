@@ -16,7 +16,7 @@ SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacke
 	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
 		m_ItemObject[i] = new CItemObject();
-		m_ItemObject[i]->SetPosition(0,0,0);
+		m_ItemObject[i]->SetPosition(0, 0, 0);
 	}
 
 	UpdateSnapshot(0);
@@ -35,59 +35,55 @@ SimulationServer::~SimulationServer()
 
 void SimulationServer::Update(const float elapsedTime)
 {
-	uint64_t resimulateStartTick = clientInputBuffer.GetResimulateStartTick(GetTick());
-	uint64_t resetTick = resimulateStartTick;
-	if (resimulateStartTick > 0)
-	{
-		resetTick--;
-	}
-	ResetToSnapshot(resetTick);
+	uint64_t curTick = GetTick();
+	uint64_t resimulateStartTick = clientInputBuffer.GetResimulateStartTick(curTick);
+	resimulateStartTick = resimulateStartTick > 0 ? resimulateStartTick - 1 : 0;
+	ResetToSnapshot(resimulateStartTick);
 
-	PlayerInputPacket inputPacket[Protocol::kMaxPlayerCount];
-	for (uint64_t tick = resimulateStartTick; tick <= GetTick(); ++tick)
+	for (uint64_t tick = resimulateStartTick; tick <= curTick; ++tick)
 	{
-		for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-		{
-			CPlayer* player = m_player[i];
-			clientInputBuffer.TryGetInputPacket(i, tick, inputPacket[i]);
-			player->Update(elapsedTime, inputPacket[i]);
-		}
+		ProcessPlayerInputs(tick, elapsedTime);
 
 		CheckCollision();
 
-		while (!trashCan.empty())
-		{
-			trashCan.front()->Deactivate();
-			trashCan.pop();
-		}
+		ProcessDeactivation();
+
 		UpdateSnapshot(tick);
 		GenerateMissileEvents(tick);
 	}
 
-	//for (int i = 0; i < MAX_CLIENT_NUM; ++i)
-	//{
-	//	CPlayer* player = clients[i]->m_player;
-	//	// connected, but dead
-	//	if (clients[i]->IsConnected() && !player->IsActive())
-	//	{
-	//		clients[i]->deadTime += elapsedTime;
-	//		if (clients[i]->deadTime > RESPAWN_TIME)
-	//		{
-	//			player->SetActive(true);
-	//			clients[i]->deadTime = 0.f;
-	//		}
-	//	}
-	//}
-
-	itemSpawnTime += elapsedTime;
-	if (itemSpawnTime > itemRespawnTime)
-	{
-		itemSpawnTime -= itemRespawnTime;
-		SpawnItem();
-	}
+	SpawnItem(elapsedTime);
 
 	++serverTick;
-	PreparePackets();
+	SaveLatestSnapshot();
+	CleanSnapshotLogs();
+}
+
+void SimulationServer::ProcessPlayerInputs(const uint64_t tick, const float elapsedTime)
+{
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
+	{
+		CPlayer* player = m_player[i];
+
+		PlayerInputPacket input;
+		if (clientInputBuffer.TryGetInputPacket(i, tick, input) == true)
+		{
+			player->Update(elapsedTime, input);
+		}
+		else
+		{
+			player->Update(elapsedTime, player->GetLastInput());
+		}
+	}
+}
+
+void SimulationServer::ProcessDeactivation()
+{
+	while (!trashCan.empty())
+	{
+		trashCan.front()->Deactivate();
+		trashCan.pop();
+	}
 }
 
 void SimulationServer::CheckCollision()
@@ -163,8 +159,15 @@ void SimulationServer::CheckCollision()
 }
 
 
-void SimulationServer::SpawnItem()
+void SimulationServer::SpawnItem(const float elapsedTime)
 {
+	itemSpawnTime += elapsedTime;
+	if (itemSpawnTime <= itemRespawnTime)
+	{
+		return;
+	}
+
+	itemSpawnTime -= itemRespawnTime;
 	for (int i = 0; i < Protocol::kMaxItemCount; ++i)
 	{
 		if (!m_ItemObject[i]->IsActive())
@@ -247,16 +250,24 @@ void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 void SimulationServer::GenerateMissileEvents(uint64_t tick)
 {
 	if (tick == 0) return;
-
-	for (int playerNum = 0; playerNum < Protocol::kMaxPlayerCount; ++playerNum)
+	auto prevIt = SnapshotLogMap.find(tick - 1);
+	if (prevIt == SnapshotLogMap.end())
 	{
-		CPlayer* player = m_player[playerNum];
-		ServerSnapshot& snapshot = SnapshotLogMap.at(tick - 1);
-		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
+		return;
+	}
+
+	const ServerSnapshot& prevSnapshot = prevIt->second;
+
+	for (int playerIndex = 0; playerIndex < Protocol::kMaxPlayerCount; ++playerIndex)
+	{
+		for (int missileIndex = 0; missileIndex < Protocol::kMaxMissileCountPerPlayer; ++missileIndex)
 		{
-			CMissileObject* missile = player->m_pMissiles[i];
-			bool prevMissileActive = snapshot.missileSnapshots[playerNum * Protocol::kMaxMissileCountPerPlayer + i].active;
+			CMissileObject* missile = m_player[playerIndex]->m_pMissiles[missileIndex];
+			int missileSnapshotIndex = playerIndex * Protocol::kMaxMissileCountPerPlayer + missileIndex;
+
+			bool prevMissileActive = prevSnapshot.missileSnapshots[missileSnapshotIndex].active;
 			bool curMissileActive = missile->IsActive();
+
 			if (prevMissileActive == curMissileActive)
 			{
 				continue;
@@ -267,15 +278,15 @@ void SimulationServer::GenerateMissileEvents(uint64_t tick)
 					CS_LocalMissileEvent,
 					missile->GetID(),
 					tick,
-					playerNum,
-					missile->IsActive()
+					playerIndex,
+					curMissileActive
 				}
 			);
 		}
 	}
 }
 
-void SimulationServer::PreparePackets()
+void SimulationServer::SaveLatestSnapshot()
 {
 	TickSnapshotPacket tickSnapshot{};
 	tickSnapshot.serverTick = GetTick();
@@ -300,4 +311,12 @@ void SimulationServer::PreparePackets()
 	}
 
 	snapshotPacketBuffer.PushSnapshotPacket(tickSnapshot);
+}
+
+void SimulationServer::CleanSnapshotLogs()
+{
+	uint64_t curTick = GetTick();
+	if (curTick > Protocol::kMaxRollbackTicks) {
+		SnapshotLogMap.erase(curTick - Protocol::kMaxRollbackTicks);
+	}
 }

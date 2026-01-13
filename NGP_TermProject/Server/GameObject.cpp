@@ -63,6 +63,8 @@ void GameObject::SetPosition(XMFLOAT3 position)
 	MoveOOBB(m_xmf3Position);
 }
 
+const float CPlayer::RespawnTime = 5.f;
+
 void CPlayer::Move(const XMFLOAT3& xmf3Shift)
 {
 	m_fOldxPos = m_xmf3Position.x;
@@ -171,6 +173,11 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 
 void CPlayer::Update(float elapsedTime, PlayerInputPacket& inputPacket)
 {
+	if (m_bActive == false)
+	{
+		return;
+	}
+
 	RotatePYR(inputPacket.rotation);
 
 	if (inputPacket.playerKeyInput)
@@ -220,6 +227,16 @@ void CPlayer::Update(float elapsedTime, PlayerInputPacket& inputPacket)
 	}
 
 	UpdateMissiles(elapsedTime);
+
+	if (IsActive() == false)
+	{
+		m_fDeadTime += elapsedTime;
+		if (m_fDeadTime > RespawnTime)
+		{
+			SetActive(true);
+			m_fDeadTime = 0.f;
+		}
+	}
 }
 
 void CPlayer::Reset(int playerNum)

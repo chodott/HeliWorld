@@ -63,7 +63,6 @@ public:
 	void InitOOBB(XMFLOAT3& xmCenter, XMFLOAT3& xmExtents, XMFLOAT4& xmOrientation) { m_xmOOBB = BoundingOrientedBox(xmCenter, xmExtents, xmOrientation); }
 
 	BoundingOrientedBox GetBoundingBox() { return m_xmOOBB; }
-
 };
 
 class CMissileObject;
@@ -90,6 +89,7 @@ public:
 
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
+	inline PlayerInputPacket GetLastInput() { return m_lastInput; }
 	const float movingSpeed = Protocol::kSpeedPlayerPerSec;
 
 private:
@@ -106,6 +106,11 @@ private:
 	const float maxPitch = 89.0f;
 	const float maxRoll = 20.0f;
 	const float missileLifeSpan = 6.f;
+	
+	static const float RespawnTime;
+
+	PlayerInputPacket m_lastInput;
+	float m_fDeadTime = 0.f;
 
 };
 

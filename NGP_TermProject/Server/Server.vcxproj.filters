@@ -17,7 +17,6 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="SnapShot.h" />
-    <ClInclude Include="..\NGPTermProject\ProtocolConstants.h" />
     <ClInclude Include="SnapshotPacketBuffer.h" />
     <ClInclude Include="SimulationServer.h" />
     <ClInclude Include="Client.h" />
@@ -25,5 +24,6 @@
     <ClInclude Include="ClientInputBuffer.h" />
     <ClInclude Include="NetworkEventQueue.h" />
     <ClInclude Include="error.h" />
+    <ClInclude Include="ProtocolConstants.h" />
   </ItemGroup>
 </Project>
