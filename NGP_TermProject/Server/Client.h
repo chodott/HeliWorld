@@ -21,7 +21,7 @@ public:
 	bool IsConnected() { return m_connected; }
 
 	bool ShouldDisconnected() { return shouldDisconnected; }
-	void Disconnect() { m_connected = false; shouldDisconnected = false; }
+	void Disconnect();
 	bool ShouldSendEvent(uint64_t id);
 
 	void Reset();
@@ -41,7 +41,7 @@ public:
 	float deadTime = 0.f;
 private:
 	SOCKET sock;
-	HANDLE recvHandle;
+	thread recvThread;
 	ReceiveClientContext recvCtx{};
 
 	uint64_t lastLaunchedMissileID = 0;

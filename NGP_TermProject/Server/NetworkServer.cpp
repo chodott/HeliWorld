@@ -9,7 +9,7 @@ DWORD WINAPI AcceptClient(LPVOID arg)
 	sockaddr_in clientaddr;
 
 	int addrlen;
-	while (true)
+	while (netServer->IsRunning())
 	{
 		addrlen = sizeof(clientaddr);
 		if (netServer->connectedClients < Protocol::kMaxPlayerCount)
@@ -48,11 +48,12 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 	ServerContext* serverContext = static_cast<ServerContext*>(arg);
 	NetworkServer* netServer = serverContext->netServer;
 	SnapshotPacketBuffer* snapshotBuffer = serverContext->snapshotBuffer;
-	while (true)
+	while (netServer->IsRunning())
 	{
 		WaitForSingleObject(snapshotBuffer->GetSendEvent(), INFINITE);
 		netServer->SendPacketAllClient();
 	}
+
 }
 
 
@@ -84,6 +85,8 @@ void NetworkServer::OpenListenSocket(ServerContext* serverContext)
 	// create listen socket
 	if ((listenSock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) err_quit("socket()");
 
+
+	srand(time(NULL));
 	sockaddr_in serveraddr;
 	memset(&serveraddr, 0, sizeof(serveraddr));
 	serveraddr.sin_family = AF_INET;
@@ -97,16 +100,32 @@ void NetworkServer::OpenListenSocket(ServerContext* serverContext)
 
 	std::cout << "Listen socket opened\n";
 
-	srand(time(NULL));
+	isRunning = true;
 
-	acceptHandle = CreateThread(NULL, 0, AcceptClient, serverContext, 0, NULL);
-	sendHandle = CreateThread(NULL, 0, SendAllClient, serverContext, 0, NULL);
+	acceptThread = thread(AcceptClient, serverContext);
+	sendThread = thread(SendAllClient, serverContext);
+
 }
 
 void NetworkServer::CloseListenSocket()
 {
-	CloseHandle(acceptHandle);
-	CloseHandle(sendHandle);
+	isRunning = false;
+
+	if (listenSock != INVALID_SOCKET) {
+		closesocket(listenSock);
+		listenSock = INVALID_SOCKET;
+	}
+
+	SetEvent(snapshotPacketBuffer.GetSendEvent());
+
+	if (acceptThread.joinable()) 
+	{
+		acceptThread.join();
+	}
+	if (sendThread.joinable()) 
+	{
+		sendThread.join();
+	}
 }
 
 uint64_t NetworkServer::GetTimestampMs()
@@ -119,9 +138,8 @@ uint64_t NetworkServer::GetTimestampMs()
 void NetworkServer::SendPacketAllClient()
 {
 	TickSnapshotPacket tickSnapshotPacket;
-	bool bCanSendPacket = snapshotPacketBuffer.TryGetSnapshotPacket(tickSnapshotPacket);
 	
-	if (bCanSendPacket)
+	while(snapshotPacketBuffer.TryGetSnapshotPacket(tickSnapshotPacket) == true)
 	{
 		for (const auto& client : clients)
 		{

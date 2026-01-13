@@ -21,20 +21,20 @@ int PacketSizeHelper(char packetType)
 DWORD WINAPI ReceiveFromClient(LPVOID arg)
 {
 	ReceiveClientContext* receiveClientContext = static_cast<ReceiveClientContext*>(arg);
-	NetworkServer* networkServer = receiveClientContext->serverContext->netServer;
-	SimulationServer* simulationServer = receiveClientContext->serverContext->simServer;
+	NetworkServer* netServer = receiveClientContext->serverContext->netServer;
+	SimulationServer* simServer = receiveClientContext->serverContext->simServer;
 	ClientInputBuffer* inputBuffer = receiveClientContext->serverContext->inputBuffer;
 	Client* client = receiveClientContext->client;
 
 	int playerNumber = client->GetPlayerNumber();
-	TimebasePacket timebasePacket{ playerNumber, simulationServer->GetTick(), networkServer->GetTimestampMs() };
+	TimebasePacket timebasePacket{ playerNumber, simServer->GetTick(), netServer->GetTimestampMs() };
 	send(client->GetSocket(), (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
 	PlayerInputPacket inputPacket{};
 
 	int combinedSize = 0;
 	char buf[BUFSIZE]{};
-	while (true)
+	while (netServer)
 	{
 		int receivedBytes = recv(client->GetSocket(), (char*)&buf, BUFSIZE, 0);
 		if (receivedBytes == SOCKET_ERROR)
@@ -71,14 +71,14 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			case CS_KeyInfo:
 			{
 				memcpy(&inputPacket, client->remainBuffer + offset, packetSize);
-				inputBuffer->PushInputData(client->GetPlayerNumber(), simulationServer->GetTick(), inputPacket);
+				inputBuffer->PushInputData(client->GetPlayerNumber(), simServer->GetTick(), inputPacket);
 				break;
 			}
 			case CS_PingpongInfo:
 			{
 				PingpongPacket ppPacket;
 				memcpy(&ppPacket, client->remainBuffer + offset, packetSize);
-				ppPacket.serverSendTimeStamp = networkServer->GetTimestampMs();
+				ppPacket.serverSendTimeStamp = netServer->GetTimestampMs();
 				send(client->GetSocket(), (char*)&ppPacket, PacketSizeHelper(CS_PingpongInfo), 0);
 				break;
 			}
@@ -114,8 +114,25 @@ void Client::Connect(const SOCKET clientSock, const int playerNum, ServerContext
 	recvCtx.serverContext = serverContext;
 	recvCtx.client = this;
 
-	recvHandle = CreateThread(NULL, 0, ReceiveFromClient, &recvCtx, 0, NULL);
+	if (recvThread.joinable()) recvThread.join(); 
+	recvThread = thread(ReceiveFromClient, &recvCtx);
+
 	std::cout << "Client accepted in " << GetPlayerNumber() << std::endl;
+}
+
+void Client::Disconnect()
+{
+	 m_connected = false;
+	 shouldDisconnected = false; 
+
+	 if (sock != INVALID_SOCKET) {
+		 closesocket(sock);
+		 sock = INVALID_SOCKET;
+	 }
+
+	 if (recvThread.joinable()) {
+		 recvThread.join();
+	 }
 }
 
 bool Client::ShouldSendEvent(uint64_t id)
