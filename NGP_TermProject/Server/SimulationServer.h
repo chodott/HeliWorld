@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ProtocolConstants.h"
 #include "GameObject.h"
 #include "ClientInputBuffer.h"
 #include "SnapShot.h"
@@ -15,19 +16,20 @@
 #define MAX_BOUNDARY_Z		1000
 #define MIN_BOUNDARY_Z		0
 
-#define RESPAWN_TIME		5.f
-
 class SimulationServer
 {
 private:
+	void ProcessPlayerInputs(const uint64_t tick, const float elapsedTime);
+	void ProcessDeactivation();
 	void CheckCollision();
-	void SpawnItem();
+	void SpawnItem(const float elapsedTime);
 
 	void ResetToSnapshot(uint64_t targetTick);
 	void UpdateSnapshot(uint64_t targetTick);
 	void GenerateMissileEvents(uint64_t tick);
 
-	void PreparePackets();
+	void SaveLatestSnapshot();
+	void CleanSnapshotLogs();
 
 	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount];
 	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount];
@@ -44,8 +46,6 @@ private:
 
 	const float itemRespawnTime = 8.f;
 	float itemSpawnTime = 0.f;
-	float elapsedTime = 0.f;
-
 	uint64_t serverTick = 0;
 
 public:

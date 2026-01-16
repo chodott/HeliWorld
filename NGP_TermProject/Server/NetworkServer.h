@@ -41,6 +41,7 @@ public:
 	void CloseListenSocket();
 
 	void SendPacketAllClient();
+	atomic<bool> IsRunning() { return IsRunning; }
 
 	uint64_t GetTimestampMs();
 
@@ -53,12 +54,18 @@ public:
 	int connectedClients = 0;
 
 private:
-
 	SOCKET listenSock;
 	ServerContext serverContext;
 
 	HANDLE acceptHandle = nullptr;
 	HANDLE sendHandle = nullptr;
+
+	atomic<bool> isRunning = false;
+	SOCKET listenSock;
+	ServerContext serverContext;
+
+	thread acceptThread;
+	thread sendThread;
 
 	ClientInputBuffer& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;

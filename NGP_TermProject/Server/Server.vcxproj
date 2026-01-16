@@ -155,12 +155,12 @@
     <ClCompile Include="SnapshotPacketBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\NGPTermProject\ProtocolConstants.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientInputBuffer.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="NetworkEventQueue.h" />
+    <ClInclude Include="ProtocolConstants.h" />
     <ClInclude Include="SCPacket.h" />
     <ClInclude Include="NetworkServer.h" />
     <ClInclude Include="ServerContext.h" />

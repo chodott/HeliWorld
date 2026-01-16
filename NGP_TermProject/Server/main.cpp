@@ -15,8 +15,9 @@ int main()
 
 	auto  prev = std::chrono::steady_clock::now();
 	double acc = 0.0;
+	bool isRunning = true;
 
-	while (true)
+	while (isRunning)
 	{
 		//Tick Base
 		auto now = std::chrono::steady_clock::now();

@@ -1,36 +1,36 @@
 #include "ClientInputBuffer.h"
 
 
-void ClientInputBuffer::PushInputData(const int index, const uint64_t currentTick, const PlayerInputPacket& inputPacket)
+void ClientInputBuffer::PushInputData(const int playerNum, const uint64_t currentTick, const PlayerInputPacket& inputPacket)
 {
-	if (inputBuffers[index].empty() == false)
-	{	//Remove past Input
+	queue<PlayerInputPacket>& inputBuffer = inputBuffers[playerNum];
+	if (inputBuffer.empty() == false)
+	{	
 		int tickDiff = int(currentTick - inputPacket.estimatedTick);
 		if (tickDiff > MAX_REWIND_TICKS)
 		{
 			return;
 		}
 	}
-
-	inputBuffers[index].push(inputPacket);
+	inputBuffer.push(inputPacket);
 }
-
 
 uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 {
 	uint64_t startTick = curTick;
-	for (int index = 0; index < Protocol::kMaxPlayerCount; ++index)
+	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
-		while (!inputBuffers[index].empty())
+		queue<PlayerInputPacket>& inputBuffer = inputBuffers[i];
+		while (inputBuffer.empty() == false)
 		{
-			uint64_t tick = inputBuffers[index].front().estimatedTick;
+			const uint64_t tick = inputBuffer.front().estimatedTick;
 			if (tick > curTick)
 			{
 				break;
 			}
 
-			inputLogMaps[index][tick] = inputBuffers[index].front();
-			inputBuffers[index].pop();
+			inputLogMaps[i][tick] = inputBuffer.front();
+			inputBuffer.pop();
 			startTick = min(startTick, tick);
 		}
 	}
@@ -39,13 +39,12 @@ uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 
 bool ClientInputBuffer::TryGetInputPacket(int clientNum, uint64_t targetTick, PlayerInputPacket& outInputPacket)
 {
-	if (inputLogMaps[clientNum].find(targetTick) != inputLogMaps[clientNum].end())
+	unordered_map<uint64_t, PlayerInputPacket>& inputLogMap = inputLogMaps[clientNum];
+	auto it = inputLogMap.find(targetTick);
+	if (it != inputLogMap.end())
 	{
-		outInputPacket = inputLogMaps[clientNum][targetTick];
+		outInputPacket = it->second;
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
