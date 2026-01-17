@@ -87,6 +87,7 @@ public:
 	void Update(float elapsedTime, PlayerInputPacket& inputPacket);
 	void Reset(int playerNum);
 
+
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
 	inline PlayerInputPacket GetLastInput() { return m_lastInput; }

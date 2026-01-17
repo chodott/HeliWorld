@@ -41,7 +41,7 @@ public:
 	void CloseListenSocket();
 
 	void SendPacketAllClient();
-	atomic<bool> IsRunning() { return IsRunning; }
+	atomic<bool> IsRunning() { return isRunning.load(); }
 
 	uint64_t GetTimestampMs();
 
@@ -54,6 +54,9 @@ public:
 	int connectedClients = 0;
 
 private:
+	HANDLE acceptHandle = nullptr;
+	HANDLE sendHandle = nullptr;
+
 	atomic<bool> isRunning = false;
 	SOCKET listenSock;
 	ServerContext serverContext;
