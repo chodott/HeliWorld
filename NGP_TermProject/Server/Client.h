@@ -5,6 +5,7 @@
 #include "SimulationServer.h"
 #include "ServerContext.h"
 
+#include <thread>
 #include <concurrent_queue.h>
 
 #define BUFSIZE 512
@@ -41,7 +42,7 @@ public:
 	float deadTime = 0.f;
 private:
 	SOCKET sock;
-	thread recvThread;
+	std::thread recvThread;
 	ReceiveClientContext recvCtx{};
 
 	uint64_t lastLaunchedMissileID = 0;

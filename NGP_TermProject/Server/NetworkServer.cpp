@@ -53,7 +53,7 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 		WaitForSingleObject(snapshotBuffer->GetSendEvent(), INFINITE);
 		netServer->SendPacketAllClient();
 	}
-
+	return 0;
 }
 
 
