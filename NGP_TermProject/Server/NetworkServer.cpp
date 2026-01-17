@@ -53,6 +53,8 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 		WaitForSingleObject(snapshotBuffer->GetSendEvent(), INFINITE);
 		netServer->SendPacketAllClient();
 	}
+
+	return 0;
 }
 
 
@@ -100,8 +102,6 @@ void NetworkServer::OpenListenSocket(ServerContext* serverContext)
 
 	srand(time(NULL));
 
-	acceptHandle = CreateThread(NULL, 0, AcceptClient, serverContext, 0, NULL);
-	sendHandle = CreateThread(NULL, 0, SendAllClient, serverContext, 0, NULL);
 	isRunning = true;
 
 	acceptThread = thread(AcceptClient, serverContext);
