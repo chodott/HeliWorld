@@ -161,6 +161,7 @@
     <ClInclude Include="FrameDataManager.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="HealObjectShader.h" />
+    <ClInclude Include="IPacketListener.h" />
     <ClInclude Include="ItemObject.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Missileobject.h" />

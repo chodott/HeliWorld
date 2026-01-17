@@ -183,6 +183,9 @@
     <ClInclude Include="ProtocolConstants.h">
       <Filter>Client</Filter>
     </ClInclude>
+    <ClInclude Include="IPacketListener.h">
+      <Filter>GameFramework</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Mesh.cpp">

@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
-#include <thread>
 #include "Client.h"
+
 #include <fstream>
 #include <filesystem>
 
@@ -27,105 +27,6 @@ int PacketSizeHelper(char packetType)
 		break;
 	}
 	return packetSize;
-}
-
-void Client::PacketProcessHelper(char packetType, char* buffer)
-{
-	for (auto& packetListener : packetListner_vec)
-	{
-		packetListener->OnReceivePacket(packetType, buffer);
-	}
-}
-
-Client::Client()
-{
-	WSADATA wsa;
-	WSAStartup(MAKEWORD(2, 2), &wsa);
-
-	sock = new SOCKET();
-}
-
-Client::~Client()
-{
-	closesocket(*sock);
-	WSACleanup();
-}
-
-void Client::ConnectServer(InitDataPacket& initData)
-{
-
-	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
-
-	sockaddr_in serverAddr;
-	memset(&serverAddr, 0, sizeof(serverAddr));
-	serverAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
-	serverAddr.sin_port = htons(SERVERPORT);
-
-	DWORD recvTimeout = 5000;		// 5000ms
-	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
-	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (char*)&recvTimeout, sizeof(recvTimeout));
-
-	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-	{
-		err_quit("socket()");
-	}
-	std::cout << "Socket initalize successful\n";
-
-	if (recv(*sock, (char*)&initData, sizeof(InitDataPacket), MSG_WAITALL) == SOCKET_ERROR)
-	{
-		if (WSAGetLastError() == WSAETIMEDOUT)
-		{
-			cout << "The room is full" << endl;
-			system("pause");
-			exit(1);
-		}
-		else
-		{
-			err_quit("socket()");
-		}
-	}
-
-	recvThread = thread(ReceiveFromServer, 0);
-	sendPingThread = thread(SendPingToServer, 0);
-	sendInputThread = thread(SendInputToServer, 0);
-}
-
-
-void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
-{
-	std::unique_lock<std::mutex> lock(inputPacketLock);
-	if (!inputPacket_dq.empty())
-	{
-		keyPacket = inputPacket_dq.front();
-		inputPacket_dq.pop_front();
-	}
-}
-
-void Client::AddKeyPacket(const PlayerKeyPacket& keyPacket)
-{
-	std::unique_lock<std::mutex> lock(inputPacketLock);
-	inputPacket_dq.push_back(keyPacket);
-}
-
-DWORD WINAPI SendPingToServer(LPVOID arg)
-{
-	Client* client = (Client*)arg;
-	SOCKET* sock = client->GetClientsock();
-
-	PingpongPacket cs_pingpong{ PACKET::PingpongInfo };
-
-	while (true)
-	{
-		cs_pingpong.clientTimeStamp = client->networkSyncMgr->GetTimestampMs();
-		if (send(*sock, (char*)&cs_pingpong, sizeof(PingpongPacket), 0) == SOCKET_ERROR)
-		{
-			err_display("send()");
-			return 0;
-		}
-
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-	}
 }
 
 DWORD WINAPI SendInputToServer(LPVOID arg)
@@ -210,3 +111,96 @@ DWORD WINAPI ReceiveFromServer(LPVOID arg)
 
 	return 0;
 }
+
+void Client::PacketProcessHelper(char packetType, char* buffer)
+{
+	for (auto& packetListener : packetListner_vec)
+	{
+		packetListener->OnReceivePacket(packetType, buffer);
+	}
+}
+
+Client::Client()
+{
+	WSADATA wsa;
+	WSAStartup(MAKEWORD(2, 2), &wsa);
+
+	sock = new SOCKET();
+}
+
+Client::~Client()
+{
+	closesocket(*sock);
+	WSACleanup();
+}
+
+void Client::ConnectServer(InitDataPacket& initData)
+{
+
+	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+	{
+		err_quit("socket()");
+	}
+
+	sockaddr_in serverAddr;
+	memset(&serverAddr, 0, sizeof(serverAddr));
+	serverAddr.sin_family = AF_INET;
+	inet_pton(AF_INET, serverIp, &serverAddr.sin_addr);
+	serverAddr.sin_port = htons(SERVERPORT);
+
+	DWORD recvTimeout = 5000;		// 5000ms
+	int errorCode = setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
+	setsockopt(*sock, IPPROTO_TCP, TCP_NODELAY, (char*)&recvTimeout, sizeof(recvTimeout));
+
+	if (connect(*sock, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
+	{
+		err_quit("socket()");
+	}
+	std::cout << "Socket initalize successful\n";
+
+	if (recv(*sock, (char*)&initData, sizeof(InitDataPacket), MSG_WAITALL) == SOCKET_ERROR)
+	{
+		if (WSAGetLastError() == WSAETIMEDOUT)
+		{
+			cout << "The room is full" << endl;
+			system("pause");
+			exit(1);
+		}
+		else
+		{
+			err_quit("socket()");
+		}
+	}
+
+	recvThread = std::thread(ReceiveFromServer, nullptr);
+	sendInputThread = std::thread(SendInputToServer, nullptr);
+}
+
+
+void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
+{
+	std::unique_lock<std::mutex> lock(inputPacketLock);
+	if (!inputPacket_dq.empty())
+	{
+		keyPacket = inputPacket_dq.front();
+		inputPacket_dq.pop_front();
+	}
+}
+
+void Client::AddKeyPacket(const PlayerKeyPacket& keyPacket)
+{
+	std::unique_lock<std::mutex> lock(inputPacketLock);
+	inputPacket_dq.push_back(keyPacket);
+}
+
+void Client::SendPingPacket(PingpongPacket& pingPacket)
+{
+	SOCKET* sock = GetClientsock();
+	if (send(*sock, (char*)&pingPacket, sizeof(PingpongPacket), 0) == SOCKET_ERROR)
+	{
+		err_display("send()");
+		return;
+	}
+}
+
+

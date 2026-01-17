@@ -17,6 +17,7 @@
 #include <queue>
 #include <concurrent_queue.h>
 #include <mutex>
+#include <thread>
 
 #include "FrameDataManager.h"
 #include "error.h"
@@ -38,6 +39,8 @@ public:
 	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
 	void AddKeyPacket(const PlayerKeyPacket& keyPacket);
 
+	void SendPingPacket(PingpongPacket& keyPacket);
+
 	void PacketProcessHelper(char packetType, char* fillTarget);
 
 	inline void RegisterListener(IPacketListener* packetListener) { packetListner_vec.push_back(packetListener); }
@@ -53,15 +56,14 @@ public:
 private:
 	SOCKET* sock = nullptr;
 
-	thread recvThread;
-	thread sendPingThread;
-	thread sendInputThread;
+	std::thread recvThread;
+	std::thread sendInputThread;
 
 	const char* serverIp = (char*)"127.0.0.1";
 
 	vector<IPacketListener*> packetListner_vec;
 
 	deque<PlayerKeyPacket> inputPacket_dq;
+	concurrency::concurrent_queue<PingpongPacket> pingpongPacket_q;
 };
-
 

@@ -8,8 +8,10 @@
 #include "Player.h"
 #include "Scene.h"
 #include "Client.h"
+
 #include <WS2tcpip.h>
 #include<stdlib.h>
+#include <thread>
 
 class CGameFramework
 {
@@ -125,5 +127,7 @@ private:
 	NetworkSyncManager *m_pNetworkSyncManager;
 	FrameDataManager *m_pFrameDataManager;
 	double m_fAccumulatedSecond;
+
+	std::thread m_sendPingThread;
 };
 

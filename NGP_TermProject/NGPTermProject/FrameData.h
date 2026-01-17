@@ -1,4 +1,7 @@
 #pragma once
+
+#include "CSPacket.h"
+
 struct ServerFrameData {
     uint64_t serverTick;
     PlayerInfoPacket playerInfos[4];

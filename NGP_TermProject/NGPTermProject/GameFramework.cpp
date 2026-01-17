@@ -68,6 +68,18 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 
 	m_pClient->RegisterListener(m_pNetworkSyncManager);
 	m_pClient->RegisterListener(m_pFrameDataManager);
+
+	m_sendPingThread = thread([this]()
+		{
+			while (true)
+			{
+				this_thread::sleep_for(chrono::seconds(1));
+
+				PingpongPacket pingPacket{ PACKET::PingpongInfo, m_pNetworkSyncManager->GetTimestampMs() };
+				m_pClient->SendPingPacket(pingPacket);
+			}
+		});
+
 	Initialize(initData);
 
 	return(true);
