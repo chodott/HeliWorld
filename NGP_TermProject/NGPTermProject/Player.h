@@ -16,7 +16,6 @@
 
 #include "Object.h"
 #include "Camera.h"
-#include"Client.h"
 #include"Shader.h"
 
 
@@ -50,7 +49,6 @@ protected:
 
 	CShader* m_pMissileShader = NULL;
 
-	//Debug
 	int							m_playerNum = 0;
 	bool						bWire = false;
 	bool						m_isLocal = false;
@@ -65,6 +63,7 @@ public:
 	XMFLOAT3 GetRightVector() { return(m_xmf3Right); }
 	XMFLOAT3 GetPredictPosition() { return m_xmf3PredictPosition; }
 	XMFLOAT3 GetServerPosition() { return m_xmf3ServerPosition; }
+	inline int GetPlayerNumber() { return m_playerNum; }
 
 	void SetFriction(float fFriction) { m_fFriction = fFriction; }
 	void SetGravity(const XMFLOAT3& xmf3Gravity) { m_xmf3Gravity = xmf3Gravity; }
@@ -74,6 +73,7 @@ public:
 	void SetPosition(const XMFLOAT3& xmf3Position) { Move(XMFLOAT3(xmf3Position.x - m_xmf3Position.x, xmf3Position.y - m_xmf3Position.y, xmf3Position.z - m_xmf3Position.z), false); }
 	inline void SetServerPosition(const XMFLOAT3& xmf3Position) { m_xmf3ServerPosition = xmf3Position; }
 	inline void SetPredictPosition(const XMFLOAT3& xmf3Position) { m_xmf3PredictPosition = xmf3Position; }
+	inline void SetPlayerNumber(int number) { m_playerNum = number; }
 	inline void SetLocal(bool isLocal) { m_isLocal = isLocal; }
 	inline bool GetLocal() { return m_isLocal; }
 	const XMFLOAT3& GetVelocity() const { return(m_xmf3Velocity); }
@@ -89,7 +89,7 @@ public:
 	virtual void Move(float fxOffset = 0.0f, float fyOffset = 0.0f, float fzOffset = 0.0f);
 	virtual void Rotate(float x, float y, float z);
 	virtual void RotatePYR(XMFLOAT3& xmf3RotationAxis);
-	void LaunchMissiles(class CGameObject** missiles, class Client* client);
+	bool TryLaunchMissiles(class CGameObject** missiles, const int missileID);
 
 	void ApplyCorrection(const XMFLOAT3& errrorVector, float alpha);
 	void Update(float fTimeElapsed);

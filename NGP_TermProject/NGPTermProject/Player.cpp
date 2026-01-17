@@ -47,6 +47,7 @@ CPlayer::~CPlayer()
 	if (m_pMissileShader) m_pMissileShader->Release();
 }
 
+
 void CPlayer::CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList)
 {
 	if (m_pCamera) m_pCamera->CreateShaderVariables(pd3dDevice, pd3dCommandList);
@@ -160,12 +161,11 @@ void CPlayer::RotatePYR(XMFLOAT3& xmf3RotationAxis)
 	m_xmf3Look.x = m_xmf4x4World._31, m_xmf3Look.y = m_xmf4x4World._32, m_xmf3Look.z = m_xmf4x4World._33;
 }
 
-void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
+bool CPlayer::TryLaunchMissiles(CGameObject** missiles, const int missileID)
 {
-	int num = client->GetPlayerNum();
 	for (int i = 0; i < 8; ++i)
 	{
-		CMissleObject* missile = static_cast<CMissleObject*>(missiles[i + num * 8]);
+		CMissleObject* missile = static_cast<CMissleObject*>(missiles[i + GetPlayerNumber() * 8]);
 		if (missile->GetActive()) continue;
 		else
 		{
@@ -174,11 +174,11 @@ void CPlayer::LaunchMissiles(CGameObject** missiles, Client* client)
 			missile->SetActive(true);
 			missile->SetLaunched(true);
 			missile->SetMovingDirection(GetLookVector());
-			missile->SetNetID(++client->lastLaunchedMissileNum);
-			break;
-
+			missile->SetNetID(missileID);
+			return true;
 		}
 	}
+	return false;
 }
 
 void CPlayer::ApplyCorrection(const XMFLOAT3& errorVector, float alpha)

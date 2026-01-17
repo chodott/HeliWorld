@@ -35,27 +35,18 @@ public:
 	SOCKET* GetClientsock() { return sock; }
 	void ConnectServer(InitDataPacket& initData);
 	const char* GetServerIp() { return serverIp; }
-	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
-	void PrepareInputPacket(XMFLOAT3& playerPYR);
 	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
+	void AddKeyPacket(const PlayerKeyPacket& keyPacket);
 
 	void PacketProcessHelper(char packetType, char* fillTarget);
 
 	inline void RegisterListener(IPacketListener* packetListener) { packetListner_vec.push_back(packetListener); }
 
 	
-	FPoint deltaMouse;
-
 	HANDLE FrameAdvanced;
 
-	int playerNum = -1;
 	char remainBuffer[BUFSIZE]{};
 
-	//Add
-	uint64_t lastLaunchedMissileNum = 0;
-	unsigned char sendKey = NULL;
-	unsigned char prevKey = NULL;
 	mutex inputPacketLock;
 	condition_variable inputChangedCV;
 
@@ -67,15 +58,6 @@ private:
 	thread sendInputThread;
 
 	const char* serverIp = (char*)"127.0.0.1";
-
-	unsigned char option0 = 0x01;   // 0000 00c01 
-	unsigned char option1 = 0x02;   // 0000 0010
-	unsigned char option2 = 0x04;   // 0000 0100
-	unsigned char option3 = 0x08;   // 0000 1000
-	unsigned char option4 = 0x10;   // 0001 0000
-	unsigned char option5 = 0x20;   // 0010 0000
-	unsigned char option6 = 0x40;   // 0100 0000
-	unsigned char option7 = 0x80;   // 1000 0000
 
 	vector<IPacketListener*> packetListner_vec;
 

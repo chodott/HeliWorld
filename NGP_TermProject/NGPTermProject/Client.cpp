@@ -91,67 +91,21 @@ void Client::ConnectServer(InitDataPacket& initData)
 	sendInputThread = thread(SendInputToServer, 0);
 }
 
-void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
-{
-	switch (nMessageID)
-	{
-	case WM_KEYDOWN:
-		switch (wParam)
-		{
-		case VK_UP: sendKey |= option0;   break;      //0000 0001 
-		case VK_DOWN: sendKey |= option1;   break;      //0000 0010
-		case VK_LEFT: sendKey |= option2;   break;      //0000 0100
-		case VK_RIGHT: sendKey |= option3;   break;      //0000 1000
-		case 'Q': sendKey |= option4;   break;      //0001 0000
-		case 'E': sendKey |= option5;   break;      //0010 0000
-		case ' ': sendKey |= option6;   break;
-		}
-	}
-}
-
-void Client::KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
-{
-	switch (nMessageID)
-	{
-	case WM_KEYUP:
-		switch (wParam)
-		{
-		case VK_UP: sendKey &= (~option0);   break;
-		case VK_DOWN: sendKey &= (~option1);   break;
-		case VK_LEFT: sendKey &= (~option2);   break;
-		case VK_RIGHT: sendKey &= (~option3);   break;
-		case 'Q': sendKey &= (~option4);   break;
-		case 'E': sendKey &= (~option5);   break;
-		case ' ': sendKey &= (~option6);   break;
-		}
-	}
-}
-
-void Client::PrepareInputPacket(XMFLOAT3& playerPYR)
-{
-	std::unique_lock<std::mutex> lock(inputPacketLock);
-	if (inputPacket_dq.empty()) inputPacket_dq.emplace_back();
-	PlayerKeyPacket& cs_key = inputPacket_dq.back();
-	cs_key.playerKeyInput = sendKey;
-	cs_key.rotation = playerPYR;
-	cs_key.estimatedTick = networkSyncMgr->GetUpdatedTick();
-
-	cs_key.launchedMissileNum = lastLaunchedMissileNum;
-	inputChangedCV.notify_one();
-	prevKey = sendKey;
-	sendKey &= (~option6);
-	deltaMouse = { 0.0f, 0.0f };
-
-
-}
 
 void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
 {
+	std::unique_lock<std::mutex> lock(inputPacketLock);
 	if (!inputPacket_dq.empty())
 	{
 		keyPacket = inputPacket_dq.front();
 		inputPacket_dq.pop_front();
 	}
+}
+
+void Client::AddKeyPacket(const PlayerKeyPacket& keyPacket)
+{
+	std::unique_lock<std::mutex> lock(inputPacketLock);
+	inputPacket_dq.push_back(keyPacket);
 }
 
 DWORD WINAPI SendPingToServer(LPVOID arg)
@@ -182,8 +136,6 @@ DWORD WINAPI SendInputToServer(LPVOID arg)
 	PlayerKeyPacket cs_keyInput;
 	while (true)
 	{
-		std::unique_lock<std::mutex> lock(client->inputPacketLock);
-		client->inputChangedCV.wait(lock);
 		client->GetKeyPacketToSend(cs_keyInput);
 
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)

@@ -54,7 +54,9 @@ public:
 	LRESULT CALLBACK OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 
 	
-	SOCKET* GetSocket() { return client->GetClientsock(); }
+	SOCKET* GetSocket() { return m_pClient->GetClientsock(); }
+
+	void PrepareInputPacket();
 
 
 private:
@@ -87,6 +89,22 @@ private:
 	ID3D12Fence					*m_pd3dFence = NULL;
 	UINT64						m_nFenceValues[m_nSwapChainBuffers];
 	HANDLE						m_hFenceEvent;
+
+	//Input
+	FPoint deltaMouse;
+	uint64_t lastLaunchedMissileNum = 0;
+	unsigned char sendKey = NULL;
+	unsigned char prevKey = NULL;
+
+
+	unsigned char option0 = 0x01;   // 0000 00c01 
+	unsigned char option1 = 0x02;   // 0000 0010
+	unsigned char option2 = 0x04;   // 0000 0100
+	unsigned char option3 = 0x08;   // 0000 1000
+	unsigned char option4 = 0x10;   // 0001 0000
+	unsigned char option5 = 0x20;   // 0010 0000
+	unsigned char option6 = 0x40;   // 0100 0000
+	unsigned char option7 = 0x80;   // 1000 0000
 
 #if defined(_DEBUG)
 	ID3D12Debug					*m_pd3dDebugController;

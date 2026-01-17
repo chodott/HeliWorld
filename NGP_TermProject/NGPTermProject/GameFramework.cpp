@@ -324,6 +324,32 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 	if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
 	switch (nMessageID)
 	{
+	case WM_KEYDOWN:
+		switch (wParam)
+		{
+		case VK_UP:
+			sendKey &= (~option0);
+			break;
+		case VK_DOWN:
+			sendKey &= (~option1);
+			break;
+		case VK_LEFT:
+			sendKey &= (~option2);
+			break;
+		case VK_RIGHT:
+			sendKey &= (~option3);
+			break;
+		case 'Q':
+			sendKey &= (~option4);
+			break;
+		case 'E':
+			sendKey &= (~option5);
+			break;
+		case ' ':
+			sendKey &= (~option6);
+			break;
+		}
+		break;
 	case WM_KEYUP:
 		switch (wParam)
 		{
@@ -341,6 +367,27 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 			ChangeSwapChainState();
 			break;
 		case VK_F5:
+			break;
+		case VK_UP:
+			sendKey |= option0;
+			break;      //0000 0001 
+		case VK_DOWN:
+			sendKey |= option1;
+			break;      //0000 0010
+		case VK_LEFT:
+			sendKey |= option2;
+			break;      //0000 0100
+		case VK_RIGHT:
+			sendKey |= option3;
+			break;      //0000 1000
+		case 'Q':
+			sendKey |= option4;
+			break;      //0001 0000
+		case 'E':
+			sendKey |= option5;
+			break;      //0010 0000
+		case ' ':
+			sendKey |= option6;
 			break;
 		default:
 			break;
@@ -374,16 +421,34 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 		break;
 	case WM_KEYDOWN:
 		OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
-		client->KeyDownHandler(hWnd, nMessageID, wParam, lParam);
 		break;
 	case WM_KEYUP:
 		OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
-		client->KeyUpHandler(hWnd, nMessageID, wParam, lParam);
 		break;
 	}
 
 
 	return(0);
+}
+
+void CGameFramework::PrepareInputPacket()
+{
+	//뮤텍스 필요
+	//std::unique_lock<std::mutex> lock(inputPacketLock);
+
+	PlayerKeyPacket keyPacket{
+	PACKET::KeyInfo,
+	sendKey,
+	m_pPlayer->GetRotation(),
+	lastLaunchedMissileNum,
+	m_pNetworkSyncManager->GetUpdatedTick()
+	};
+
+	m_pClient->AddKeyPacket(keyPacket);
+
+	prevKey = sendKey;
+	sendKey &= (~option6);
+	deltaMouse = { 0.0f, 0.0f };
 }
 
 void CGameFramework::OnDestroy()
@@ -444,8 +509,8 @@ void CGameFramework::BuildObjects()
 void CGameFramework::Initialize(InitDataPacket& initData)
 {
 
-	frameDataManager->SetPlayerNum(initData.playerNum);
-	networkSyncManager->SetBase(initData.serverTick, initData.serverTimestamp);
+	m_pFrameDataManager->SetPlayerNum(initData.playerNum);
+	m_pNetworkSyncManager->SetBase(initData.serverTick, initData.serverTimestamp);
 
 	int playerNum = initData.playerNum;
 	m_pPlayer->SetLocal(true);
@@ -496,38 +561,38 @@ void CGameFramework::Resimulate()
 {
 	ApplyMissileEvents();
 
-	if (!frameDataManager->IsNeedResimulation())
+	if (!m_pFrameDataManager->IsNeedResimulation())
 	{
-		m_pPlayer->ApplyCorrection(frameDataManager->GetDiffVector(), CORRECTION_ALPHA);
-		frameDataManager->StepCorrection(CORRECTION_ALPHA);
+		m_pPlayer->ApplyCorrection(m_pFrameDataManager->GetDiffVector(), CORRECTION_ALPHA);
+		m_pFrameDataManager->StepCorrection(CORRECTION_ALPHA);
 		return;
 	}
 
 	//Rollback
-	m_pPlayer->SetPredictPosition(frameDataManager->rollbackPosition);
-	m_pPlayer->RotatePYR(frameDataManager->rollbackRotation);
+	m_pPlayer->SetPredictPosition(m_pFrameDataManager->rollbackPosition);
+	m_pPlayer->RotatePYR(m_pFrameDataManager->rollbackRotation);
 
 	//Resimulate
-	auto tickRange = frameDataManager->GetSimulateTickRange();
+	auto tickRange = m_pFrameDataManager->GetSimulateTickRange();
 	const uint64_t startTick = tickRange.first;
 	const uint64_t endTick = tickRange.second;
 
 	size_t startIndex{};
-	frameDataManager->TryGetClientStartIndex(startTick, startIndex);
-	for (uint64_t currentTick = startTick+1; currentTick <= endTick; ++currentTick)
+	m_pFrameDataManager->TryGetClientStartIndex(startTick, startIndex);
+	for (uint64_t currentTick = startTick + 1; currentTick <= endTick; ++currentTick)
 	{
 		const size_t index = startIndex + currentTick - startTick;
 		ClientFrameData currentFrameData{};
-		frameDataManager->ReadClientFrame(index, currentFrameData);
+		m_pFrameDataManager->ReadClientFrame(index, currentFrameData);
 		ReapplyInput(currentFrameData);
-		frameDataManager->WriteClientSimulateResult(
+		m_pFrameDataManager->WriteClientSimulateResult(
 			index,
 			m_pPlayer->GetPredictPosition(),
 			m_pPlayer->GetRotation()
 		);
 	}
 	// 재시뮬레이션이 완료되었으므로 플래그 해제
-	frameDataManager->FinishResimulation();
+	m_pFrameDataManager->FinishResimulation();
 }
 
 void CGameFramework::ReapplyInput(ClientFrameData& curFrameData)
@@ -548,11 +613,11 @@ void CGameFramework::ReapplyInput(ClientFrameData& curFrameData)
 void CGameFramework::ApplyMissileEvents()
 {
 	LocalMissileEventPacket missileEvent;
-	while (frameDataManager->TryGetMissileEvent(missileEvent) == true)
+	while (m_pFrameDataManager->TryGetMissileEvent(missileEvent) == true)
 	{
 		for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 		{
-			int missileIndex = client->GetPlayerNum() * Protocol::kMaxMissileCountPerPlayer + i;
+			int missileIndex = m_pPlayer->GetPlayerNumber() * Protocol::kMaxMissileCountPerPlayer + i;
 			CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileIndex]);
 			if (missile->GetNetID() != missileEvent.missileNum)
 			{
@@ -569,7 +634,7 @@ void CGameFramework::VisualSmoothing(float fTimeElapsed)
 	m_pPlayer->ApplyVisualSmoothing(fTimeElapsed);
 	for (int i = 0; i < Protocol::kMaxMissileCountPerPlayer; ++i)
 	{
-		int missileIndex = client->GetPlayerNum() * Protocol::kMaxMissileCountPerPlayer + i;
+		int missileIndex = m_pPlayer->GetPlayerNumber() * Protocol::kMaxMissileCountPerPlayer + i;
 		CMissleObject* missile = static_cast<CMissleObject*>(m_pScene->m_ppShaders[2]->m_ppObjects[missileIndex]);
 		missile->ApplyVisualSmoothing(m_pPlayer->GetPosition(), Protocol::kFixedTick);
 
@@ -589,8 +654,8 @@ void CGameFramework::MergeInput()
 		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
 		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-		client->deltaMouse.x += cxDelta;
-		client->deltaMouse.y += cyDelta;
+		deltaMouse.x += cxDelta;
+		deltaMouse.y += cyDelta;
 	}
 }
 
@@ -613,9 +678,9 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		if (pKeysBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 
-		if ((client->deltaMouse.x != 0.0f) || (client->deltaMouse.y != 0.0f))
+		if ((deltaMouse.x != 0.0f) || (deltaMouse.y != 0.0f))
 		{
-			m_pPlayer->Rotate(client->deltaMouse.y, client->deltaMouse.x, 0.f);
+			m_pPlayer->Rotate(deltaMouse.y, deltaMouse.x, 0.f);
 		}
 		if (dwDirection)
 		{
@@ -623,19 +688,23 @@ void CGameFramework::ProcessInput(float fTimeElapsed)
 		}
 
 	}
-	if (client->sendKey & 0x40)
+	if (sendKey & 0x40)
 	{
-		m_pPlayer->LaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, client);
+		bool result = m_pPlayer->TryLaunchMissiles(m_pScene->m_ppShaders[2]->m_ppObjects, ++lastLaunchedMissileNum);
+		if (result == false)
+		{
+			lastLaunchedMissileNum--;
+		}
 	}
 
 	ClientFrameData clientFrameData;
 	clientFrameData.position = m_pPlayer->GetPredictPosition();
 	clientFrameData.rotation = m_pPlayer->GetRotation();
-	clientFrameData.estimatedServerTick = networkSyncManager->GetUpdatedTick();
-	clientFrameData.playerKeyInput = client->sendKey;
-	clientFrameData.deltaMouse = client->deltaMouse;
+	clientFrameData.estimatedServerTick = m_pNetworkSyncManager->GetUpdatedTick();
+	clientFrameData.playerKeyInput = sendKey;
+	clientFrameData.deltaMouse = deltaMouse;
 
-	frameDataManager->AddClientFrameData(clientFrameData);
+	m_pFrameDataManager->AddClientFrameData(clientFrameData);
 
 }
 
@@ -646,12 +715,12 @@ void CGameFramework::Update(const float fTimeElapsed)
 
 	if (m_fAccumulatedSecond >= Protocol::kFixedTick)
 	{
-		bool isDuplication = networkSyncManager->UpdateServerTick();
+		bool isDuplication = m_pNetworkSyncManager->UpdateServerTick();
 		if (isDuplication == false)
 		{
 			m_fAccumulatedSecond -= Protocol::kFixedTick;
 			ProcessInput(Protocol::kFixedTick);
-			client->PrepareInputPacket(m_pPlayer->GetRotation());
+			PrepareInputPacket();
 		}
 	}
 }
@@ -665,9 +734,9 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 
 	ServerFrameData prevData;
 	ServerFrameData nextData;
-	double delayedTick = networkSyncManager->GetDelayedServerTick();
+	double delayedTick = m_pNetworkSyncManager->GetDelayedServerTick();
 	const uint64_t delayedTickI = (delayedTick <= 0.0) ? 0 : uint64_t(delayedTick);
-	bool hasData = frameDataManager->TryGetServerFrameData(delayedTickI, prevData, nextData);
+	bool hasData = m_pFrameDataManager->TryGetServerFrameData(delayedTickI, prevData, nextData);
 	if (!hasData)
 	{
 		return;
@@ -704,7 +773,7 @@ void CGameFramework::AnimatePlayers(const ServerFrameData& prevData, const Serve
 
 	for (int i = 0; i < Protocol::kMaxPlayerCount; i++)
 	{
-		if (i == client->GetPlayerNum())
+		if (i == m_pPlayer->GetPlayerNumber())
 		{
 
 			m_pPlayer->Animate(prevData.playerInfos[i], nextData.playerInfos[i], fTimeElapsed, lerpAlpha);   //player update
@@ -837,7 +906,7 @@ void CGameFramework::FrameAdvance()
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	size_t nLength = _tcslen(m_pszFrameRate);
 	XMFLOAT3 xmf3Position = m_pPlayer->GetPosition();
-	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("RTT: (%4f)"), networkSyncManager->GetRttAvg());
+	_stprintf_s(m_pszFrameRate + nLength, 70 - nLength, _T("RTT: (%4f)"), m_pNetworkSyncManager->GetRttAvg());
 	::SetWindowText(m_hWnd, m_pszFrameRate);
 
 }
