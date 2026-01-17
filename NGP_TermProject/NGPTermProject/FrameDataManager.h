@@ -1,14 +1,15 @@
 #pragma once
-#include "CSPacket.h"
 #include "FrameData.h"
 #include "NetworkSyncManager.h"
+#include "IPacketListener.h"
+
 #include <concurrent_queue.h>
 #include <mutex>
 
 #define SNAPSHOT_LIFETIME_TICK 50
 
 
-class FrameDataManager
+class FrameDataManager : public IPacketListener
 {
   public:
     inline void SetPlayerNum(int n) 
@@ -61,6 +62,10 @@ private:
     int serverTick;
     int playerNum = 0;
     bool needResimulate = false;
+
+
+    // IPacketListener을(를) 통해 상속됨
+    virtual void OnReceivePacket(char packetType, const char* buffer) override;
 
 };
 

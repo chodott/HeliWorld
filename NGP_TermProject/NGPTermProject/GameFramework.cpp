@@ -37,9 +37,10 @@ CGameFramework::CGameFramework()
 
 	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
 	m_fAccumulatedSecond = 0.0f;
-	networkSyncManager = new NetworkSyncManager();
-	frameDataManager = new FrameDataManager();
-	client = new Client(networkSyncManager, frameDataManager);
+
+	m_pNetworkSyncManager = new NetworkSyncManager();
+	m_pFrameDataManager = new FrameDataManager();
+	m_pClient = new Client();
 }
 
 CGameFramework::~CGameFramework()
@@ -60,10 +61,14 @@ bool CGameFramework::OnCreate(HINSTANCE hInstance, HWND hMainWnd)
 	CreateDepthStencilView();
 
 	CoInitialize(NULL);
-
 	BuildObjects();
-	client->ConnectServer();
-	Initialize();
+
+	InitDataPacket initData;
+	m_pClient->ConnectServer(initData);
+
+	m_pClient->RegisterListener(m_pNetworkSyncManager);
+	m_pClient->RegisterListener(m_pFrameDataManager);
+	Initialize(initData);
 
 	return(true);
 }
@@ -436,10 +441,13 @@ void CGameFramework::BuildObjects()
 	m_GameTimer.Reset();
 }
 
-void CGameFramework::Initialize()
+void CGameFramework::Initialize(InitDataPacket& initData)
 {
 
-	int playerNum = client->GetPlayerNum();
+	frameDataManager->SetPlayerNum(initData.playerNum);
+	networkSyncManager->SetBase(initData.serverTick, initData.serverTimestamp);
+
+	int playerNum = initData.playerNum;
 	m_pPlayer->SetLocal(true);
 	cout << playerNum << "\n";
 	switch (playerNum)

@@ -19,7 +19,6 @@
 #include <mutex>
 
 #include "FrameDataManager.h"
-#include "PacketCombiner.h"
 #include "error.h"
 #include "Missileobject.h"
 
@@ -31,11 +30,10 @@
 class Client {
 public:
 	Client();
-	Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr);
 	~Client();
 
 	SOCKET* GetClientsock() { return sock; }
-	void ConnectServer();
+	void ConnectServer(InitDataPacket& initData);
 	const char* GetServerIp() { return serverIp; }
 	void KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
 	void KeyUpHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam);
@@ -43,17 +41,15 @@ public:
 	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
 
 	void PacketProcessHelper(char packetType, char* fillTarget);
-	void ReceivePingPongPacket(const PingpongPacket& ppPacket);
 
-	inline int GetPlayerNum() { return initData.playerNum; }
-
+	inline void RegisterListener(IPacketListener* packetListener) { packetListner_vec.push_back(packetListener); }
 
 	
 	FPoint deltaMouse;
-	InitDataPacket initData;
 
 	HANDLE FrameAdvanced;
 
+	int playerNum = -1;
 	char remainBuffer[BUFSIZE]{};
 
 	//Add
@@ -63,14 +59,12 @@ public:
 	mutex inputPacketLock;
 	condition_variable inputChangedCV;
 
-
-	//Latency Interpolation
-	PacketCombiner* packetCombiner;
-	FrameDataManager* frameDataManager;
-	NetworkSyncManager* networkSyncMgr;
-
 private:
 	SOCKET* sock = nullptr;
+
+	thread recvThread;
+	thread sendPingThread;
+	thread sendInputThread;
 
 	const char* serverIp = (char*)"127.0.0.1";
 
@@ -83,11 +77,9 @@ private:
 	unsigned char option6 = 0x40;   // 0100 0000
 	unsigned char option7 = 0x80;   // 1000 0000
 
+	vector<IPacketListener*> packetListner_vec;
 
 	deque<PlayerKeyPacket> inputPacket_dq;
 };
 
-DWORD WINAPI ReceiveFromServer(LPVOID arg);
-DWORD WINAPI SendPingToServer(LPVOID arg);
-DWORD WINAPI SendInputToServer(LPVOID arg);
 

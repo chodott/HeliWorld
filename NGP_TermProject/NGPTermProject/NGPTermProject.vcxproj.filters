@@ -257,12 +257,6 @@
     <ClCompile Include="FrameDataManager.cpp">
       <Filter>Client</Filter>
     </ClCompile>
-    <ClCompile Include="PacketCombiner.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="PacketCombiner.h">
-      <Filter>Client</Filter>
-    </ClCompile>
     <ClCompile Include="DebugboxObject.cpp">
       <Filter>Shader</Filter>
     </ClCompile>

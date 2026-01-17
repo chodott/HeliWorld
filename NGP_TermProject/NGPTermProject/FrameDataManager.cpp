@@ -253,3 +253,23 @@ void FrameDataManager::StepCorrection(const float alpha)
 	XMVECTOR updatedError = XMVectorSubtract(fullError, stepError);
 	XMStoreFloat3(&diffVector, updatedError);
 }
+
+void FrameDataManager::OnReceivePacket(char packetType, const char* buffer)
+{
+	switch (packetType)
+	{
+	case PACKET::SnapshotInfo:
+	{
+		auto& pkt = *reinterpret_cast<const TickSnapshotPacket*>(buffer);
+		AddServerFrameData(pkt);
+		break;
+	}
+
+	case PACKET::LocalMissileEvent:
+	{
+		auto& pkt = *reinterpret_cast<const LocalMissileEventPacket*>(buffer);
+		ReceiveMissileEvent(pkt);
+		break;
+	}
+	}
+}

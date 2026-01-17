@@ -29,32 +29,11 @@ int PacketSizeHelper(char packetType)
 	return packetSize;
 }
 
-void Client::PacketProcessHelper(char packetType, char* fillTarget)
+void Client::PacketProcessHelper(char packetType, char* buffer)
 {
-	switch (packetType)
+	for (auto& packetListener : packetListner_vec)
 	{
-	case PACKET::SnapshotInfo:
-	{
-		auto& pkt = *reinterpret_cast<const TickSnapshotPacket*>(fillTarget);
-		frameDataManager->AddServerFrameData(pkt);
-		break;
-	}
-	case PACKET::PingpongInfo:
-	{
-		auto& pkt = *reinterpret_cast<const PingpongPacket*>(fillTarget);
-		ReceivePingPongPacket(pkt);
-		break;
-	}
-
-	case PACKET::LocalMissileEvent:
-	{
-		auto& pkt = *reinterpret_cast<const LocalMissileEventPacket*>(fillTarget);
-		frameDataManager->ReceiveMissileEvent(pkt);
-		break;
-	}
-	default:
-		cout << "packet parsing error";
-		break;
+		packetListener->OnReceivePacket(packetType, buffer);
 	}
 }
 
@@ -66,22 +45,13 @@ Client::Client()
 	sock = new SOCKET();
 }
 
-Client::Client(NetworkSyncManager* networkSyncMgr, FrameDataManager* frameDataMgr) :Client()
-{
-	this->networkSyncMgr = networkSyncMgr;
-	this->frameDataManager = frameDataMgr;
-	this->packetCombiner = new PacketCombiner(frameDataMgr);
-
-}
-
 Client::~Client()
 {
-	delete packetCombiner;
 	closesocket(*sock);
 	WSACleanup();
 }
 
-void Client::ConnectServer()
+void Client::ConnectServer(InitDataPacket& initData)
 {
 
 	if ((*sock = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)	err_quit("socket()");
@@ -115,12 +85,10 @@ void Client::ConnectServer()
 			err_quit("socket()");
 		}
 	}
-	frameDataManager->SetPlayerNum(initData.playerNum);
-	networkSyncMgr->SetBase(initData.serverTick, initData.serverTimestamp);
 
-	CreateThread(NULL, 0, ReceiveFromServer, this, 0, NULL);
-	CreateThread(NULL, 0, SendPingToServer, this, 0, NULL);
-	CreateThread(NULL, 0, SendInputToServer, this, 0, NULL);
+	recvThread = thread(ReceiveFromServer, 0);
+	sendPingThread = thread(SendPingToServer, 0);
+	sendInputThread = thread(SendInputToServer, 0);
 }
 
 void Client::KeyDownHandler(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -184,11 +152,6 @@ void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
 		keyPacket = inputPacket_dq.front();
 		inputPacket_dq.pop_front();
 	}
-}
-
-void Client::ReceivePingPongPacket(const PingpongPacket& ppPacket)
-{
-	networkSyncMgr->UpdateSyncData(ppPacket.clientTimeStamp, ppPacket.serverSendTimeStamp);
 }
 
 DWORD WINAPI SendPingToServer(LPVOID arg)

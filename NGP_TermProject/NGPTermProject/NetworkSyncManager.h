@@ -3,11 +3,11 @@
 #include <numeric>
 #include <chrono>
 
-#include "CSPacket.h"
+#include "IPacketListener.h"
 
 #define MAX_DEQUE_LENGTH 10
 
-class NetworkSyncManager
+class NetworkSyncManager : public IPacketListener
 {
 public:
 	uint64_t GetTimestampMs();
@@ -33,6 +33,10 @@ private:
 	uint64_t baseServerTimestamp;
 
 	uint64_t updatedTick;
+
+
+	// IPacketListener을(를) 통해 상속됨
+	virtual void OnReceivePacket(char packetType, const char* buffer) override;
 
 };
 

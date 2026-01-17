@@ -32,7 +32,7 @@ public:
 	void ChangeSwapChainState();
 
     void BuildObjects();
-	void Initialize();
+	void Initialize(InitDataPacket& initData);
     void ReleaseObjects();
 
 	void MergeInput();
@@ -103,9 +103,9 @@ private:
 
 	_TCHAR						m_pszFrameRate[70];
 
-	Client* client;
-	NetworkSyncManager* networkSyncManager;
-	FrameDataManager* frameDataManager;
+	Client* m_pClient;
+	NetworkSyncManager *m_pNetworkSyncManager;
+	FrameDataManager *m_pFrameDataManager;
 	double m_fAccumulatedSecond;
 };
 

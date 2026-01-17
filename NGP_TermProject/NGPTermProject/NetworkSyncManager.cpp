@@ -85,3 +85,12 @@ void NetworkSyncManager::UpdateSyncData(const uint64_t clientSendTimestamp,
 	double delay = (rttAvg * 0.5) + Protocol::kDefaultDelayMs;
 	delayTick = delay / Protocol::kFixedTickMs;
 }
+
+void NetworkSyncManager::OnReceivePacket(char packetType, const char* buffer)
+{
+	if (packetType == PACKET::PingpongInfo)
+	{
+		const PingpongPacket* pkt = reinterpret_cast<const PingpongPacket*>(buffer);
+		UpdateSyncData(pkt->clientTimeStamp, pkt->serverSendTimeStamp);
+	}
+}

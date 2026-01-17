@@ -204,8 +204,6 @@
     <ClCompile Include="NetworkSyncManager.cpp" />
     <ClCompile Include="NGPTermProject.cpp" />
     <ClCompile Include="Object.cpp" />
-    <ClCompile Include="PacketCombiner.cpp" />
-    <ClCompile Include="PacketCombiner.h" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Shader.cpp" />
