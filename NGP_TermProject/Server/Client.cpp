@@ -25,10 +25,13 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	NetworkServer* netServer = receiveClientContext->serverContext->netServer;
 	SimulationServer* simServer = receiveClientContext->serverContext->simServer;
 
+
 	ClientInputBuffer* inputBuffer = receiveClientContext->serverContext->inputBuffer;
 	Client* client = receiveClientContext->client;
-
 	int playerNumber = client->GetPlayerNumber();
+
+	simServer->AccessNewPlayer(playerNumber);
+
 	TimebasePacket timebasePacket{ playerNumber, simServer->GetTick(), netServer->GetTimestampMs() };
 	send(client->GetSocket(), (char*)&timebasePacket, sizeof(timebasePacket), 0);
 
@@ -37,7 +40,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	int combinedSize = 0;
 	char buf[BUFSIZE]{};
 
-	while (netServer)
+	while (netServer->IsRunning())
 	{
 		int receivedBytes = recv(client->GetSocket(), (char*)&buf, BUFSIZE, 0);
 		if (receivedBytes == SOCKET_ERROR)

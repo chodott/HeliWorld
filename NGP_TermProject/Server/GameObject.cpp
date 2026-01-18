@@ -173,10 +173,12 @@ void CPlayer::UpdateMissiles(float elapsedTime)
 
 void CPlayer::Update(float elapsedTime, PlayerInputPacket& inputPacket)
 {
-	if (m_bActive == false)
+	if (IsActive() == false)
 	{
 		return;
 	}
+
+	m_lastInput = inputPacket;
 
 	RotatePYR(inputPacket.rotation);
 

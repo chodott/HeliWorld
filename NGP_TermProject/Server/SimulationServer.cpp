@@ -12,6 +12,7 @@ SimulationServer::SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacke
 		m_player[i] = new CPlayer();
 		m_player[i]->SetPosition(initialPos[i]);
 		m_player[i]->RotatePYR(initialRot[i]);
+		m_player[i]->SetActive(true);
 	}
 	for (int i = 0; i < Protocol::kMaxItemCount; i++)
 	{
@@ -180,6 +181,14 @@ void SimulationServer::SpawnItem(const float elapsedTime)
 			break;
 		}
 	}
+}
+
+void SimulationServer::AccessNewPlayer(int playerNum)
+{
+	CPlayer* player = m_player[playerNum];
+	player->SetPosition(initialPos[playerNum]);
+	player->RotatePYR(initialRot[playerNum]);
+	player->SetActive(true);
 }
 
 

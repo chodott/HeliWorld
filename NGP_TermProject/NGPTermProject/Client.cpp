@@ -172,8 +172,8 @@ void Client::ConnectServer(InitDataPacket& initData)
 		}
 	}
 
-	recvThread = std::thread(ReceiveFromServer, nullptr);
-	sendInputThread = std::thread(SendInputToServer, nullptr);
+	recvThread = std::thread(ReceiveFromServer, this);
+	sendInputThread = std::thread(SendInputToServer, this);
 }
 
 
