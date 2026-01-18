@@ -55,6 +55,9 @@ public:
 	int connectedClients = 0;
 
 private:
+	HANDLE acceptHandle = nullptr;
+	HANDLE sendHandle = nullptr;
+
 	atomic<bool> isRunning = false;
 	SOCKET listenSock;
 	ServerContext serverContext;

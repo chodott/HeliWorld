@@ -37,7 +37,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	int combinedSize = 0;
 	char buf[BUFSIZE]{};
 
-	while (netServer)
+	while (netServer->IsRunning())
 	{
 		int receivedBytes = recv(client->GetSocket(), (char*)&buf, BUFSIZE, 0);
 		if (receivedBytes == SOCKET_ERROR)

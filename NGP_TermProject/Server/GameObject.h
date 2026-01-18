@@ -89,6 +89,7 @@ public:
 
 
 	inline PlayerInputPacket GetLastInput() { return m_lastInput; }
+
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
 	const float movingSpeed = Protocol::kSpeedPlayerPerSec;

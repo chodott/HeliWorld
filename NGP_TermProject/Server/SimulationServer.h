@@ -52,6 +52,8 @@ public:
 	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~SimulationServer();
 
+	void AccessNewPlayer(int playerNum);
+
 	void Update(const float elapsedTime);
 	inline uint64_t GetTick() { return serverTick; }
 };
