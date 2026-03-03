@@ -340,25 +340,25 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		switch (wParam)
 		{
 		case VK_UP:
-			sendKey &= (~option0);
+			sendKey |= option0;
 			break;
 		case VK_DOWN:
-			sendKey &= (~option1);
+			sendKey |= option1;
 			break;
 		case VK_LEFT:
-			sendKey &= (~option2);
+			sendKey |= option2;
 			break;
 		case VK_RIGHT:
-			sendKey &= (~option3);
+			sendKey |= option3;
 			break;
 		case 'Q':
-			sendKey &= (~option4);
+			sendKey |= option4;
 			break;
 		case 'E':
-			sendKey &= (~option5);
+			sendKey |= option5;
 			break;
 		case ' ':
-			sendKey &= (~option6);
+			sendKey |= option6;
 			break;
 		}
 		break;
@@ -381,25 +381,25 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case VK_F5:
 			break;
 		case VK_UP:
-			sendKey |= option0;
-			break;      //0000 0001 
+			sendKey &= (~option0);
+			break;
 		case VK_DOWN:
-			sendKey |= option1;
-			break;      //0000 0010
+			sendKey &= (~option1);
+			break;
 		case VK_LEFT:
-			sendKey |= option2;
-			break;      //0000 0100
+			sendKey &= (~option2);
+			break;
 		case VK_RIGHT:
-			sendKey |= option3;
-			break;      //0000 1000
+			sendKey &= (~option3);
+			break;
 		case 'Q':
-			sendKey |= option4;
-			break;      //0001 0000
+			sendKey &= (~option4);
+			break;
 		case 'E':
-			sendKey |= option5;
-			break;      //0010 0000
+			sendKey &= (~option5);
+			break;
 		case ' ':
-			sendKey |= option6;
+			sendKey &= (~option6);
 			break;
 		default:
 			break;
