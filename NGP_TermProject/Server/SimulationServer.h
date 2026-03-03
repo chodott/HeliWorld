@@ -8,6 +8,7 @@
 #include "NetworkEventQueue.h"
 
 #include <queue>
+#include <array>
 
 #define MAX_BOUNDARY_X		1000
 #define MIN_BOUNDARY_X		0
@@ -27,6 +28,7 @@ private:
 	void ResetToSnapshot(uint64_t targetTick);
 	void UpdateSnapshot(uint64_t targetTick);
 	void GenerateMissileEvents(uint64_t tick);
+	uint64_t GetResimulateStartTick(const uint64_t curTick);
 
 	void SaveLatestSnapshot();
 	void CleanSnapshotLogs();
@@ -34,7 +36,7 @@ private:
 	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount];
 	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount];
 
-	ClientInputBuffer& clientInputBuffer;
+	array<ClientInputBuffer, Protocol::kMaxPlayerCount>& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 	NetworkEventQueue& eventQueue;
 
@@ -49,7 +51,7 @@ private:
 	uint64_t serverTick = 0;
 
 public:
-	SimulationServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
+	SimulationServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~SimulationServer();
 
 	void AccessNewPlayer(int playerNum);

@@ -58,7 +58,7 @@ DWORD WINAPI SendAllClient(LPVOID arg)
 }
 
 
-NetworkServer::NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue):
+NetworkServer::NetworkServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue):
 	clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer), eventQueue(networkEventQueue)
 {
 	WSADATA wsa;

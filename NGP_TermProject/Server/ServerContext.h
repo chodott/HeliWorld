@@ -9,7 +9,7 @@ class SnapshotPacketBuffer;
 struct ServerContext {
 	NetworkServer* netServer;   
 	SimulationServer* simServer; 
-	ClientInputBuffer* inputBuffer;
+	array<ClientInputBuffer, Protocol::kMaxPlayerCount>* inputBuffer;
 	SnapshotPacketBuffer* snapshotBuffer;
 };
 

@@ -5,18 +5,21 @@
 
 #include <queue>
 #include <unordered_map>
+#include <mutex>
 
 #define MAX_REWIND_TICKS 3
 
 class ClientInputBuffer
 {
 private:
-	queue<PlayerInputPacket> inputBuffers[Protocol::kMaxPlayerCount];
-	unordered_map<uint64_t, PlayerInputPacket> inputLogMaps[Protocol::kMaxPlayerCount];
+	queue<PlayerInputPacket> inputBuffer;
+	unordered_map<uint64_t, PlayerInputPacket> inputLogMap;
+
+	mutex inputBufferLock;
 
 public:
-	void PushInputData(const int index, const uint64_t currentTick, const PlayerInputPacket& InputPacket);
+	void PushInputData(const uint64_t currentTick, const PlayerInputPacket& InputPacket);
 	uint64_t GetResimulateStartTick(const uint64_t curTick);
-	bool TryGetInputPacket(int clientNum, uint64_t targetTick, PlayerInputPacket& outInputPacket);
+	bool TryGetInputPacket(const uint64_t targetTick, PlayerInputPacket& outInputPacket);
 };
 

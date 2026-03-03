@@ -2,7 +2,7 @@
 
 int main()
 {
-	ClientInputBuffer clientInputBuffer;
+	array<ClientInputBuffer, Protocol::kMaxPlayerCount> clientInputBuffer;
 	SnapshotPacketBuffer snapshotPacketBuffer;
 	NetworkEventQueue networkEventQueue;
 

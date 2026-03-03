@@ -34,7 +34,7 @@ private:
 
 class NetworkServer {
 public:
-	NetworkServer(ClientInputBuffer& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
+	NetworkServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~NetworkServer();
 
 	void OpenListenSocket(ServerContext* serverContext);
@@ -65,7 +65,7 @@ private:
 	thread acceptThread;
 	thread sendThread;
 
-	ClientInputBuffer& clientInputBuffer;
+	array<ClientInputBuffer, Protocol::kMaxPlayerCount>& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 	NetworkEventQueue& eventQueue;
 };
