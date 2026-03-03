@@ -445,9 +445,6 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 
 void CGameFramework::PrepareInputPacket()
 {
-	//뮤텍스 필요
-	//std::unique_lock<std::mutex> lock(inputPacketLock);
-
 	PlayerKeyPacket keyPacket{
 	PACKET::KeyInfo,
 	sendKey,

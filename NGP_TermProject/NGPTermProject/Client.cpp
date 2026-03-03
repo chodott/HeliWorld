@@ -35,9 +35,13 @@ DWORD WINAPI SendInputToServer(LPVOID arg)
 	SOCKET* sock = client->GetClientsock();
 
 	PlayerKeyPacket cs_keyInput;
-	while (true)
+	while (client->isRunning.load())
 	{
-		client->GetKeyPacketToSend(cs_keyInput);
+		bool result = client->WaitAndPopKeyPacket(cs_keyInput);
+		if (result == false)
+		{
+			continue;
+		}
 
 		if (send(*sock, (char*)&cs_keyInput, sizeof(PlayerKeyPacket), 0) == SOCKET_ERROR)
 		{
@@ -130,6 +134,8 @@ Client::Client()
 
 Client::~Client()
 {
+	isRunning.store(false);
+	inputPacketCV.notify_all();
 	closesocket(*sock);
 	WSACleanup();
 }
@@ -177,20 +183,26 @@ void Client::ConnectServer(InitDataPacket& initData)
 }
 
 
-void Client::GetKeyPacketToSend(PlayerKeyPacket& keyPacket)
+bool Client::WaitAndPopKeyPacket(PlayerKeyPacket& keyPacket)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
+
+	inputChangedCV.wait(lock, [this]() { return !inputPacket_dq.empty() || !isRunning.load(); });
+
 	if (!inputPacket_dq.empty())
 	{
 		keyPacket = inputPacket_dq.front();
 		inputPacket_dq.pop_front();
+		return true;
 	}
+	return false;
 }
 
 void Client::AddKeyPacket(const PlayerKeyPacket& keyPacket)
 {
 	std::unique_lock<std::mutex> lock(inputPacketLock);
 	inputPacket_dq.push_back(keyPacket);
+	inputChangedCV.notify_one();
 }
 
 void Client::SendPingPacket(PingpongPacket& pingPacket)

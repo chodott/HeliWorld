@@ -36,7 +36,7 @@ public:
 	SOCKET* GetClientsock() { return sock; }
 	void ConnectServer(InitDataPacket& initData);
 	const char* GetServerIp() { return serverIp; }
-	void GetKeyPacketToSend(PlayerKeyPacket& keyPacket);
+	bool WaitAndPopKeyPacket(PlayerKeyPacket& keyPacket);
 	void AddKeyPacket(const PlayerKeyPacket& keyPacket);
 
 	void SendPingPacket(PingpongPacket& keyPacket);
@@ -49,6 +49,7 @@ public:
 	HANDLE FrameAdvanced;
 
 	char remainBuffer[BUFSIZE]{};
+	atomic<bool> isRunning = true;
 
 	mutex inputPacketLock;
 	condition_variable inputChangedCV;
@@ -58,6 +59,8 @@ private:
 
 	std::thread recvThread;
 	std::thread sendInputThread;
+
+	condition_variable inputPacketCV;
 
 	const char* serverIp = (char*)"127.0.0.1";
 
