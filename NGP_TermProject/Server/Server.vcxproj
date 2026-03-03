@@ -148,6 +148,7 @@
     <ClCompile Include="ClientInputBuffer.cpp" />
     <ClCompile Include="error.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NetworkEventQueue.cpp" />
     <ClCompile Include="NetworkServer.cpp" />
@@ -155,10 +156,12 @@
     <ClCompile Include="SnapshotPacketBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\NGPTermProject\IPacketListener.h" />
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientInputBuffer.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="NetworkEventQueue.h" />
     <ClInclude Include="ProtocolConstants.h" />
     <ClInclude Include="SCPacket.h" />

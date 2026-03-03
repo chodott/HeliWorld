@@ -4,8 +4,8 @@
 XMFLOAT3 SimulationServer::initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
 XMFLOAT3 SimulationServer::initialRot[Protocol::kMaxPlayerCount]{ {0,0,0},{0,0,0},{0,0,0},{0,0,0} };
 
-SimulationServer::SimulationServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue)
-	: clientInputBuffer(inputBuffer), snapshotPacketBuffer(packetBuffer), eventQueue(networkEventQueue)
+SimulationServer::SimulationServer(InputManager& inputMgr, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue)
+: inputManager(inputMgr), snapshotPacketBuffer(packetBuffer), eventQueue(networkEventQueue)
 {
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
@@ -37,7 +37,7 @@ SimulationServer::~SimulationServer()
 void SimulationServer::Update(const float elapsedTime)
 {
 	uint64_t curTick = GetTick();
-	uint64_t resimulateStartTick = GetResimulateStartTick(curTick);
+	uint64_t resimulateStartTick = inputManager.GetResimulateStartTick(curTick);
 	resimulateStartTick = resimulateStartTick > 0 ? resimulateStartTick - 1 : 0;
 	ResetToSnapshot(resimulateStartTick);
 
@@ -60,17 +60,6 @@ void SimulationServer::Update(const float elapsedTime)
 	CleanSnapshotLogs();
 }
 
-uint64_t SimulationServer::GetResimulateStartTick(const uint64_t curTick)
-{
-	uint64_t earliestTick = curTick;
-	for(int i = 0; i < Protocol::kMaxPlayerCount; ++i)
-	{
-		uint64_t tick = clientInputBuffer[i].GetResimulateStartTick(curTick);
-		earliestTick = min(earliestTick, tick);
-	}
-	return earliestTick;
-}
-
 void SimulationServer::ProcessPlayerInputs(const uint64_t tick, const float elapsedTime)
 {
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
@@ -78,7 +67,7 @@ void SimulationServer::ProcessPlayerInputs(const uint64_t tick, const float elap
 		CPlayer* player = m_player[i];
 
 		PlayerInputPacket input;
-		if (clientInputBuffer[i].TryGetInputPacket(tick, input) == true)
+		if (inputManager.TryGetInputPacket(i, tick, input) == true)
 		{
 			player->Update(elapsedTime, input);
 		}

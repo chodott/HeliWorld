@@ -2,14 +2,14 @@
 
 int main()
 {
-	array<ClientInputBuffer, Protocol::kMaxPlayerCount> clientInputBuffer;
 	SnapshotPacketBuffer snapshotPacketBuffer;
 	NetworkEventQueue networkEventQueue;
+	InputManager inputManager;
 
-	SimulationServer simulationServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
-	NetworkServer networkServer(clientInputBuffer, snapshotPacketBuffer, networkEventQueue);
+	SimulationServer simulationServer(inputManager, snapshotPacketBuffer, networkEventQueue);
+	NetworkServer networkServer(snapshotPacketBuffer, networkEventQueue);
 
-	ServerContext serverContext{&networkServer,&simulationServer, &clientInputBuffer, &snapshotPacketBuffer};
+	ServerContext serverContext{&networkServer,&simulationServer, &inputManager, &snapshotPacketBuffer};
 
 	networkServer.OpenListenSocket(&serverContext);
 

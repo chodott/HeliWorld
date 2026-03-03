@@ -1,17 +1,9 @@
 #include "ClientInputBuffer.h"
 
 
-void ClientInputBuffer::PushInputData(const uint64_t currentTick, const PlayerInputPacket& inputPacket)
+void ClientInputBuffer::PushInputData(const PlayerInputPacket& inputPacket)
 {
 	std::lock_guard<std::mutex> lock(inputBufferLock);
-	if (inputBuffer.empty() == false)
-	{
-		int tickDiff = int(currentTick - inputPacket.estimatedTick);
-		if (tickDiff > MAX_REWIND_TICKS)
-		{
-			return;
-		}
-	}
 	inputBuffer.push(inputPacket);
 }
 
@@ -30,10 +22,10 @@ uint64_t ClientInputBuffer::GetResimulateStartTick(const uint64_t curTick)
 
 		inputLogMap[tick] = inputBuffer.front();
 		inputBuffer.pop();
-		startTick = min(startTick, tick);
+		earliestTick = min(earliestTick, tick);
 	}
 
-	return startTick;
+	return earliestTick;
 }
 
 bool ClientInputBuffer::TryGetInputPacket(const uint64_t targetTick, PlayerInputPacket& outInputPacket)

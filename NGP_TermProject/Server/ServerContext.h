@@ -5,11 +5,12 @@ class SimulationServer;
 class Client;
 class ClientInputBuffer;
 class SnapshotPacketBuffer;
+class InputManager;
 
 struct ServerContext {
 	NetworkServer* netServer;   
 	SimulationServer* simServer; 
-	array<ClientInputBuffer, Protocol::kMaxPlayerCount>* inputBuffer;
+	InputManager* inputManager;
 	SnapshotPacketBuffer* snapshotBuffer;
 };
 

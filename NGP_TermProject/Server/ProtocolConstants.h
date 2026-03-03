@@ -19,4 +19,6 @@ namespace Protocol
 	constexpr int kDefaultDelayMs = 150;
 
 	constexpr int kMaxRollbackTicks = 100;
+
+	constexpr int kMaxRewindTicks = 5;
 }

@@ -9,7 +9,6 @@
 #include "Client.h"
 #include "ServerContext.h"
 #include "NetworkEventQueue.h"
-#include "SnapshotPacketBuffer.h"
 
 #include <array>
 #include <chrono>
@@ -34,7 +33,7 @@ private:
 
 class NetworkServer {
 public:
-	NetworkServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
+	NetworkServer(SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~NetworkServer();
 
 	void OpenListenSocket(ServerContext* serverContext);
@@ -65,7 +64,6 @@ private:
 	thread acceptThread;
 	thread sendThread;
 
-	array<ClientInputBuffer, Protocol::kMaxPlayerCount>& clientInputBuffer;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 	NetworkEventQueue& eventQueue;
 };

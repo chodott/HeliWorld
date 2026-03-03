@@ -26,7 +26,7 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	SimulationServer* simServer = receiveClientContext->serverContext->simServer;
 
 
-	array<ClientInputBuffer, Protocol::kMaxPlayerCount>* inputBuffers = receiveClientContext->serverContext->inputBuffer;
+	InputManager* inputManager = receiveClientContext->serverContext->inputManager;
 	Client* client = receiveClientContext->client;
 	int playerNumber = client->GetPlayerNumber();
 
@@ -77,7 +77,10 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			case CS_KeyInfo:
 			{
 				memcpy(&inputPacket, client->remainBuffer + offset, packetSize);
-				inputBuffers->at(playerNumber).PushInputData(simServer->GetTick(), inputPacket);
+				if(inputPacket.estimatedTick >= simServer->GetTick() - Protocol::kMaxRewindTicks)
+				{
+					inputManager->PushInputData(playerNumber, inputPacket);
+				}
 				break;
 			}
 			case CS_PingpongInfo:

@@ -6,6 +6,8 @@
 #include "SnapShot.h"
 #include "SnapshotPacketBuffer.h"
 #include "NetworkEventQueue.h"
+#include "InputManager.h"
+
 
 #include <queue>
 #include <array>
@@ -28,7 +30,6 @@ private:
 	void ResetToSnapshot(uint64_t targetTick);
 	void UpdateSnapshot(uint64_t targetTick);
 	void GenerateMissileEvents(uint64_t tick);
-	uint64_t GetResimulateStartTick(const uint64_t curTick);
 
 	void SaveLatestSnapshot();
 	void CleanSnapshotLogs();
@@ -36,7 +37,7 @@ private:
 	static XMFLOAT3 initialPos[Protocol::kMaxPlayerCount];
 	static XMFLOAT3 initialRot[Protocol::kMaxPlayerCount];
 
-	array<ClientInputBuffer, Protocol::kMaxPlayerCount>& clientInputBuffer;
+	InputManager& inputManager;
 	SnapshotPacketBuffer& snapshotPacketBuffer;
 	NetworkEventQueue& eventQueue;
 
@@ -51,7 +52,7 @@ private:
 	uint64_t serverTick = 0;
 
 public:
-	SimulationServer(array<ClientInputBuffer, Protocol::kMaxPlayerCount>& inputBuffer, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
+	SimulationServer(InputManager& inputMgr, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~SimulationServer();
 
 	void AccessNewPlayer(int playerNum);
