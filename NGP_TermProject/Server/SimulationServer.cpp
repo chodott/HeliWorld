@@ -1,4 +1,4 @@
-#include "SimulationServer.h"
+﻿#include "SimulationServer.h"
 #include "ProtocolConstants.h"
 
 XMFLOAT3 SimulationServer::initialPos[Protocol::kMaxPlayerCount]{ {100,400,100},{900, 400, 900},{900.0f, 400.0f, 100.0f},{100.0f, 400.0f, 900.0f} };
@@ -36,7 +36,7 @@ SimulationServer::~SimulationServer()
 
 void SimulationServer::Update(const float elapsedTime)
 {
-	// Tick 0 is the initial state; snapshots contain the completed tick's state.
+	// 이번에 처리할 틱 N = 마지막 완료 틱 T + 1. 지연 허용 범위는 T를 기준으로 계산한다.
 	const uint64_t curTick = GetTick() + 1;
 	uint64_t resimulateStartTick = inputManager.GetResimulateStartTick(curTick);
 	if (resimulateStartTick == 0)
@@ -45,7 +45,9 @@ void SimulationServer::Update(const float elapsedTime)
 	}
 	if (resimulateStartTick < curTick)
 	{
-		ResetToSnapshot(resimulateStartTick - 1);
+		// 입력 i를 재실행하려면 i-1까지 처리된 상태가 필요하다.
+		if (!ResetToSnapshot(resimulateStartTick - 1))
+			resimulateStartTick = curTick;
 	}
 
 	for (uint64_t tick = resimulateStartTick; tick <= curTick; ++tick)
@@ -63,9 +65,9 @@ void SimulationServer::Update(const float elapsedTime)
 	SpawnItem(elapsedTime);
 
 	UpdateSnapshot(curTick);
+	inputManager.CompleteTick(curTick);
 	serverTick = curTick;
 	SaveLatestSnapshot();
-	CleanSnapshotLogs();
 }
 
 void SimulationServer::ProcessPlayerInputs(const uint64_t tick, const float elapsedTime)
@@ -73,6 +75,9 @@ void SimulationServer::ProcessPlayerInputs(const uint64_t tick, const float elap
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = m_player[i];
+
+		if (inputManager.ConsumeInputReset(i))
+			player->ClearLastInput();
 
 		PlayerInputPacket input;
 		if (inputManager.TryGetInputPacket(i, tick, input) == true)
@@ -200,15 +205,16 @@ void SimulationServer::AccessNewPlayer(int playerNum)
 }
 
 
-void SimulationServer::ResetToSnapshot(uint64_t targetTick)
+bool SimulationServer::ResetToSnapshot(uint64_t targetTick)
 {
-	auto it = SnapshotLogMap.find(targetTick);
-	if (it == SnapshotLogMap.end())
+	const auto* stored = snapshotHistory.Find(targetTick);
+	if (!stored)
 	{
-		return;
+		return false;
 	}
 
-	ServerSnapshot& snapshot = it->second;
+	// 복원 함수가 가변 참조를 받으므로 저장된 기록은 복사본으로 보호한다.
+	ServerSnapshot snapshot = *stored;
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = m_player[i];
@@ -230,17 +236,12 @@ void SimulationServer::ResetToSnapshot(uint64_t targetTick)
 	{
 		m_ItemObject[i]->SetPosition(snapshot.itemSnapshots[i].position);
 	}
-
+	return true;
 }
 
 void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 {
-	auto it = SnapshotLogMap.find(targetTick);
-	if (it == SnapshotLogMap.end())
-	{
-		it = SnapshotLogMap.emplace(targetTick, ServerSnapshot{}).first;
-	}
-	ServerSnapshot& snapshot = it->second;
+	ServerSnapshot& snapshot = snapshotHistory.Store(targetTick, ServerSnapshot{});
 	for (int i = 0; i < Protocol::kMaxPlayerCount; ++i)
 	{
 		CPlayer* player = m_player[i];
@@ -267,13 +268,13 @@ void SimulationServer::UpdateSnapshot(uint64_t targetTick)
 void SimulationServer::GenerateMissileEvents(uint64_t tick)
 {
 	if (tick == 0) return;
-	auto prevIt = SnapshotLogMap.find(tick - 1);
-	if (prevIt == SnapshotLogMap.end())
+	const auto* stored = snapshotHistory.Find(tick - 1);
+	if (!stored)
 	{
 		return;
 	}
 
-	const ServerSnapshot& prevSnapshot = prevIt->second;
+	const ServerSnapshot& prevSnapshot = *stored;
 
 	for (int playerIndex = 0; playerIndex < Protocol::kMaxPlayerCount; ++playerIndex)
 	{
@@ -328,12 +329,4 @@ void SimulationServer::SaveLatestSnapshot()
 	}
 
 	snapshotPacketBuffer.PushSnapshotPacket(tickSnapshot);
-}
-
-void SimulationServer::CleanSnapshotLogs()
-{
-	uint64_t curTick = GetTick();
-	if (curTick > Protocol::kMaxRollbackTicks) {
-		SnapshotLogMap.erase(curTick - Protocol::kMaxRollbackTicks);
-	}
 }

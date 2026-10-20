@@ -1,5 +1,21 @@
 #include "InputManager.h"
 
+void InputManager::CompleteTick(uint64_t tick)
+{
+	for (auto& buffer : clientInputBuffers)
+		buffer.CompleteTick(tick);
+}
+
+void InputManager::ClearPlayerInputs(int playerNum)
+{
+	clientInputBuffers[playerNum].Clear();
+}
+
+bool InputManager::ConsumeInputReset(int playerNum)
+{
+	return clientInputBuffers[playerNum].ConsumeReset();
+}
+
 void InputManager::PushInputData(const int playerNum, const PlayerInputPacket& inputPacket)
 {
 	clientInputBuffers[playerNum].PushInputData(inputPacket);

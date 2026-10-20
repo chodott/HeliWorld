@@ -1,4 +1,4 @@
-#include "Client.h"
+﻿#include "Client.h"
 #include "PacketReceiveBuffer.h"
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg)
@@ -43,7 +43,9 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			{
 				PlayerInputPacket inputPacket{};
 				memcpy(&inputPacket, data, packetSize);
-				if(inputPacket.estimatedTick >= simServer->GetTick() - Protocol::kMaxRewindTicks)
+				// T는 마지막 완료 틱이다. 최근 6틱과 최대 2틱 앞선 입력만 받는다.
+				const uint64_t lastCompletedTick = simServer->GetTick();
+				if (Protocol::IsInputTickAllowed(inputPacket.estimatedTick, lastCompletedTick))
 				{
 					inputManager->PushInputData(playerNumber, inputPacket);
 				}
@@ -83,6 +85,7 @@ void Client::Connect(const SOCKET clientSock, const int playerNum, ServerContext
 
 	recvCtx.serverContext = serverContext;
 	recvCtx.client = this;
+	serverContext->inputManager->ClearPlayerInputs(playerNum);
 	shouldDisconnected = false;
 	m_connected = true;
 
@@ -128,6 +131,9 @@ void Client::CloseConnection()
 
 	if (recvThread.joinable())
 		recvThread.join();
+	// No old receiver can enqueue input after the slot has been cleared.
+	if (recvCtx.serverContext && m_playerNumber >= 0)
+		recvCtx.serverContext->inputManager->ClearPlayerInputs(m_playerNumber);
 	shouldDisconnected = false;
 	lastLaunchedMissileID = 0;
 }

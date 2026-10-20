@@ -89,6 +89,7 @@ public:
 
 
 	inline PlayerInputPacket GetLastInput() { return m_lastInput; }
+	void ClearLastInput() { m_lastInput = {}; m_lastInput.rotation = GetCurRot(); }
 
 	inline void SetHp(int hp) { m_nHp = hp; }
 	inline int GetHp() { return m_nHp; }
@@ -111,7 +112,7 @@ private:
 	
 	static const float RespawnTime;
 
-	PlayerInputPacket m_lastInput;
+	PlayerInputPacket m_lastInput{};
 	float m_fDeadTime = 0.f;
 
 };
