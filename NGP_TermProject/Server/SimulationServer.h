@@ -49,7 +49,7 @@ private:
 
 	const float itemRespawnTime = 8.f;
 	float itemSpawnTime = 0.f;
-	uint64_t serverTick = 0;
+	uint64_t serverTick = 0; // Last completed tick; 0 denotes the initial state.
 
 public:
 	SimulationServer(InputManager& inputMgr, SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);

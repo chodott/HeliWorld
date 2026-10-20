@@ -36,10 +36,17 @@ SimulationServer::~SimulationServer()
 
 void SimulationServer::Update(const float elapsedTime)
 {
-	uint64_t curTick = GetTick();
+	// Tick 0 is the initial state; snapshots contain the completed tick's state.
+	const uint64_t curTick = GetTick() + 1;
 	uint64_t resimulateStartTick = inputManager.GetResimulateStartTick(curTick);
-	resimulateStartTick = resimulateStartTick > 0 ? resimulateStartTick - 1 : 0;
-	ResetToSnapshot(resimulateStartTick);
+	if (resimulateStartTick == 0)
+	{
+		resimulateStartTick = 1;
+	}
+	if (resimulateStartTick < curTick)
+	{
+		ResetToSnapshot(resimulateStartTick - 1);
+	}
 
 	for (uint64_t tick = resimulateStartTick; tick <= curTick; ++tick)
 	{
@@ -55,7 +62,8 @@ void SimulationServer::Update(const float elapsedTime)
 
 	SpawnItem(elapsedTime);
 
-	++serverTick;
+	UpdateSnapshot(curTick);
+	serverTick = curTick;
 	SaveLatestSnapshot();
 	CleanSnapshotLogs();
 }
