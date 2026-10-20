@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClInclude Include="..\NGPTermProject\IPacketListener.h" />
     <ClInclude Include="Client.h" />
+    <ClInclude Include="PacketReceiveBuffer.h" />
     <ClInclude Include="ClientInputBuffer.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="GameObject.h" />

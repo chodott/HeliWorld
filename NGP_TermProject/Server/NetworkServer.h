@@ -36,7 +36,7 @@ public:
 	NetworkServer(SnapshotPacketBuffer& packetBuffer, NetworkEventQueue& networkEventQueue);
 	~NetworkServer();
 
-	void OpenListenSocket(ServerContext* serverContext);
+	void OpenListenSocket(ServerContext* serverContext, unsigned short port = SERVERPORT);
 	void CloseListenSocket();
 
 	void SendPacketAllClient();
@@ -58,7 +58,7 @@ private:
 	HANDLE sendHandle = nullptr;
 
 	atomic<bool> isRunning = false;
-	SOCKET listenSock;
+	SOCKET listenSock = INVALID_SOCKET;
 	ServerContext serverContext;
 
 	thread acceptThread;

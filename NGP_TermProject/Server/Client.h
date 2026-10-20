@@ -6,48 +6,46 @@
 #include "ServerContext.h"
 
 #include <thread>
+#include <atomic>
+#include <mutex>
 #include <concurrent_queue.h>
-
-#define BUFSIZE 512
 
 class Client {
 public:
 	Client() {}
-	~Client() {}
+	~Client();
 
 	void SetPlayerNumber(int playerNumber) { m_playerNumber = playerNumber; }
 	int GetPlayerNumber() { return m_playerNumber; }
 
 	void Connect(SOCKET clientSock, int playerNum, ServerContext* serverContext);
-	bool IsConnected() { return m_connected; }
+	bool IsConnected() const { return m_connected.load() && !shouldDisconnected.load(); }
 
-	bool ShouldDisconnected() { return shouldDisconnected; }
+	void RequestDisconnect();
+	void CleanupDisconnected();
 	void Disconnect();
 	bool ShouldSendEvent(uint64_t id);
 
-	void Reset();
-
-	inline SOCKET GetSocket() { return sock; }
+	inline SOCKET GetSocket() const { return sock.load(); }
 
 	template<typename T>
-	inline void SendPacket(const T& packet) { send(sock, reinterpret_cast<const char*>(&packet), sizeof(T), 0); }
-
-	//Check RTT
-	char remainBuffer[512]{};
-	int receivedBytes = 0;
-	int remainSize = 0;
+	bool SendPacket(const T& packet) { return SendBytes(reinterpret_cast<const char*>(&packet), sizeof(T)); }
 
 	//Latency
 
 	float deadTime = 0.f;
 private:
-	SOCKET sock;
+	void CloseConnection(); // Caller holds connectionLock; never called by recvThread.
+	bool SendBytes(const char* data, int size);
+	std::mutex connectionLock;
+	std::mutex sendLock;
+	std::atomic<SOCKET> sock{ INVALID_SOCKET };
 	std::thread recvThread;
 	ReceiveClientContext recvCtx{};
 
 	uint64_t lastLaunchedMissileID = 0;
 	int m_playerNumber = -1;	// maybe client class can have playerID inside
 
-	bool m_connected = false;
-	bool shouldDisconnected = false;
+	std::atomic<bool> m_connected{ false };
+	std::atomic<bool> shouldDisconnected{ false };
 };

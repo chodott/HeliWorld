@@ -1,22 +1,5 @@
 #include "Client.h"
-
-int PacketSizeHelper(char packetType)
-{
-	int packetSize;
-	switch (packetType)
-	{
-	case CS_KeyInfo:
-		packetSize = sizeof(PlayerInputPacket);
-		break;
-	case CS_PingpongInfo:
-		packetSize = sizeof(PingpongPacket);
-		break;
-	default:
-		packetSize = -1;
-		break;
-	}
-	return packetSize;
-}
+#include "PacketReceiveBuffer.h"
 
 DWORD WINAPI ReceiveFromClient(LPVOID arg)
 {
@@ -33,50 +16,33 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 	simServer->AccessNewPlayer(playerNumber);
 
 	TimebasePacket timebasePacket{ playerNumber, simServer->GetTick(), netServer->GetTimestampMs() };
-	send(client->GetSocket(), (char*)&timebasePacket, sizeof(timebasePacket), 0);
-
-	PlayerInputPacket inputPacket{};
-
-	int combinedSize = 0;
-	char buf[BUFSIZE]{};
-
-	while (netServer->IsRunning())
+	if (!client->SendPacket(timebasePacket))
 	{
-		int receivedBytes = recv(client->GetSocket(), (char*)&buf, BUFSIZE, 0);
-		if (receivedBytes == SOCKET_ERROR)
-		{
-			// cut the connection
-			client->Reset();
+		client->RequestDisconnect();
+		return 0;
+	}
+
+	PacketReceiveBuffer receiveBuffer;
+	const SOCKET receiveSocket = client->GetSocket();
+	while (netServer->IsRunning() && client->IsConnected())
+	{
+		const int freeSize = receiveBuffer.GetFreeSize();
+		if (freeSize <= 0)
 			break;
-		}
 
-		if (combinedSize + receivedBytes > BUFSIZE)
+		const int receivedBytes = recv(receiveSocket, receiveBuffer.GetWriteBuffer(), freeSize, 0);
+		if (receivedBytes <= 0)
+			break; // Both orderly close (0) and socket errors end this connection.
+
+		const bool valid = receiveBuffer.ProcessReceived(receivedBytes,
+			[&](char packetType, const char* data, int packetSize)
 		{
-			std::cout << "receive buffer overflow, dropping pending bytes\n";
-			combinedSize = 0;
-		}
-
-		memcpy(client->remainBuffer + combinedSize, buf, receivedBytes);
-		combinedSize += receivedBytes;
-
-		int offset = 0;
-
-		while (offset < combinedSize)
-		{
-			char packetType = client->remainBuffer[offset];
-			int packetSize = PacketSizeHelper(packetType);
-
-			if (offset + packetSize > combinedSize)
-			{
-				//next packet
-				break;
-			}
-
 			switch (packetType)
 			{
 			case CS_KeyInfo:
 			{
-				memcpy(&inputPacket, client->remainBuffer + offset, packetSize);
+				PlayerInputPacket inputPacket{};
+				memcpy(&inputPacket, data, packetSize);
 				if(inputPacket.estimatedTick >= simServer->GetTick() - Protocol::kMaxRewindTicks)
 				{
 					inputManager->PushInputData(playerNumber, inputPacket);
@@ -85,45 +51,41 @@ DWORD WINAPI ReceiveFromClient(LPVOID arg)
 			}
 			case CS_PingpongInfo:
 			{
-				PingpongPacket ppPacket;
-				memcpy(&ppPacket, client->remainBuffer + offset, packetSize);
+				PingpongPacket ppPacket{};
+				memcpy(&ppPacket, data, packetSize);
 				ppPacket.serverSendTimeStamp = netServer->GetTimestampMs();
-				send(client->GetSocket(), (char*)&ppPacket, PacketSizeHelper(CS_PingpongInfo), 0);
-				break;
+				return client->SendPacket(ppPacket);
 			}
 			}
-			offset += packetSize;
-
-		}
-
-		if (combinedSize == 0)
-		{
-			continue;
-		}
-
-		int remainSize = combinedSize - offset;
-		if (remainSize > 0)
-		{
-			memmove(client->remainBuffer, client->remainBuffer + offset, remainSize);
-		}
-		combinedSize = remainSize;
+			return true;
+		});
+		if (!valid)
+			break;
 	}
 
+	// The send/accept thread performs shutdown, join and close.
+	client->RequestDisconnect();
 	return 0;
+}
+
+Client::~Client()
+{
+	Disconnect();
 }
 
 void Client::Connect(const SOCKET clientSock, const int playerNum, ServerContext* serverContext)
 {
+	std::lock_guard<std::mutex> lock(connectionLock);
+	CloseConnection();
+
 	sock = clientSock;
 	SetPlayerNumber(playerNum);
 
-	m_connected = true; 
-	shouldDisconnected = false;
-
 	recvCtx.serverContext = serverContext;
 	recvCtx.client = this;
+	shouldDisconnected = false;
+	m_connected = true;
 
-	if (recvThread.joinable()) recvThread.join();
 	recvThread = thread(ReceiveFromClient, &recvCtx);
 
 	std::cout << "Client accepted in " << GetPlayerNumber() << std::endl;
@@ -131,17 +93,63 @@ void Client::Connect(const SOCKET clientSock, const int playerNum, ServerContext
 
 void Client::Disconnect()
 {
-	 m_connected = false;
-	 shouldDisconnected = false; 
+	std::lock_guard<std::mutex> lock(connectionLock);
+	CloseConnection();
+}
 
-	 if (sock != INVALID_SOCKET) {
-		 closesocket(sock);
-		 sock = INVALID_SOCKET;
-	 }
+void Client::RequestDisconnect()
+{
+	shouldDisconnected = true;
+	// Wake the owner even when no simulation snapshot is being produced.
+	if (recvCtx.serverContext && recvCtx.serverContext->snapshotBuffer)
+		SetEvent(recvCtx.serverContext->snapshotBuffer->GetSendEvent());
+}
 
-	 if (recvThread.joinable()) {
-		 recvThread.join();
-	 }
+void Client::CleanupDisconnected()
+{
+	std::lock_guard<std::mutex> lock(connectionLock);
+	if (shouldDisconnected.load())
+		CloseConnection();
+}
+
+void Client::CloseConnection()
+{
+	m_connected = false;
+	const SOCKET closingSocket = sock.load();
+	// Stop further sends, then close to cancel a blocking recv before joining.
+	if (closingSocket != INVALID_SOCKET)
+		shutdown(closingSocket, SD_BOTH);
+	{
+		std::lock_guard<std::mutex> lock(sendLock);
+		if (closingSocket != INVALID_SOCKET)
+			closesocket(closingSocket);
+		sock = INVALID_SOCKET;
+	}
+
+	if (recvThread.joinable())
+		recvThread.join();
+	shouldDisconnected = false;
+	lastLaunchedMissileID = 0;
+}
+
+bool Client::SendBytes(const char* data, int size)
+{
+	std::lock_guard<std::mutex> lock(sendLock);
+	if (!IsConnected())
+		return false;
+
+	int sentSize = 0;
+	while (sentSize < size)
+	{
+		const int result = send(sock.load(), data + sentSize, size - sentSize, 0);
+		if (result <= 0)
+		{
+			RequestDisconnect();
+			return false;
+		}
+		sentSize += result;
+	}
+	return true;
 }
 
 bool Client::ShouldSendEvent(uint64_t id)
@@ -152,15 +160,5 @@ bool Client::ShouldSendEvent(uint64_t id)
 	}
 	lastLaunchedMissileID = id;
 	return true;
-}
-
-void Client::Reset()
-{
-	closesocket(sock);
-	sock = NULL;
-
-	lastLaunchedMissileID = 0;
-	shouldDisconnected = true;
-	Disconnect();
 }
 
