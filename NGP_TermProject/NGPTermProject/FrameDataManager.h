@@ -1,12 +1,12 @@
-#pragma once
+﻿#pragma once
 #include "FrameData.h"
 #include "NetworkSyncManager.h"
 #include "IPacketListener.h"
+#include "../Common/TickRingBuffer.h"
 
 #include <concurrent_queue.h>
 #include <mutex>
 
-#define SNAPSHOT_LIFETIME_TICK 50
 
 
 class FrameDataManager : public IPacketListener
@@ -20,14 +20,12 @@ class FrameDataManager : public IPacketListener
     void AddServerFrameData(const TickSnapshotPacket& frameData);
 
     pair<uint64_t, uint64_t> GetSimulateTickRange();
-    bool TryGetClientStartIndex(uint64_t startTick, size_t& outIndex);
-    inline XMFLOAT3 GetDiffVector() { return diffVector; }
+    XMFLOAT3 GetDiffVector() { std::lock_guard<std::mutex> lock(resimulateLock); return diffVector; }
     bool TryGetClientFrameData(const uint64_t targetTick, ClientFrameData& frameData);
     bool TryGetServerFrameData(const uint64_t serverTime, ServerFrameData& prevData, ServerFrameData& nextData);
     void CheckPositionOutOfSync();
     void ReceiveMissileEvent(const LocalMissileEventPacket& pkt);
-    bool ReadClientFrame(size_t index, ClientFrameData& outFrameData);
-    bool WriteClientSimulateResult(size_t index, const XMFLOAT3& pos, const XMFLOAT3& rot);
+    bool WriteClientSimulateResult(uint64_t tick, const XMFLOAT3& pos, const XMFLOAT3& rot);
     bool TryGetMissileEvent(LocalMissileEventPacket& event)
     {
         if(MissileEventQueue.try_pop(event) == true)
@@ -52,14 +50,19 @@ class FrameDataManager : public IPacketListener
 private:
     std::mutex resimulateLock;
     std::mutex frameDataLock;
-    std::deque<ServerFrameData> serverFrameData_dq;
-    std::deque<ClientFrameData> clientFrameData_dq;
+    TickRingBuffer<ServerFrameData, Protocol::kServerSnapshotHistoryCapacity> serverFrameHistory;
+    TickRingBuffer<ClientFrameData, Protocol::kClientPredictionHistoryCapacity> clientFrameHistory;
+    // 원격 보간 기록은 마지막으로 받은 가장 큰 서버 틱을 기준으로 유효 범위를 정한다.
+    uint64_t latestServerTick = 0;
+    bool hasServerFrames = false;
+    // 로컬 예측 기록은 서버 수신과 독립적인 최신 예측 틱을 기준으로 만료시킨다.
+    uint64_t latestClientTick = 0;
+    bool hasClientFrames = false;
     Concurrency::concurrent_queue<LocalMissileEventPacket> MissileEventQueue;
     
-    XMFLOAT3 diffVector;
-    uint64_t targetTick;
-    uint64_t dataCutTickLine;
-    int serverTick;
+	XMFLOAT3 diffVector{};
+	// 서버가 요청한 재시뮬레이션 기준 틱. 로컬 예측 기록의 삭제 기준으로 사용하지 않는다.
+	uint64_t targetTick = 0;
     int playerNum = 0;
     bool needResimulate = false;
 

@@ -23,6 +23,7 @@
     <ClInclude Include="Client.h" />
     <ClInclude Include="PacketReceiveBuffer.h" />
     <ClInclude Include="TickRingBuffer.h" />
+    <ClInclude Include="..\Common\TickRingBuffer.h" />
     <ClInclude Include="ServerContext.h" />
     <ClInclude Include="ClientInputBuffer.h" />
     <ClInclude Include="NetworkEventQueue.h" />

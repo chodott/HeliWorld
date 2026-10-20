@@ -159,6 +159,7 @@
     <ClInclude Include="error.h" />
     <ClInclude Include="FrameData.h" />
     <ClInclude Include="FrameDataManager.h" />
+    <ClInclude Include="..\Common\TickRingBuffer.h" />
     <ClInclude Include="GameFramework.h" />
     <ClInclude Include="HealObjectShader.h" />
     <ClInclude Include="IPacketListener.h" />

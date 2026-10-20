@@ -1,4 +1,4 @@
-//-----------------------------------------------------------------------------
+﻿//-----------------------------------------------------------------------------
 // File: CGameFramework.cpp
 //-----------------------------------------------------------------------------
 
@@ -577,25 +577,30 @@ void CGameFramework::Resimulate()
 		return;
 	}
 
-	//Rollback
-	m_pPlayer->SetPredictPosition(m_pFrameDataManager->rollbackPosition);
-	m_pPlayer->RotatePYR(m_pFrameDataManager->rollbackRotation);
-
 	//Resimulate
 	auto tickRange = m_pFrameDataManager->GetSimulateTickRange();
 	const uint64_t startTick = tickRange.first;
 	const uint64_t endTick = tickRange.second;
 
-	size_t startIndex{};
-	m_pFrameDataManager->TryGetClientStartIndex(startTick, startIndex);
-	for (uint64_t currentTick = startTick + 1; currentTick <= endTick; ++currentTick)
+	ClientFrameData baseFrame{};
+	if (startTick > endTick || !m_pFrameDataManager->TryGetClientFrameData(startTick, baseFrame))
 	{
-		const size_t index = startIndex + currentTick - startTick;
+		m_pFrameDataManager->FinishResimulation();
+		return;
+	}
+
+	// 필요한 예측 기록이 남아 있는 경우에만 롤백 위치를 적용한다.
+	m_pPlayer->SetPredictPosition(m_pFrameDataManager->rollbackPosition);
+	m_pPlayer->RotatePYR(m_pFrameDataManager->rollbackRotation);
+	for (uint64_t currentTick = startTick; currentTick < endTick;)
+	{
+		++currentTick;
 		ClientFrameData currentFrameData{};
-		m_pFrameDataManager->ReadClientFrame(index, currentFrameData);
+		if (!m_pFrameDataManager->TryGetClientFrameData(currentTick, currentFrameData))
+			break;
 		ReapplyInput(currentFrameData);
 		m_pFrameDataManager->WriteClientSimulateResult(
-			index,
+			currentTick,
 			m_pPlayer->GetPredictPosition(),
 			m_pPlayer->GetRotation()
 		);
@@ -744,8 +749,9 @@ void CGameFramework::AnimateObjects(const float fTimeElapsed)
 	ServerFrameData prevData;
 	ServerFrameData nextData;
 	double delayedTick = m_pNetworkSyncManager->GetDelayedServerTick();
-	const uint64_t delayedTickI = (delayedTick <= 0.0) ? 0 : uint64_t(delayedTick);
-	bool hasData = m_pFrameDataManager->TryGetServerFrameData(delayedTickI, prevData, nextData);
+	// 소수 틱 시점도 앞뒤로 감싸도록 올림한 틱을 조회한다(예: 10.5 -> 11).
+	const uint64_t interpolationEndTick = (delayedTick <= 0.0) ? 0 : uint64_t(ceil(delayedTick));
+	bool hasData = m_pFrameDataManager->TryGetServerFrameData(interpolationEndTick, prevData, nextData);
 	if (!hasData)
 	{
 		return;

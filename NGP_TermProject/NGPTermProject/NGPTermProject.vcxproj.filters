@@ -165,6 +165,9 @@
     <ClInclude Include="FrameDataManager.h">
       <Filter>Client</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\TickRingBuffer.h">
+      <Filter>Client</Filter>
+    </ClInclude>
     <ClInclude Include="FrameData.h">
       <Filter>Client</Filter>
     </ClInclude>
